@@ -45,7 +45,7 @@ export default function Home() {
             </h1>
             <p className="text-muted-foreground mb-4">{featuredArticle.author}</p>
             <p className="mb-6">{featuredArticle.excerpt}</p>
-            <Button asChild className="w-fit">
+            <Button asChild className="w-fit" variant="accent">
               <Link href={`/articles/${featuredArticle.slug}`}>
                 Đọc tiếp <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
