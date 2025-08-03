@@ -8,7 +8,7 @@
 - User Registration: Allows user to register for access to more content, like a library.
 - Trending Content Section: Feature that displays top articles/books based on views or downloads.
 - AI Reading Suggestions: LLM-powered tool that suggests similar readings or authors based on the current article.
-- Social Media Integration: Links to Facebook page (Văn chương mạn đàm) and TikTok account (Tanka).
+- Social Media Integration: Links to Facebook page (Văn chương mạn đàm) and TikTok account (idk).
 
 ## Style Guidelines:
 
