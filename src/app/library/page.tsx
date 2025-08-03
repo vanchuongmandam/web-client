@@ -13,7 +13,7 @@ const libraryBooks = [
     premium: false,
   },
   {
-    title: "War and Peace",
+    title: "Chiến tranh và Hòa bình",
     author: "Leo Tolstoy",
     image: "https://placehold.co/400x600.png",
     dataAiHint: "battlefield snow",
@@ -27,7 +27,7 @@ const libraryBooks = [
     premium: false,
   },
   {
-    title: "Pride and Prejudice",
+    title: "Kiêu hãnh và Định kiến",
     author: "Jane Austen",
     image: "https://placehold.co/400x600.png",
     dataAiHint: "regency couple",
@@ -55,16 +55,16 @@ export default function LibraryPage() {
       <header className="mb-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="mb-4 md:mb-0">
-                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl font-headline">Digital Library</h1>
+                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl font-headline">Thư viện số</h1>
                 <p className="mt-3 text-lg text-foreground/70">
-                    A collection of digital literary works.
+                    Một bộ sưu tập các tác phẩm văn học kỹ thuật số.
                 </p>
             </div>
             <div className="flex items-center gap-2">
                 <Link href="/login">
-                  <Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Upload Work</Button>
+                  <Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Tải lên tác phẩm</Button>
                 </Link>
-                <p className="self-center text-sm text-muted-foreground hidden md:block">Login required</p>
+                <p className="self-center text-sm text-muted-foreground hidden md:block">Yêu cầu đăng nhập</p>
             </div>
         </div>
       </header>
@@ -74,14 +74,14 @@ export default function LibraryPage() {
             {book.premium && (
                 <div className="absolute top-2 right-2 z-10 rounded-full bg-accent p-2 text-accent-foreground">
                     <BookLock className="h-4 w-4" />
-                    <span className="sr-only">Premium Content</span>
+                    <span className="sr-only">Nội dung Premium</span>
                 </div>
             )}
             <CardHeader className="p-0">
                 <Image
                     src={book.image}
                     data-ai-hint={book.dataAiHint}
-                    alt={`Cover for ${book.title}`}
+                    alt={`Bìa sách ${book.title}`}
                     width={400}
                     height={600}
                     className="aspect-[2/3] w-full object-cover transition-transform group-hover:scale-105"
@@ -94,7 +94,7 @@ export default function LibraryPage() {
             <CardFooter className="p-4 pt-0">
               <Link href="/login" className="w-full">
                 <Button variant={book.premium ? "secondary" : "default"} className="w-full">
-                  <Download className="mr-2 h-4 w-4" /> Download
+                  <Download className="mr-2 h-4 w-4" /> Tải xuống
                 </Button>
               </Link>
             </CardFooter>
@@ -102,8 +102,8 @@ export default function LibraryPage() {
         ))}
       </div>
        <div className="text-center mt-12 text-muted-foreground">
-        <p>Book upload and download requires an account.</p>
-        <p>Premium books are only available to <Link href="/premium" className="underline text-primary">premium members</Link>.</p>
+        <p>Việc tải lên và tải xuống sách yêu cầu tài khoản.</p>
+        <p>Sách premium chỉ dành cho <Link href="/premium" className="underline text-primary">thành viên premium</Link>.</p>
       </div>
     </div>
   );

@@ -36,16 +36,16 @@ export function RecommendationEngine({ text }: RecommendationEngineProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-headline">
           <Wand2 className="text-accent" />
-          AI-Powered Recommendations
+          Đề xuất bởi AI
         </CardTitle>
         <CardDescription>
-          Enjoying this piece? Find similar works based on style, theme, and period.
+          Thích tác phẩm này? Tìm các tác phẩm tương tự dựa trên phong cách, chủ đề và thời kỳ.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {recommendations.length === 0 && !isLoading && !error && (
           <Button onClick={handleGetRecommendations} variant="outline">
-            Generate Recommendations
+            Tạo đề xuất
           </Button>
         )}
         {isLoading && (

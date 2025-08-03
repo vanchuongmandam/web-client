@@ -6,8 +6,8 @@ import { Footer } from '@/components/footer';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'Literary Lantern',
-  description: 'A sanctuary for literary exploration and discovery.',
+  title: 'Văn Chương Mạn Đàm',
+  description: 'Một thánh địa cho việc khám phá và tìm hiểu văn học.',
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

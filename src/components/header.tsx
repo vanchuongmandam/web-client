@@ -21,18 +21,18 @@ export function Header() {
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <BookOpen className="h-6 w-6 text-primary" />
           <span className="hidden font-bold sm:inline-block font-headline text-lg">
-            Literary Lantern
+            Văn Chương Mạn Đàm
           </span>
         </Link>
         <nav className="flex items-center gap-6 text-sm">
           <Link href="/articles" className="transition-colors hover:text-foreground/80 text-foreground/60 font-headline">
-            Articles
+            Bài viết
           </Link>
           <Link href="/library" className="transition-colors hover:text-foreground/80 text-foreground/60 font-headline">
-            Library
+            Thư viện
           </Link>
           <Link href="/contact" className="transition-colors hover:text-foreground/80 text-foreground/60 font-headline">
-            Contact
+            Liên hệ
           </Link>
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4">
@@ -51,12 +51,12 @@ export function Header() {
             </a>
             <Link href="/premium">
               <Button variant="default" className="bg-accent text-accent-foreground hover:bg-accent/90 hidden sm:flex">
-                Go Premium
+                Nâng cấp Premium
               </Button>
             </Link>
              <Link href="/login">
               <Button variant="outline">
-                Login
+                Đăng nhập
               </Button>
             </Link>
           </nav>

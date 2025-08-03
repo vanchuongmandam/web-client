@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email." }),
-  password: z.string().min(1, { message: "Password is required." }),
+  email: z.string().email({ message: "Vui lòng nhập một email hợp lệ." }),
+  password: z.string().min(1, { message: "Mật khẩu là bắt buộc." }),
 });
 
 export function LoginForm() {
@@ -26,14 +26,14 @@ export function LoginForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     // Here you would handle login logic
-    alert("Login functionality not implemented yet.");
+    alert("Chức năng đăng nhập chưa được triển khai.");
   }
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="font-headline text-2xl">Welcome Back</CardTitle>
-        <CardDescription>Enter your credentials to access your account.</CardDescription>
+        <CardTitle className="font-headline text-2xl">Chào mừng trở lại</CardTitle>
+        <CardDescription>Nhập thông tin đăng nhập để truy cập tài khoản của bạn.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -45,7 +45,7 @@ export function LoginForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="you@example.com" {...field} />
+                    <Input type="email" placeholder="ban@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -56,7 +56,7 @@ export function LoginForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Mật khẩu</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
@@ -65,12 +65,12 @@ export function LoginForm() {
               )}
             />
             <Button type="submit" className="w-full">
-              Log In
+              Đăng nhập
             </Button>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              Chưa có tài khoản?{" "}
               <Link href="/signup" className="underline text-primary">
-                Sign up
+                Đăng ký
               </Link>
             </div>
           </form>

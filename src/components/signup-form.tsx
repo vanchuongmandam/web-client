@@ -10,9 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const formSchema = z.object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-    email: z.string().email({ message: "Please enter a valid email." }),
-    password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+    name: z.string().min(2, { message: "Tên phải có ít nhất 2 ký tự." }),
+    email: z.string().email({ message: "Vui lòng nhập một email hợp lệ." }),
+    password: z.string().min(8, { message: "Mật khẩu phải có ít nhất 8 ký tự." }),
 });
 
 export function SignupForm() {
@@ -28,14 +28,14 @@ export function SignupForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     // Here you would handle signup logic
-    alert("Signup functionality not implemented yet.");
+    alert("Chức năng đăng ký chưa được triển khai.");
   }
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="font-headline text-2xl">Create an Account</CardTitle>
-        <CardDescription>Join our community of literary enthusiasts.</CardDescription>
+        <CardTitle className="font-headline text-2xl">Tạo tài khoản</CardTitle>
+        <CardDescription>Tham gia cộng đồng những người yêu văn học của chúng tôi.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -45,7 +45,7 @@ export function SignupForm() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Họ và Tên</FormLabel>
                   <FormControl>
                     <Input placeholder="Jane Austen" {...field} />
                   </FormControl>
@@ -60,7 +60,7 @@ export function SignupForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="you@example.com" {...field} />
+                    <Input type="email" placeholder="ban@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -71,7 +71,7 @@ export function SignupForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Mật khẩu</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
@@ -80,12 +80,12 @@ export function SignupForm() {
               )}
             />
             <Button type="submit" className="w-full">
-              Create Account
+              Tạo tài khoản
             </Button>
             <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
+              Đã có tài khoản?{" "}
               <Link href="/login" className="underline text-primary">
-                Log in
+                Đăng nhập
               </Link>
             </div>
           </form>

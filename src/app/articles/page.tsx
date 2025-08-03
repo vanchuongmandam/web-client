@@ -5,23 +5,23 @@ import { ArrowRight } from 'lucide-react';
 const articles = [
   {
     slug: 'the-great-gatsby-symbolism',
-    title: 'The Symbolism of the Green Light in The Great Gatsby',
-    excerpt: 'An in-depth analysis of one of literature\'s most famous symbols, exploring its representation of hope, the American Dream, and unattainable desires.',
+    title: 'Tính biểu tượng của ánh sáng xanh trong The Great Gatsby',
+    excerpt: 'Một phân tích chuyên sâu về một trong những biểu tượng nổi tiếng nhất của văn học, khám phá sự thể hiện của nó về hy vọng, Giấc mơ Mỹ và những khát vọng không thể đạt được.',
   },
   {
     slug: 'a-modest-proposal-satire',
-    title: 'Unpacking the Satire in A Modest Proposal',
-    excerpt: 'A deep dive into Jonathan Swift\'s masterful use of irony and satire to critique British policy in Ireland.',
+    title: 'Giải mã nghệ thuật châm biếm trong Một đề nghị khiêm tốn',
+    excerpt: 'Một cái nhìn sâu sắc về việc Jonathan Swift sử dụng bậc thầy sự mỉa mai và châm biếm để chỉ trích chính sách của Anh ở Ireland.',
   },
   {
     slug: 'frankenstein-and-the-prometheus-myth',
-    title: 'Frankenstein as a Modern Prometheus',
-    excerpt: 'Examining the parallels between Mary Shelley\'s Victor Frankenstein and the mythological figure of Prometheus.',
+    title: 'Frankenstein như một Prometheus hiện đại',
+    excerpt: 'Kiểm tra sự tương đồng giữa Victor Frankenstein của Mary Shelley và nhân vật thần thoại Prometheus.',
   },
     {
     slug: 'to-kill-a-mockingbird-moral-growth',
-    title: 'Moral Growth in To Kill a Mockingbird',
-    excerpt: 'Tracing the development of Scout, Jem, and Dill as they confront the prejudices of their society.',
+    title: 'Sự trưởng thành về đạo đức trong Giết con chim nhại',
+    excerpt: 'Theo dõi sự phát triển của Scout, Jem và Dill khi họ đối mặt với những định kiến của xã hội.',
   },
 ];
 
@@ -29,9 +29,9 @@ export default function ArticlesPage() {
   return (
     <div className="container max-w-4xl py-12 md:py-20">
       <header className="mb-12 text-center">
-        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl font-headline">Articles</h1>
+        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl font-headline">Bài viết</h1>
         <p className="mt-3 text-lg text-foreground/70">
-          Explorations, essays, and analyses of literary works.
+          Những khám phá, tiểu luận và phân tích các tác phẩm văn học.
         </p>
       </header>
       <div className="space-y-8">
@@ -42,7 +42,7 @@ export default function ArticlesPage() {
                 <CardTitle className="font-headline group-hover:text-primary transition-colors">{article.title}</CardTitle>
                 <CardDescription className="mt-2 text-base">{article.excerpt}</CardDescription>
                 <div className="flex items-center mt-4 text-sm font-semibold text-primary">
-                    Read article
+                    Đọc bài viết
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </CardHeader>

@@ -11,9 +11,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Feather } from "lucide-react";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email." }),
-  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
+  name: z.string().min(2, { message: "Tên phải có ít nhất 2 ký tự." }),
+  email: z.string().email({ message: "Vui lòng nhập một email hợp lệ." }),
+  message: z.string().min(10, { message: "Tin nhắn phải có ít nhất 10 ký tự." }),
 });
 
 export function ContactForm() {
@@ -30,8 +30,8 @@ export function ContactForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     toast({
-      title: "Message Sent!",
-      description: "Thank you for your feedback. We will get back to you shortly.",
+      title: "Đã gửi tin nhắn!",
+      description: "Cảm ơn bạn đã phản hồi. Chúng tôi sẽ liên hệ lại với bạn sớm.",
     });
     form.reset();
   }
@@ -45,9 +45,9 @@ export function ContactForm() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Họ và Tên</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input placeholder="Nguyễn Văn A" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -58,9 +58,9 @@ export function ContactForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email Address</FormLabel>
+                  <FormLabel>Địa chỉ Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="you@example.com" {...field} />
+                    <Input placeholder="ban@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -72,9 +72,9 @@ export function ContactForm() {
           name="message"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Your Message</FormLabel>
+              <FormLabel>Tin nhắn của bạn</FormLabel>
               <FormControl>
-                <Textarea placeholder="Tell us what's on your mind..." className="min-h-[150px]" {...field} />
+                <Textarea placeholder="Hãy cho chúng tôi biết bạn đang nghĩ gì..." className="min-h-[150px]" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -82,7 +82,7 @@ export function ContactForm() {
         />
         <Button type="submit" size="lg" className="w-full md:w-auto">
             <Feather className="mr-2 h-4 w-4" />
-            Send Message
+            Gửi tin nhắn
         </Button>
       </form>
     </Form>
