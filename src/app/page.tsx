@@ -101,7 +101,7 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-4">
               {recommendedBooks.map((book) => (
                 <Link href="#" key={book.id} className="group">
-                  <Card className="overflow-hidden h-full">
+                  <Card className="overflow-hidden h-full transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
                     <CardContent className="p-0">
                       <div className="relative aspect-[2/3] w-full">
                         <Image
@@ -129,7 +129,7 @@ export default function Home() {
 }
 
 const ArticleCard = ({ article }: { article: Article }) => (
-  <Card className="h-full flex flex-col overflow-hidden group">
+  <Card className="h-full flex flex-col overflow-hidden group transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
     <CardHeader className="p-0">
        <div className="relative aspect-video w-full">
         <Image
@@ -157,7 +157,7 @@ const ArticleCard = ({ article }: { article: Article }) => (
 );
 
 const ArticleListItem = ({ article }: { article: Article }) => (
-    <Card className="group grid grid-cols-3 gap-4 overflow-hidden transition-shadow hover:shadow-lg">
+    <Card className="group grid grid-cols-3 gap-4 overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
       <div className="relative col-span-1 h-full min-h-[120px]">
           <Image
               src={article.imageUrl}
