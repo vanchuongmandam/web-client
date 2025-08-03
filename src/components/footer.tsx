@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { Facebook } from 'lucide-react';
-import { TikTokIcon } from './icons';
+import { Facebook , Github } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -28,13 +27,13 @@ export default function Footer() {
               Để lại lời nhắn hoặc theo dõi chúng tôi trên các nền tảng xã hội.
             </p>
             <div className="flex items-center space-x-4">
-              <a href="https://www.facebook.com/vanchuongmandam" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+              <a href="https://www.facebook.com/profile.php?id=61577618705298" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
                 <Facebook className="h-6 w-6" />
                 <span className="sr-only">Facebook</span>
               </a>
-              <a href="https://www.tiktok.com/@tanka" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
-                <TikTokIcon className="h-6 w-6" />
-                <span className="sr-only">TikTok</span>
+              <a href="https://github.com/vanchuongmandam" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                <Github className="h-6 w-6" />
+                <span className="sr-only">Github</span>
               </a>
             </div>
           </div>
