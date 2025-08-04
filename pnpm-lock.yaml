@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@genkit-ai/googleai':
-        specifier: ^1.14.1
+        specifier: ^1.15.5
         version: 1.15.5(genkit@1.15.5)
       '@genkit-ai/next':
         specifier: ^1.14.1
@@ -125,6 +125,9 @@ importers:
       recharts:
         specifier: ^2.15.1
         version: 2.15.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      require-in-the-middle:
+        specifier: ^7.5.2
+        version: 7.5.2
       tailwind-merge:
         specifier: ^3.0.1
         version: 3.3.1
