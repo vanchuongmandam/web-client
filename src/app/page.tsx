@@ -128,12 +128,7 @@ export default async function Home() {
 }
 
 
-// --- Các Component con (giữ nguyên không đổi) ---
-const NewspaperArticleCard = ({ article }: { article: Article }) => { /* ... */ };
-const ArticleCard = ({ article }: { article: Article }) => { /* ... */ };
-const ArticleListItem = ({ article }: { article: Article }) => { /* ... */ };
-
-// (Dán lại code đầy đủ cho các component con để đảm bảo)
+// --- Các Component con (Chỉ định nghĩa MỘT LẦN) ---
 const NewspaperArticleCard = ({ article }: { article: Article }) => {
   const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
   return (
