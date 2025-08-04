@@ -3,7 +3,14 @@
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetTrigger, 
+  SheetClose,
+  SheetHeader,  // Import thêm
+  SheetTitle    // Import thêm
+} from '@/components/ui/sheet';
 import { Menu, Feather, User, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
@@ -92,7 +99,11 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
-              <div className="flex flex-col h-full p-6">
+              {/* --- SỬA LỖI TẠI ĐÂY --- */}
+              <SheetHeader>
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col h-full p-6 pt-0">
                 <nav className="flex flex-col gap-6 text-lg font-medium mt-8">
                   {navItems.map((item) => (
                     <SheetClose asChild key={item.name}>
@@ -102,7 +113,6 @@ export function Header() {
                     </SheetClose>
                   ))}
                 </nav>
-                {/* --- SỬA LỖI TẠI ĐÂY --- */}
                 <div className="mt-auto space-y-2">
                    {isLoading ? (
                       <div className="h-9 w-full rounded-md bg-gray-200 animate-pulse"></div>
