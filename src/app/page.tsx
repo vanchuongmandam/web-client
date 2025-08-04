@@ -219,7 +219,7 @@ const ArticleListItem = ({ article }: { article: Article }) => (
               </Link>
           </h3>
           <p className="text-sm text-muted-foreground mt-1">{article.excerpt}</p>
-          <p className="text-xs text-muted-foreground mt-2">{article.author} &bull; {new Date(article.date).toLocaleDateString('vi-VN')}</p>
+          <p className="text-xs text-muted-foreground mt-2">{article.author} &bull; {article.date}</p>
       </div>
   </Card>
 );
