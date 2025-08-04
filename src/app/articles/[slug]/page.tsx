@@ -4,32 +4,31 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import ReadingSuggestions from "./reading-suggestions";
 import type { Article } from "@/lib/types";
+
+// Import cả hai component
+import RelatedArticles from "./related-articles";
+import ReadingSuggestions from "./reading-suggestions";
+
 
 // --- Hàm gọi API để lấy một bài viết cụ thể ---
 async function getArticle(slug: string): Promise<Article | null> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     const response = await fetch(`${apiBaseUrl}/articles/${slug}`, { cache: 'no-store' });
-
     if (!response.ok) {
       if (response.status === 404) return null;
       throw new Error(`Failed to fetch article: ${response.statusText}`);
     }
-    
-    // Giữ nguyên object category từ API, không làm phẳng nó nữa
-    const articleData = await response.json();
-    return articleData;
-
+    return await response.json();
   } catch (error) {
     console.error(`An error occurred while fetching article ${slug}:`, error);
     return null;
   }
 }
 
-// --- Component trang chi tiết bài viết (chuyển thành async) ---
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+// --- Component trang chi tiết bài viết ---
+export default async function ArticlePage({ params }: { params: { slug:string } }) {
   const article = await getArticle(params.slug);
 
   if (!article) {
@@ -41,8 +40,8 @@ export default async function ArticlePage({ params }: { params: { slug: string }
       <article>
         <header className="mb-8">
           <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
-            {/* Hiển thị tên category */}
             <Badge variant="secondary">{article.category.name}</Badge>
+            {/* Sử dụng trực tiếp article.date như bạn đề cập */}
             <span>{article.date}</span>
           </div>
           <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight text-primary">
@@ -71,14 +70,18 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
       <Separator className="my-12" />
 
-      {/* 
-        Truyền category SLUG (đúng từ API) và slug bài viết hiện tại
-        xuống component ReadingSuggestions
-      */}
-      <ReadingSuggestions 
+      {/* Hiển thị cả hai component */}
+      <RelatedArticles 
         currentArticleSlug={article.slug} 
         categorySlug={article.category.slug} 
       />
+
+      <div className="mt-12">
+        <ReadingSuggestions 
+          articleContent={article.content} 
+        />
+      </div>
+
     </div>
   );
 }
