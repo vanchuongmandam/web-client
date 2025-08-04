@@ -76,7 +76,9 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }: {
 }) => {
     const { user, token } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
-    [isSubmitting, setIsSubmitting] = useState(false);
+    // --- SỬA LỖI TẠI ĐÂY ---
+    // Khai báo lại biến isSubmitting bị thiếu
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [editedContent, setEditedContent] = useState(comment.content);
     const { toast } = useToast();
 
