@@ -21,7 +21,7 @@ import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
 
-// --- Zod Schema for Validation ---
+// --- Sửa Zod Schema ---
 const articleFormSchema = z.object({
   title: z.string().min(5, { message: "Tiêu đề phải có ít nhất 5 ký tự." }),
   slug: z.string().min(3, { message: "Slug phải có ít nhất 3 ký tự." }).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug chỉ được chứa chữ thường, số và dấu gạch ngang." }),
@@ -29,11 +29,12 @@ const articleFormSchema = z.object({
   excerpt: z.string().min(10, { message: "Tóm tắt phải có ít nhất 10 ký tự." }),
   content: z.string().min(50, { message: "Nội dung phải có ít nhất 50 ký tự." }),
   category: z.string({ required_error: "Vui lòng chọn một danh mục." }),
+  // Gỡ bỏ .min(1) để không bắt buộc phải có media
   media: z.array(z.object({
       url: z.string(),
       mediaType: z.enum(['image', 'video']),
       caption: z.string().optional(),
-  })).min(1, { message: "Bài viết phải có ít nhất một media (ảnh/video)." }),
+  })),
 });
 
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
@@ -57,12 +58,16 @@ async function uploadFile(file: File, token: string): Promise<Media> {
         body: formData,
     });
     if (!res.ok) throw new Error("File upload failed");
-    return res.json();
+    // API của bạn trả về một object có chứa `url` và `mediaType`
+    const data = await res.json();
+    return {
+        url: data.url,
+        mediaType: data.mediaType,
+    };
 }
 
 async function createArticle(data: ArticleFormValues, token: string) {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    // Thêm date vào dữ liệu trước khi gửi
     const dataToSend = {
         ...data,
         date: new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -93,6 +98,7 @@ export default function NewArticlePage() {
 
     const form = useForm<ArticleFormValues>({
         resolver: zodResolver(articleFormSchema),
+        // Đặt giá trị mặc định cho media là một mảng rỗng
         defaultValues: { media: [] },
     });
     const mediaValue = form.watch('media');
@@ -110,13 +116,12 @@ export default function NewArticlePage() {
         setIsUploading(true);
         try {
             const newMedia = await uploadFile(file, token);
-            // API upload của bạn trả về cả url và mediaType
-            form.setValue('media', [...form.getValues('media'), { url: newMedia.url, mediaType: newMedia.mediaType as 'image' | 'video' }]);
+            form.setValue('media', [...form.getValues('media'), newMedia]);
         } catch (error) {
             toast({ variant: "destructive", title: "Upload thất bại", description: "Không thể tải file lên." });
         } finally {
             setIsUploading(false);
-            e.target.value = ''; // Reset file input
+            e.target.value = '';
         }
     };
     
@@ -189,25 +194,23 @@ export default function NewArticlePage() {
                                 </CardContent>
                             </Card>
                             <Card>
-                                <CardHeader><CardTitle>Media</CardTitle></CardHeader>
+                                <CardHeader><CardTitle>Media (Tùy chọn)</CardTitle></CardHeader>
                                 <CardContent>
-                                    <FormField control={form.control} name="media" render={() => (
-                                        <FormItem>
-                                            <FormLabel>File ảnh/video</FormLabel>
-                                            <FormControl>
-                                                <div className="relative">
-                                                    <Button type="button" variant="outline" asChild>
-                                                        <label htmlFor="file-upload" className="cursor-pointer w-full">
-                                                            <Upload className="mr-2 h-4 w-4" /> Upload File
-                                                        </label>
-                                                    </Button>
-                                                    <Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading}/>
-                                                    {isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )} />
+                                    <FormItem>
+                                        <FormLabel>File ảnh/video</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Button type="button" variant="outline" asChild>
+                                                    <label htmlFor="file-upload" className="cursor-pointer w-full">
+                                                        <Upload className="mr-2 h-4 w-4" /> Upload File
+                                                    </label>
+                                                </Button>
+                                                <Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading}/>
+                                                {isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
                                     <div className="mt-4 space-y-2">
                                         {mediaValue.map((m, index) => (
                                             <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
