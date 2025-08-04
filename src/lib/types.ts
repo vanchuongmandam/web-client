@@ -1,15 +1,21 @@
 // src/lib/types.ts
 
-// Định nghĩa cấu trúc cho Category dựa trên API
 export interface Category {
   _id: string;
   name: string;
   slug: string;
 }
 
+// Cấu trúc cho một media item trong bài viết
+export interface Media {
+  url: string;
+  mediaType: 'image' | 'video';
+  caption?: string;
+}
+
 export interface Article {
   _id: string;
-  id?: string; // id có thể không có nếu chỉ dùng _id
+  id?: string;
   slug: string;
   title: string;
   author: string;
@@ -17,8 +23,7 @@ export interface Article {
   category: Category;
   excerpt: string;
   content: string;
-  imageUrl: string;
-  imageHint?: string;
+  media: Media[]; // Thay thế imageUrl bằng mảng media
   trending?: boolean;
 }
 
@@ -30,21 +35,18 @@ export interface Book {
   imageHint: string;
 }
 
-// --- Thêm kiểu dữ liệu cho Bình luận và Người dùng ---
 export interface User {
   _id: string;
-  username: string;
+  username:string;
   role: string;
 }
 
-// Đại diện cho một bình luận từ API
 export interface Comment {
   _id: string;
   content: string;
   author: User;
-  article: string; // articleId
+  article: string;
   parentComment?: string | null;
   createdAt: string;
-  // Frontend sẽ tự xây dựng cây bình luận từ danh sách phẳng
   children?: Comment[]; 
 }

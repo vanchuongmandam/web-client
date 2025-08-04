@@ -8,7 +8,7 @@ import type { Article } from "@/lib/types";
 
 import RelatedArticles from "./related-articles";
 import ReadingSuggestions from "./reading-suggestions";
-import CommentSection from "./comment-section"; // Import component mới
+import CommentSection from "./comment-section";
 
 // --- Hàm gọi API để lấy một bài viết cụ thể ---
 async function getArticle(slug: string): Promise<Article | null> {
@@ -34,6 +34,9 @@ export default async function ArticlePage({ params }: { params: { slug: string }
   if (!article) {
     notFound();
   }
+  
+  // Lấy ảnh đại diện từ mảng media
+  const heroImage = article.media?.find(m => m.mediaType === 'image')?.url;
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
@@ -51,15 +54,18 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           </p>
         </header>
 
-        <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-8">
-          <Image
-            src={article.imageUrl}
-            alt={article.title}
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
+        {/* Hiển thị ảnh nếu có */}
+        {heroImage && (
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-8">
+                <Image
+                    src={heroImage}
+                    alt={article.title}
+                    fill
+                    className="object-cover"
+                    priority
+                />
+            </div>
+        )}
         
         <div
           className="prose prose-lg dark:prose-invert max-w-none prose-p:font-body prose-headings:font-headline"
@@ -80,7 +86,6 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         />
       </div>
 
-      {/* --- Thêm khu vực bình luận vào đây --- */}
       <Separator className="my-12" />
       <CommentSection articleId={article._id} />
 

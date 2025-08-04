@@ -19,25 +19,12 @@ import type { Article } from "@/lib/types";
 async function getArticles(): Promise<Article[]> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiBaseUrl}/articles`, {
-      // Sử dụng cache để tăng tốc độ tải trang và giảm số lượng request
-      // Dữ liệu sẽ được cache trong 1 giờ
-      next: { revalidate: 3600 },
-    });
-
+    const response = await fetch(`${apiBaseUrl}/articles`, { next: { revalidate: 3600 } });
     if (!response.ok) {
-      // Nếu API trả về lỗi, hiển thị thông báo và trả về mảng rỗng
       console.error("Failed to fetch articles:", await response.text());
       return [];
     }
-
-    const articles = await response.json();
-    // API của bạn trả về category là một object, cần phải trích xuất 'name'
-    return articles.map((article: any) => ({
-      ...article,
-      category: article.category.name,
-    }));
-
+    return await response.json();
   } catch (error) {
     console.error("An error occurred while fetching articles:", error);
     return [];
@@ -48,7 +35,6 @@ async function getArticles(): Promise<Article[]> {
 export default async function Home() {
   const articles = await getArticles();
 
-  // Xử lý dữ liệu nếu không có bài viết nào
   if (articles.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -59,15 +45,13 @@ export default async function Home() {
   }
 
   // --- Lọc và phân loại bài viết ---
-  // API không trả về ID dạng string, nên ta dùng slug để tìm
-  const featuredArticle = articles[0]; // Lấy bài đầu tiên làm bài nổi bật
+  const featuredArticle = articles[0];
   const trendingArticles = articles.filter(a => a.trending);
-  const criticismArticles = articles.filter(a => a.category === 'Phê bình & Tiểu luận').slice(0, 4);
-  const creativeWritingArticles = articles.filter(a => a.category === 'Sáng tác').slice(0, 3);
+  // Sử dụng category.name để lọc
+  const criticismArticles = articles.filter(a => a.category.name === 'Phê bình & Tiểu luận').slice(0, 4);
+  const creativeWritingArticles = articles.filter(a => a.category.name === 'Sáng tác').slice(0, 3);
   
-  // Dữ liệu sách hiện vẫn dùng mock-data vì chưa có API
-  // const { books } = await import("@/lib/mock-data");
-  // const recommendedBooks = books.slice(0, 4);
+  const featuredImage = featuredArticle?.media?.find(m => m.mediaType === 'image')?.url;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -76,16 +60,12 @@ export default async function Home() {
         <section className="mb-12">
           <Card className="grid md:grid-cols-2 overflow-hidden border-2 border-primary/20 shadow-xl">
             <div className="relative h-64 md:h-auto">
-              <Image
-                src={featuredArticle.imageUrl}
-                alt={featuredArticle.title}
-                fill
-                className="object-cover"
-                priority
-              />
+              {featuredImage && (
+                  <Image src={featuredImage} alt={featuredArticle.title} fill className="object-cover" priority/>
+              )}
             </div>
             <div className="p-8 flex flex-col justify-center">
-              <Badge variant="secondary" className="mb-2 w-fit">{featuredArticle.category}</Badge>
+              <Badge variant="secondary" className="mb-2 w-fit">{featuredArticle.category.name}</Badge>
               <h1 className="font-headline text-4xl md:text-5xl font-bold mb-4 text-primary">
                 <Link href={`/articles/${featuredArticle.slug}`} className="hover:underline">
                   {featuredArticle.title}
@@ -122,8 +102,7 @@ export default async function Home() {
       )}
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1">
           {/* Criticism Section */}
           {criticismArticles.length > 0 && (
             <section className="mb-12">
@@ -138,7 +117,7 @@ export default async function Home() {
 
           {/* Creative Writing Section */}
            {creativeWritingArticles.length > 0 && (
-            <section className="mb-12">
+            <section>
               <h2 className="font-headline text-3xl font-bold mb-6">Sáng tác</h2>
               <div className="space-y-6">
                 {creativeWritingArticles.map((article) => (
@@ -147,79 +126,59 @@ export default async function Home() {
               </div>
             </section>
            )}
-        </div>
-
-        <aside>
-          {/* Books Section - Tạm thời ẩn đi vì chưa có API */}
-          {/* 
-          <section className="mb-12 sticky top-8">
-            <h2 className="font-headline text-3xl font-bold mb-6">Sách hay</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {recommendedBooks.map((book) => (
-                <Link href="#" key={book.id} className="group">
-                  <Card className="overflow-hidden h-full">
-                    ...
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </section>
-          */}
-        </aside>
       </div>
     </div>
   );
 }
 
-// --- Các Component con không đổi ---
+// --- Các Component con đã được cập nhật ---
 
-const ArticleCard = ({ article }: { article: Article }) => (
-  <Card className="h-full flex flex-col overflow-hidden group transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
-    <CardHeader className="p-0">
-       <div className="relative aspect-video w-full">
-        <Image
-          src={article.imageUrl}
-          alt={article.title}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-      </div>
-    </CardHeader>
-    <CardContent className="p-4 flex-grow">
-      {/* API trả về category là object, cần lấy name */}
-      <Badge variant="outline" className="mb-2">{article.category}</Badge>
-      <CardTitle className="font-headline text-xl leading-tight mb-2">
-        <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">
-          {article.title}
-        </Link>
-      </CardTitle>
-      <p className="text-sm text-muted-foreground">{article.excerpt}</p>
-    </CardContent>
-    <CardFooter className="p-4 pt-0">
-      <p className="text-xs text-muted-foreground">{article.author} &bull; {article.date}</p>
-    </CardFooter>
-  </Card>
-);
+const ArticleCard = ({ article }: { article: Article }) => {
+  const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+  return (
+    <Card className="h-full flex flex-col overflow-hidden group transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
+      <CardHeader className="p-0">
+        <div className="relative aspect-video w-full bg-muted">
+          {imageUrl && (
+            <Image src={imageUrl} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105"/>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 flex-grow">
+        <Badge variant="outline" className="mb-2">{article.category.name}</Badge>
+        <CardTitle className="font-headline text-xl leading-tight mb-2">
+          <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">
+            {article.title}
+          </Link>
+        </CardTitle>
+        <p className="text-sm text-muted-foreground line-clamp-2">{article.excerpt}</p>
+      </CardContent>
+      <CardFooter className="p-4 pt-0">
+        <p className="text-xs text-muted-foreground">{article.author} &bull; {article.date}</p>
+      </CardFooter>
+    </Card>
+  );
+};
 
-const ArticleListItem = ({ article }: { article: Article }) => (
-    <Card className="group grid grid-cols-3 gap-4 overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
-      <div className="relative col-span-1 h-full min-h-[120px]">
-          <Image
-              src={article.imageUrl}
-              alt={article.title}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-      </div>
-      <div className="col-span-2 p-4">
-          <Badge variant="outline" className="mb-2">{article.category}</Badge>
-          <h3 className="font-headline text-lg font-bold leading-tight">
-              <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">
-                  {article.title}
-              </Link>
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">{article.excerpt}</p>
-          <p className="text-xs text-muted-foreground mt-2">{article.author} &bull; {article.date}</p>
-      </div>
-  </Card>
-);
+const ArticleListItem = ({ article }: { article: Article }) => {
+    const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+    return (
+        <Card className="group grid grid-cols-1 sm:grid-cols-3 gap-4 overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
+            <div className="relative col-span-1 h-full min-h-[150px] bg-muted">
+                {imageUrl && (
+                    <Image src={imageUrl} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105"/>
+                )}
+            </div>
+            <div className="col-span-2 p-4">
+                <Badge variant="outline" className="mb-2">{article.category.name}</Badge>
+                <h3 className="font-headline text-lg font-bold leading-tight">
+                    <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">
+                        {article.title}
+                    </Link>
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{article.excerpt}</p>
+                <p className="text-xs text-muted-foreground mt-2">{article.author} &bull; {article.date}</p>
+            </div>
+        </Card>
+    );
+};
