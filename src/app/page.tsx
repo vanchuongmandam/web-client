@@ -47,9 +47,11 @@ export default async function Home() {
   // --- Lọc và phân loại bài viết ---
   const featuredArticle = articles[0];
   const trendingArticles = articles.filter(a => a.trending);
-  // Sử dụng category.name để lọc
   const criticismArticles = articles.filter(a => a.category.name === 'Phê bình & Tiểu luận').slice(0, 4);
   const creativeWritingArticles = articles.filter(a => a.category.name === 'Sáng tác').slice(0, 3);
+  
+  // --- Lọc bài viết thuộc danh mục "Bài báo" ---
+  const newspaperArticles = articles.filter(a => a.category.slug === 'bai-bao').slice(0, 4);
   
   const featuredImage = featuredArticle?.media?.find(m => m.mediaType === 'image')?.url;
 
@@ -59,7 +61,7 @@ export default async function Home() {
       {featuredArticle && (
         <section className="mb-12">
           <Card className="grid md:grid-cols-2 overflow-hidden border-2 border-primary/20 shadow-xl">
-            <div className="relative h-64 md:h-auto">
+            <div className="relative h-64 md:h-auto bg-muted">
               {featuredImage && (
                   <Image src={featuredImage} alt={featuredArticle.title} fill className="object-cover" priority/>
               )}
@@ -83,27 +85,28 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Trending Section */}
-      {trendingArticles.length > 0 && (
-        <section className="mb-12">
-          <h2 className="font-headline text-3xl font-bold mb-6">Xu hướng</h2>
-          <Carousel opts={{ loop: trendingArticles.length > 1 }} className="w-full">
-            <CarouselContent>
-              {trendingArticles.map((article) => (
-                <CarouselItem key={article.slug} className="md:basis-1/2 lg:basis-1/3">
-                  <ArticleCard article={article} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="hidden sm:flex" />
-            <CarouselNext className="hidden sm:flex" />
-          </Carousel>
-        </section>
-      )}
-
       {/* Main Grid */}
-      <div className="grid grid-cols-1">
-          {/* Criticism Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2">
+          {/* Trending Section */}
+          {trendingArticles.length > 0 && (
+            <section className="mb-12">
+              <h2 className="font-headline text-3xl font-bold mb-6">Xu hướng</h2>
+              <Carousel opts={{ loop: trendingArticles.length > 1 }} className="w-full">
+                <CarouselContent className="-ml-4">
+                  {trendingArticles.map((article) => (
+                    <CarouselItem key={article.slug} className="pl-4 md:basis-1/2">
+                      <ArticleCard article={article} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden sm:flex" />
+                <CarouselNext className="hidden sm:flex" />
+              </Carousel>
+            </section>
+          )}
+
+          {/* Criticism & Creative Writing Sections */}
           {criticismArticles.length > 0 && (
             <section className="mb-12">
               <h2 className="font-headline text-3xl font-bold mb-6">Phê bình & Tiểu luận</h2>
@@ -114,9 +117,7 @@ export default async function Home() {
               </div>
             </section>
           )}
-
-          {/* Creative Writing Section */}
-           {creativeWritingArticles.length > 0 && (
+          {creativeWritingArticles.length > 0 && (
             <section>
               <h2 className="font-headline text-3xl font-bold mb-6">Sáng tác</h2>
               <div className="space-y-6">
@@ -126,13 +127,61 @@ export default async function Home() {
               </div>
             </section>
            )}
+        </div>
+
+        {/* --- Thay thế Aside cũ bằng Aside mới --- */}
+        <aside>
+          {newspaperArticles.length > 0 && (
+            <section className="mb-12 sticky top-8">
+              <h2 className="font-headline text-3xl font-bold mb-6">Bài báo</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {newspaperArticles.map((article) => (
+                  <NewspaperArticleCard key={article.slug} article={article} />
+                ))}
+              </div>
+            </section>
+          )}
+        </aside>
       </div>
     </div>
   );
 }
 
-// --- Các Component con đã được cập nhật ---
 
+// --- Các Component con ---
+
+const ArticleCard = ({ article }: { article: Article }) => { /* ... giữ nguyên ... */ };
+const ArticleListItem = ({ article }: { article: Article }) => { /* ... giữ nguyên ... */ };
+
+// --- Component MỚI cho thẻ "Bài báo" ---
+const NewspaperArticleCard = ({ article }: { article: Article }) => {
+  const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+  return (
+    <Link href={`/articles/${article.slug}`} className="group">
+      <Card className="overflow-hidden h-full transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
+        <CardContent className="p-0">
+          <div className="relative aspect-[3/4] w-full bg-muted">
+            {imageUrl && (
+              <Image
+                src={imageUrl}
+                alt={article.title}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            )}
+          </div>
+          <div className="p-3">
+             <h3 className="font-headline text-sm font-semibold leading-tight line-clamp-2">{article.title}</h3>
+             <p className="text-xs text-muted-foreground mt-1">{article.author}</p>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+};
+
+
+// --- Các component con giữ nguyên ---
 const ArticleCard = ({ article }: { article: Article }) => {
   const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
   return (
