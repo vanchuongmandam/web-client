@@ -4,10 +4,10 @@ import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { Header } from "@/components/header";
-import Footer from "@/components/footer"; // Corrected import
+import Header  from "@/components/header";
+import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/context/AuthContext"; // Import AuthProvider
+import { AuthProvider } from "@/context/AuthContext";
 
 const fontSans = FontSans({
   subsets: ["latin"],
