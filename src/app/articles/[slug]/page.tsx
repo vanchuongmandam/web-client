@@ -27,9 +27,13 @@ async function getArticle(slug: string): Promise<Article | null> {
   }
 }
 
-// --- Component trang chi tiết bài viết ---
-export default async function ArticlePage({ params }: { params: { slug:string } }) {
-  const article = await getArticle(params.slug);
+// --- Component trang chi tiết bài viết (Đã sửa) ---
+export default async function ArticlePage({ params }: { params: { slug: string } }) {
+  // Lấy 'slug' ra khỏi 'params' ngay ở đầu hàm.
+  const { slug } = params;
+
+  // Bây giờ, sử dụng biến 'slug' đã được giải nén.
+  const article = await getArticle(slug);
 
   if (!article) {
     notFound();
@@ -41,7 +45,6 @@ export default async function ArticlePage({ params }: { params: { slug:string } 
         <header className="mb-8">
           <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
             <Badge variant="secondary">{article.category.name}</Badge>
-            {/* Sử dụng trực tiếp article.date như bạn đề cập */}
             <span>{article.date}</span>
           </div>
           <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight text-primary">
@@ -69,8 +72,7 @@ export default async function ArticlePage({ params }: { params: { slug:string } 
       </article>
 
       <Separator className="my-12" />
-
-      {/* Hiển thị cả hai component */}
+      
       <RelatedArticles 
         currentArticleSlug={article.slug} 
         categorySlug={article.category.slug} 
