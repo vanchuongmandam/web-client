@@ -31,6 +31,85 @@ async function getArticles(): Promise<Article[]> {
   }
 }
 
+// --- Component MỚI cho thẻ "Bài báo" ---
+const NewspaperArticleCard = ({ article }: { article: Article }) => {
+  const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+  return (
+    <Link href={`/articles/${article.slug}`} className="group">
+      <Card className="overflow-hidden h-full transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
+        <CardContent className="p-0">
+          <div className="relative aspect-[3/4] w-full bg-muted">
+            {imageUrl && (
+              <Image
+                src={imageUrl}
+                alt={article.title}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            )}
+          </div>
+          <div className="p-3">
+             <h3 className="font-headline text-sm font-semibold leading-tight line-clamp-2">{article.title}</h3>
+             <p className="text-xs text-muted-foreground mt-1">{article.author}</p>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+};
+
+// --- Các component con dùng chung ---
+const ArticleCard = ({ article }: { article: Article }) => {
+  const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+  return (
+    <Card className="h-full flex flex-col overflow-hidden group transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
+      <CardHeader className="p-0">
+        <div className="relative aspect-video w-full bg-muted">
+          {imageUrl && (
+            <Image src={imageUrl} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105"/>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 flex-grow">
+        <Badge variant="outline" className="mb-2">{article.category.name}</Badge>
+        <CardTitle className="font-headline text-xl leading-tight mb-2">
+          <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">
+            {article.title}
+          </Link>
+        </CardTitle>
+        <p className="text-sm text-muted-foreground line-clamp-2">{article.excerpt}</p>
+      </CardContent>
+      <CardFooter className="p-4 pt-0">
+        <p className="text-xs text-muted-foreground">{article.author} &bull; {article.date}</p>
+      </CardFooter>
+    </Card>
+  );
+};
+
+const ArticleListItem = ({ article }: { article: Article }) => {
+    const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+    return (
+        <Card className="group grid grid-cols-1 sm:grid-cols-3 gap-4 overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
+            <div className="relative col-span-1 h-full min-h-[150px] bg-muted">
+                {imageUrl && (
+                    <Image src={imageUrl} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105"/>
+                )}
+            </div>
+            <div className="col-span-2 p-4">
+                <Badge variant="outline" className="mb-2">{article.category.name}</Badge>
+                <h3 className="font-headline text-lg font-bold leading-tight">
+                    <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">
+                        {article.title}
+                    </Link>
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{article.excerpt}</p>
+                <p className="text-xs text-muted-foreground mt-2">{article.author} &bull; {article.date}</p>
+            </div>
+        </Card>
+    );
+};
+
+
 // --- Component trang chủ (chuyển thành async) ---
 export default async function Home() {
   const articles = await getArticles();
@@ -44,15 +123,11 @@ export default async function Home() {
     );
   }
 
-  // --- Lọc và phân loại bài viết ---
   const featuredArticle = articles[0];
   const trendingArticles = articles.filter(a => a.trending);
   const criticismArticles = articles.filter(a => a.category.name === 'Phê bình & Tiểu luận').slice(0, 4);
   const creativeWritingArticles = articles.filter(a => a.category.name === 'Sáng tác').slice(0, 3);
-  
-  // --- Lọc bài viết thuộc danh mục "Bài báo" ---
   const newspaperArticles = articles.filter(a => a.category.slug === 'bai-bao').slice(0, 4);
-  
   const featuredImage = featuredArticle?.media?.find(m => m.mediaType === 'image')?.url;
 
   return (
@@ -129,7 +204,7 @@ export default async function Home() {
            )}
         </div>
 
-        {/* --- Thay thế Aside cũ bằng Aside mới --- */}
+        {/* Newspaper Section */}
         <aside>
           {newspaperArticles.length > 0 && (
             <section className="mb-12 sticky top-8">
@@ -146,88 +221,3 @@ export default async function Home() {
     </div>
   );
 }
-
-
-// --- Các Component con ---
-
-const ArticleCard = ({ article }: { article: Article }) => { /* ... giữ nguyên ... */ };
-const ArticleListItem = ({ article }: { article: Article }) => { /* ... giữ nguyên ... */ };
-
-// --- Component MỚI cho thẻ "Bài báo" ---
-const NewspaperArticleCard = ({ article }: { article: Article }) => {
-  const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
-  return (
-    <Link href={`/articles/${article.slug}`} className="group">
-      <Card className="overflow-hidden h-full transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
-        <CardContent className="p-0">
-          <div className="relative aspect-[3/4] w-full bg-muted">
-            {imageUrl && (
-              <Image
-                src={imageUrl}
-                alt={article.title}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            )}
-          </div>
-          <div className="p-3">
-             <h3 className="font-headline text-sm font-semibold leading-tight line-clamp-2">{article.title}</h3>
-             <p className="text-xs text-muted-foreground mt-1">{article.author}</p>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-};
-
-
-// --- Các component con giữ nguyên ---
-const ArticleCard = ({ article }: { article: Article }) => {
-  const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
-  return (
-    <Card className="h-full flex flex-col overflow-hidden group transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
-      <CardHeader className="p-0">
-        <div className="relative aspect-video w-full bg-muted">
-          {imageUrl && (
-            <Image src={imageUrl} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105"/>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 flex-grow">
-        <Badge variant="outline" className="mb-2">{article.category.name}</Badge>
-        <CardTitle className="font-headline text-xl leading-tight mb-2">
-          <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">
-            {article.title}
-          </Link>
-        </CardTitle>
-        <p className="text-sm text-muted-foreground line-clamp-2">{article.excerpt}</p>
-      </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <p className="text-xs text-muted-foreground">{article.author} &bull; {article.date}</p>
-      </CardFooter>
-    </Card>
-  );
-};
-
-const ArticleListItem = ({ article }: { article: Article }) => {
-    const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
-    return (
-        <Card className="group grid grid-cols-1 sm:grid-cols-3 gap-4 overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
-            <div className="relative col-span-1 h-full min-h-[150px] bg-muted">
-                {imageUrl && (
-                    <Image src={imageUrl} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105"/>
-                )}
-            </div>
-            <div className="col-span-2 p-4">
-                <Badge variant="outline" className="mb-2">{article.category.name}</Badge>
-                <h3 className="font-headline text-lg font-bold leading-tight">
-                    <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">
-                        {article.title}
-                    </Link>
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{article.excerpt}</p>
-                <p className="text-xs text-muted-foreground mt-2">{article.author} &bull; {article.date}</p>
-            </div>
-        </Card>
-    );
-};
