@@ -19,7 +19,7 @@ import type { Article } from "@/lib/types";
 async function getArticles(): Promise<Article[]> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiBaseUrl}/articles`, { cache: 'no-store' });
+    const response = await fetch(`${apiBaseUrl}/articles`, { next: { revalidate: 0 }});
     if (!response.ok) {
       console.error("Failed to fetch articles:", await response.text());
       return [];
