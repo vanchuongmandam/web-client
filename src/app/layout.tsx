@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { Inter as FontSans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import Header  from "@/components/header";
+import { Header } from "@/components/header"; // Sửa lại: Thêm dấu {}
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
@@ -32,7 +32,7 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <AuthProvider> {/* Bọc toàn bộ ứng dụng bằng AuthProvider */}
+        <AuthProvider>
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow">{children}</main>
