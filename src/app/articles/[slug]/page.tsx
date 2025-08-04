@@ -6,10 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Article } from "@/lib/types";
 
-// Import cả hai component
 import RelatedArticles from "./related-articles";
 import ReadingSuggestions from "./reading-suggestions";
-
+import CommentSection from "./comment-section"; // Import component mới
 
 // --- Hàm gọi API để lấy một bài viết cụ thể ---
 async function getArticle(slug: string): Promise<Article | null> {
@@ -27,12 +26,9 @@ async function getArticle(slug: string): Promise<Article | null> {
   }
 }
 
-// --- Component trang chi tiết bài viết (Đã sửa) ---
+// --- Component trang chi tiết bài viết ---
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  // Lấy 'slug' ra khỏi 'params' ngay ở đầu hàm.
   const { slug } = params;
-
-  // Bây giờ, sử dụng biến 'slug' đã được giải nén.
   const article = await getArticle(slug);
 
   if (!article) {
@@ -83,6 +79,10 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           articleContent={article.content} 
         />
       </div>
+
+      {/* --- Thêm khu vực bình luận vào đây --- */}
+      <Separator className="my-12" />
+      <CommentSection articleId={article._id} />
 
     </div>
   );
