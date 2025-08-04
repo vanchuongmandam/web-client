@@ -43,7 +43,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
             {/* Hiển thị tên category */}
             <Badge variant="secondary">{article.category.name}</Badge>
-            <span>{new Date(article.date).toLocaleDateString('vi-VN')}</span>
+            <span>{article.date}</span>
           </div>
           <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight text-primary">
             {article.title}

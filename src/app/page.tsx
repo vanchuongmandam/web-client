@@ -196,7 +196,7 @@ const ArticleCard = ({ article }: { article: Article }) => (
       <p className="text-sm text-muted-foreground">{article.excerpt}</p>
     </CardContent>
     <CardFooter className="p-4 pt-0">
-      <p className="text-xs text-muted-foreground">{article.author} &bull; {new Date(article.date).toLocaleDateString('vi-VN')}</p>
+      <p className="text-xs text-muted-foreground">{article.author} &bull; {article.date}</p>
     </CardFooter>
   </Card>
 );
