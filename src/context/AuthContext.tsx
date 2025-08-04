@@ -15,11 +15,11 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string) => Promise<void>; // Thêm hàm register
+  register: (username: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
-  clearError: () => void; // Thêm hàm để xóa lỗi
+  clearError: () => void;
 }
 
 // --- Tạo Context ---
@@ -37,12 +37,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const storedToken = localStorage.getItem('authToken');
       const storedUser = localStorage.getItem('authUser');
-      if (storedToken && storedUser) {
+
+      // --- SỬA LỖI TẠI ĐÂY ---
+      // Chỉ parse JSON nếu storedUser thực sự tồn tại và không phải là chuỗi 'undefined'
+      if (storedToken && storedUser && storedUser !== 'undefined') {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+      } else {
+        // Nếu không có dữ liệu hợp lệ, đảm bảo mọi thứ đều trống
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
       }
     } catch (e) {
       console.error("Failed to parse auth data from localStorage", e);
+      // Dọn dẹp nếu có lỗi xảy ra
       localStorage.removeItem('authToken');
       localStorage.removeItem('authUser');
     } finally {
@@ -73,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       router.push('/');
     } catch (err: any) {
       setError(err.message);
-      throw err; // Ném lỗi ra để component có thể bắt
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -88,17 +96,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const response = await fetch(`${apiBaseUrl}/auth/register`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password, role: 'user' }), // Mặc định role là user
+              body: JSON.stringify({ username, password, role: 'user' }),
           });
           const data = await response.json();
           if (!response.ok) throw new Error(data.message || 'Đăng ký thất bại.');
-
-          // Đăng ký thành công, tự động đăng nhập luôn
           await login(username, password);
-
       } catch (err: any) {
           setError(err.message);
-          throw err; // Ném lỗi ra để component có thể bắt
+          throw err;
       } finally {
           setIsLoading(false);
       }
