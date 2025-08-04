@@ -3,27 +3,21 @@
 import Link from 'next/link';
 import type { Article } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookText } from 'lucide-react';
-
-// Helper function to convert a category name to a slug
-const toSlug = (name: string) => {
-    return name
-        .toLowerCase()
-        .replace(/ /g, '-')
-        .replace(/[^\w-]+/g, '');
-};
 
 // --- Hàm gọi API để lấy bài viết cùng chuyên mục ---
-async function getCategoryArticles(category: string, currentArticleSlug: string): Promise<Article[]> {
+async function getCategoryArticles(categorySlug: string, currentArticleSlug: string): Promise<Article[]> {
+    // Nếu không có slug, không làm gì cả
+    if (!categorySlug) return [];
+
     try {
         const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-        const categorySlug = toSlug(category);
         const response = await fetch(`${apiBaseUrl}/categories/${categorySlug}/articles`, {
             next: { revalidate: 3600 }, // Cache for 1 hour
         });
 
         if (!response.ok) {
-            console.error(`Failed to fetch articles for category ${categorySlug}:`, await response.text());
+            // Log lỗi ra server console để debug
+            console.error(`[Server] Failed to fetch articles for category ${categorySlug}:`, await response.text());
             return [];
         }
 
@@ -35,15 +29,15 @@ async function getCategoryArticles(category: string, currentArticleSlug: string)
             .slice(0, 3);
 
     } catch (error) {
-        console.error(`An error occurred while fetching articles for category ${category}:`, error);
+        console.error(`[Server] An error occurred while fetching articles for category ${categorySlug}:`, error);
         return [];
     }
 }
 
 
 // --- Component Gợi ý đọc thêm (Async Server Component) ---
-export default async function ReadingSuggestions({ currentArticleSlug, category }: { currentArticleSlug: string, category: string }) {
-    const suggestions = await getCategoryArticles(category, currentArticleSlug);
+export default async function ReadingSuggestions({ currentArticleSlug, categorySlug }: { currentArticleSlug: string, categorySlug: string }) {
+    const suggestions = await getCategoryArticles(categorySlug, currentArticleSlug);
 
     if (suggestions.length === 0) {
         // Nếu không có bài viết nào khác trong cùng danh mục, không hiển thị gì cả.
