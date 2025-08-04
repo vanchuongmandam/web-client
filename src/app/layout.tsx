@@ -1,13 +1,22 @@
-import type { Metadata } from 'next';
-import './globals.css';
-import { cn } from '@/lib/utils';
-import { Toaster } from '@/components/ui/toaster';
-import Header from '@/components/header';
-import Footer from '@/components/footer';
+// src/app/layout.tsx
+
+import type { Metadata } from "next";
+import { Inter as FontSans } from "next/font/google";
+import "./globals.css";
+import { cn } from "@/lib/utils";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
+import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/context/AuthContext"; // Import AuthProvider
+
+const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
-  title: 'Văn Chương Mạn Đàm',
-  description: 'Thư viện văn học dành cho giáo viên, học sinh và những người yêu thơ văn.',
+  title: "Văn Chương Mạn Đàm",
+  description: "Một không gian cho những thảo luận và phân tích văn học sâu sắc.",
 };
 
 export default function RootLayout({
@@ -16,17 +25,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400..700;1,400..700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className={cn('font-body antialiased min-h-screen flex flex-col')}>
-        <Header />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-        <Toaster />
+    <html lang="vi" suppressHydrationWarning>
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable
+        )}
+      >
+        <AuthProvider> {/* Bọc toàn bộ ứng dụng bằng AuthProvider */}
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-grow">{children}</main>
+            <Footer />
+          </div>
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

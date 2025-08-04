@@ -1,92 +1,77 @@
-"use client";
+// src/app/articles/[slug]/reading-suggestions.tsx
 
-import { useState } from "react";
-import { getReadingSuggestions } from "@/ai/flows/reading-suggestions";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lightbulb, Loader2, BookText } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import Link from 'next/link';
+import type { Article } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BookText } from 'lucide-react';
 
-export default function ReadingSuggestions({ articleContent }: { articleContent: string }) {
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
+// Helper function to convert a category name to a slug
+const toSlug = (name: string) => {
+    return name
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace(/[^\w-]+/g, '');
+};
 
-  const handleGetSuggestions = async () => {
-    setIsLoading(true);
-    setError(null);
-    setSuggestions([]);
-
+// --- Hàm gọi API để lấy bài viết cùng chuyên mục ---
+async function getCategoryArticles(category: string, currentArticleSlug: string): Promise<Article[]> {
     try {
-      const result = await getReadingSuggestions({ articleContent });
-      if (result.suggestions && result.suggestions.length > 0) {
-        setSuggestions(result.suggestions);
-      } else {
-        setError("Không tìm thấy gợi ý nào phù hợp.");
-      }
-    } catch (e) {
-      console.error(e);
-      setError("Đã có lỗi xảy ra khi lấy gợi ý. Vui lòng thử lại.");
-      toast({
-        variant: "destructive",
-        title: "Lỗi",
-        description: "Không thể lấy gợi ý đọc thêm vào lúc này.",
-      });
-    } finally {
-      setIsLoading(false);
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const categorySlug = toSlug(category);
+        const response = await fetch(`${apiBaseUrl}/categories/${categorySlug}/articles`, {
+            next: { revalidate: 3600 }, // Cache for 1 hour
+        });
+
+        if (!response.ok) {
+            console.error(`Failed to fetch articles for category ${categorySlug}:`, await response.text());
+            return [];
+        }
+
+        const articles = await response.json();
+        
+        // Lọc bài viết hiện tại ra khỏi danh sách gợi ý và chỉ lấy 3 bài đầu tiên
+        return articles
+            .filter((article: Article) => article.slug !== currentArticleSlug)
+            .slice(0, 3);
+
+    } catch (error) {
+        console.error(`An error occurred while fetching articles for category ${category}:`, error);
+        return [];
     }
-  };
+}
 
-  return (
-    <section>
-      <Card className="bg-background/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3 font-headline text-2xl">
-            <Lightbulb className="h-7 w-7 text-accent" />
-            <span>Gợi ý đọc thêm từ AI</span>
-          </CardTitle>
-          <p className="text-muted-foreground text-sm">
-            Dựa trên nội dung bài viết, AI đề xuất những tác phẩm hoặc tác giả bạn có thể sẽ thích.
-          </p>
-        </CardHeader>
-        <CardContent>
-          {!isLoading && suggestions.length === 0 && (
-             <div className="flex flex-col items-center justify-center text-center p-6 border-dashed border-2 rounded-lg">
-                <p className="text-muted-foreground mb-4">Nhấn nút để nhận gợi ý từ trí tuệ nhân tạo.</p>
-                <Button onClick={handleGetSuggestions} disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Tìm kiếm gợi ý
-                </Button>
-             </div>
-          )}
 
-          {isLoading && (
-            <div className="flex items-center justify-center p-6">
-              <Loader2 className="mr-2 h-8 w-8 animate-spin text-primary" />
-              <span className="text-muted-foreground">AI đang suy nghĩ...</span>
-            </div>
-          )}
+// --- Component Gợi ý đọc thêm (Async Server Component) ---
+export default async function ReadingSuggestions({ currentArticleSlug, category }: { currentArticleSlug: string, category: string }) {
+    const suggestions = await getCategoryArticles(category, currentArticleSlug);
 
-          {!isLoading && error && (
-            <p className="text-destructive text-center p-6">{error}</p>
-          )}
+    if (suggestions.length === 0) {
+        // Nếu không có bài viết nào khác trong cùng danh mục, không hiển thị gì cả.
+        return null;
+    }
 
-          {!isLoading && suggestions.length > 0 && (
-            <div>
-              <ul className="space-y-3 list-none">
-                {suggestions.map((suggestion, index) => (
-                  <li key={index} className="flex items-start gap-3 p-3 bg-card rounded-md">
-                    <BookText className="h-5 w-5 mt-1 text-primary flex-shrink-0" />
-                    <span>{suggestion}</span>
-                  </li>
+    return (
+        <section>
+            <h2 className="font-headline text-3xl font-bold mb-6">Bài viết liên quan</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {suggestions.map((article) => (
+                    <Link key={article.slug} href={`/articles/${article.slug}`} className="group">
+                        <Card className="h-full overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="font-headline text-lg leading-tight group-hover:text-primary transition-colors">
+                                    {article.title}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground line-clamp-3">
+                                    {article.excerpt}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-4">{article.author}</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
                 ))}
-              </ul>
-              <Button onClick={handleGetSuggestions} variant="link" className="mt-4">Thử lại với gợi ý khác</Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </section>
-  );
+        </section>
+    );
 }
