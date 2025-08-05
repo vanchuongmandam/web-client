@@ -15,7 +15,7 @@ import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Article } from "@/lib/types";
 
-// --- Hàm gọi API ---
+
 async function getArticles(): Promise<Article[]> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -31,7 +31,6 @@ async function getArticles(): Promise<Article[]> {
   }
 }
 
-// --- Component trang chủ ---
 export default async function Home() {
   const articles = await getArticles();
 
@@ -44,7 +43,7 @@ export default async function Home() {
     );
   }
 
-  // --- Lọc dữ liệu ---
+  // --- Data filter ---
   const featuredArticle = articles[0];
   const trendingArticles = articles.filter(a => a.trending);
   const criticismArticles = articles.filter(a => a.category.name === 'Phê bình & Tiểu luận').slice(0, 4);
@@ -127,8 +126,6 @@ export default async function Home() {
   );
 }
 
-
-// --- Các Component con (Chỉ định nghĩa MỘT LẦN) ---
 const NewspaperArticleCard = ({ article }: { article: Article }) => {
   const imageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
   return (
