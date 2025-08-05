@@ -1,12 +1,84 @@
 // src/components/ui/rich-text-editor.tsx
 "use client";
 
-import dynamic from 'next/dynamic';
-import 'react-quill/dist/quill.snow.css'; // Import theme CSS
-import { useMemo } from 'react';
-import { Skeleton } from './skeleton';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { Bold, Italic, Strikethrough, List, ListOrdered, Heading2, Heading3 } from 'lucide-react';
+import { Button } from './button';
 
-// Component này sẽ đóng vai trò là trình bao bọc (wrapper)
+// --- Thanh công cụ cho Editor ---
+const Toolbar = ({ editor }: { editor: any }) => {
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className="border border-input bg-transparent rounded-t-md p-1 flex items-center gap-1">
+      <Button
+        type="button"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
+        size="sm"
+      >
+        <Heading2 className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        variant={editor.isActive('heading', { level: 3 }) ? 'secondary' : 'ghost'}
+        size="sm"
+      >
+        <Heading3 className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        disabled={!editor.can().chain().focus().toggleBold().run()}
+        variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
+        size="sm"
+      >
+        <Bold className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        disabled={!editor.can().chain().focus().toggleItalic().run()}
+        variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
+        size="sm"
+      >
+        <Italic className="h-4 w-4" />
+      </Button>
+       <Button
+        type="button"
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+        disabled={!editor.can().chain().focus().toggleStrike().run()}
+        variant={editor.isActive('strike') ? 'secondary' : 'ghost'}
+        size="sm"
+      >
+        <Strikethrough className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
+        size="sm"
+      >
+        <List className="h-4 w-4" />
+      </Button>
+       <Button
+        type="button"
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
+        size="sm"
+      >
+        <ListOrdered className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
+
+
+// --- Component Editor chính ---
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -14,31 +86,37 @@ interface RichTextEditorProps {
 }
 
 export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
-  // Sử dụng dynamic import để ReactQuill chỉ được tải ở phía client
-  const ReactQuill = useMemo(() => dynamic(() => import('react-quill'), { 
-      ssr: false,
-      loading: () => <Skeleton className="h-[250px] w-full rounded-md" />,
-  }), []);
-
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
-      ['link', 'image'],
-      ['clean']
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        // Tắt các extension không cần thiết nếu muốn
+        orderedList: {
+          HTMLAttributes: {
+            class: 'list-decimal pl-4',
+          },
+        },
+        bulletList: {
+          HTMLAttributes: {
+            class: 'list-disc pl-4',
+          },
+        },
+      }),
     ],
-  };
+    content: value,
+    editorProps: {
+      attributes: {
+        class: 'prose dark:prose-invert min-h-[250px] w-full rounded-b-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+      },
+    },
+    onUpdate({ editor }) {
+      onChange(editor.getHTML());
+    },
+  });
 
   return (
-    <div className="bg-background">
-        <ReactQuill
-            theme="snow"
-            value={value}
-            onChange={onChange}
-            modules={modules}
-            placeholder={placeholder}
-        />
+    <div>
+      <Toolbar editor={editor} />
+      <EditorContent editor={editor} placeholder={placeholder} />
     </div>
   );
 }
