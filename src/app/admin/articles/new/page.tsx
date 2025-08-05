@@ -11,15 +11,22 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { Category, Media } from '@/lib/types';
 
+import dynamic from 'next/dynamic';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import RichTextEditor from '@/components/ui/rich-text-editor';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
+
+const RichTextEditor = dynamic(() => import('@/components/ui/rich-text-editor'), { 
+  ssr: false,
+  loading: () => <Skeleton className="h-[250px] w-full rounded-md" />,
+});
 
 const articleFormSchema = z.object({
   title: z.string().min(5, { message: "Tiêu đề phải có ít nhất 5 ký tự." }),
@@ -117,24 +124,16 @@ export default function NewArticlePage() {
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     <header className="flex items-center justify-between mb-8">
-                        <div>
-                            <h1 className="text-4xl font-headline font-bold text-primary">Tạo bài viết mới</h1>
-                            <p className="text-muted-foreground mt-2">Điền thông tin chi tiết dưới đây.</p>
-                        </div>
+                        <div><h1 className="text-4xl font-headline font-bold text-primary">Tạo bài viết mới</h1><p className="text-muted-foreground mt-2">Điền thông tin chi tiết dưới đây.</p></div>
                         <div className="flex gap-2">
                            <Button type="button" variant="outline" asChild><Link href="/admin/articles">Hủy</Link></Button>
-                           <Button type="submit" disabled={form.formState.isSubmitting}>
-                                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Đăng bài viết
-                           </Button>
+                           <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Đăng bài viết</Button>
                         </div>
                     </header>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-2 space-y-6">
                             <FormField control={form.control} name="title" render={({ field }) => ( <FormItem><FormLabel>Tiêu đề</FormLabel><FormControl><Input placeholder="Tiêu đề bài viết..." {...field} /></FormControl><FormMessage /></FormItem> )} />
-                             <FormField control={form.control} name="content" render={({ field }) => (
-                                <FormItem><FormLabel>Nội dung</FormLabel><FormControl><RichTextEditor placeholder="Soạn thảo nội dung chính tại đây..." value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
-                            )} />
+                            <FormField control={form.control} name="content" render={({ field }) => ( <FormItem><FormLabel>Nội dung</FormLabel><FormControl><RichTextEditor placeholder="Soạn thảo..." value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem> )} />
                         </div>
                         <div className="space-y-6">
                             <Card>
@@ -144,26 +143,16 @@ export default function NewArticlePage() {
                                     <FormField control={form.control} name="author" render={({ field }) => ( <FormItem><FormLabel>Tác giả</FormLabel><FormControl><Input placeholder="Tên tác giả" {...field} /></FormControl><FormMessage /></FormItem> )} />
                                     <FormField control={form.control} name="category" render={({ field }) => (
                                         <FormItem><FormLabel>Danh mục</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Chọn một danh mục" /></SelectTrigger></FormControl><SelectContent>{categories.map(cat => <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>)}</SelectContent></Select><FormMessage />
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Chọn danh mục" /></SelectTrigger></FormControl><SelectContent>{categories.map(cat => <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>)}</SelectContent></Select><FormMessage />
                                         </FormItem>
                                     )} />
-                                     <FormField control={form.control} name="excerpt" render={({ field }) => ( <FormItem><FormLabel>Đoạn trích (Excerpt)</FormLabel><FormControl><Textarea placeholder="Một đoạn tóm tắt ngắn..." {...field} /></FormControl><FormMessage /></FormItem> )} />
+                                     <FormField control={form.control} name="excerpt" render={({ field }) => ( <FormItem><FormLabel>Đoạn trích</FormLabel><FormControl><Textarea placeholder="Tóm tắt ngắn..." {...field} /></FormControl><FormMessage /></FormItem> )} />
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader><CardTitle>Media (Tùy chọn)</CardTitle></CardHeader>
                                 <CardContent>
-                                    <FormItem>
-                                        <FormLabel>File ảnh/video</FormLabel>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <Button type="button" variant="outline" asChild><label htmlFor="file-upload" className="cursor-pointer w-full"><Upload className="mr-2 h-4 w-4" /> Upload File</label></Button>
-                                                <Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading}/>
-                                                {isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
+                                    <FormItem><FormLabel>File ảnh/video</FormLabel><FormControl><div className="relative"><Button type="button" variant="outline" asChild><label htmlFor="file-upload" className="cursor-pointer w-full"><Upload className="mr-2 h-4 w-4" /> Upload File</label></Button><Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading}/>{isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}</div></FormControl><FormMessage /></FormItem>
                                     <div className="mt-4 space-y-2">
                                         {mediaValue.map((m, index) => (
                                             <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
