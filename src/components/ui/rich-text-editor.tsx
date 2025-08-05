@@ -1,13 +1,13 @@
 // src/components/ui/rich-text-editor.tsx
 "use client";
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Bold, Italic, Strikethrough, List, ListOrdered, Heading2, Heading3 } from 'lucide-react';
 import { Button } from './button';
 import { Skeleton } from './skeleton';
 
-const Toolbar = ({ editor }: { editor: any }) => {
+const Toolbar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
     return null;
   }

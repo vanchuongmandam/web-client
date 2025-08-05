@@ -108,7 +108,7 @@ export default function EditArticlePage() {
                      router.push('/admin/articles');
                 }
             } catch (error) {
-                 toast({ variant: "destructive", title: "Lỗi", description: "Không thể tải dữ liệu bài viết." });
+                 toast({ variant: "destructive", title: "Lỗi", description: (error as Error).message });
             } finally {
                 setIsLoadingData(false);
             }
@@ -124,7 +124,7 @@ export default function EditArticlePage() {
             const newMedia = await uploadFile(file, token);
             form.setValue('media', [...form.getValues('media'), newMedia]);
         } catch (error) {
-            toast({ variant: "destructive", title: "Upload thất bại" });
+            toast({ variant: "destructive", title: "Upload thất bại", description: (error as Error).message });
         } finally {
             setIsUploading(false);
             e.target.value = '';
@@ -139,8 +139,12 @@ export default function EditArticlePage() {
             await updateArticle(slug, data, token);
             toast({ title: "Thành công!", description: "Bài viết đã được cập nhật." });
             router.push('/admin/articles');
-        } catch (error: any) {
-            toast({ variant: "destructive", title: "Lỗi", description: error.message });
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast({ variant: "destructive", title: "Lỗi", description: error.message });
+            } else {
+                toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
+            }
         }
     };
     

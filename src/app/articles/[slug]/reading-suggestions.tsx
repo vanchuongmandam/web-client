@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, Loader2, BookText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export default function ReadingSuggestions({ articleContent }: { articleContent: string }) {
+export default function ReadingSuggestions({ articleContent: _ }: { articleContent: string }) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

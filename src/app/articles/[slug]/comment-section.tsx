@@ -92,8 +92,12 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }: {
             onCommentUpdated(updatedComment);
             setIsEditing(false);
             toast({ title: "Thành công!", description: "Bình luận đã được cập nhật." });
-        } catch (error: any) {
-            toast({ variant: "destructive", title: "Lỗi", description: error.message });
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast({ variant: "destructive", title: "Lỗi", description: error.message });
+            } else {
+                toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -105,8 +109,12 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }: {
             await deleteComment(comment._id, token);
             onCommentDeleted(comment._id);
             toast({ title: "Thành công!", description: "Bình luận đã được xóa." });
-        } catch (error: any) {
-            toast({ variant: "destructive", title: "Lỗi", description: error.message });
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast({ variant: "destructive", title: "Lỗi", description: error.message });
+            } else {
+                toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
+            }
         }
     };
 
@@ -176,8 +184,12 @@ export default function CommentSection({ articleId }: { articleId: string }) {
             try {
                 const fetchedComments = await getComments(articleId);
                 setComments(fetchedComments);
-            } catch (error: any) {
-                 toast({ variant: "destructive", title: "Lỗi", description: "Không thể tải được bình luận."});
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    toast({ variant: "destructive", title: "Lỗi", description: error.message });
+                } else {
+                    toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -194,8 +206,12 @@ export default function CommentSection({ articleId }: { articleId: string }) {
             setComments(prev => [newComment, ...prev]);
             setNewCommentContent('');
             toast({ title: "Thành công!", description: "Bình luận của bạn đã được đăng." });
-        } catch (error: any) {
-            toast({ variant: "destructive", title: "Lỗi", description: error.message });
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast({ variant: "destructive", title: "Lỗi", description: error.message });
+            } else {
+                toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
+            }
         } finally {
             setIsSubmitting(false);
         }

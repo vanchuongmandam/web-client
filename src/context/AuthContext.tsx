@@ -79,8 +79,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('authUser', JSON.stringify(data.user));
       router.push('/');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            setError(err.message);
+        } else {
+            setError("Đã có lỗi không xác định xảy ra");
+        }
       throw err;
     } finally {
       setIsLoading(false);
@@ -101,8 +105,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const data = await response.json();
           if (!response.ok) throw new Error(data.message || 'Đăng ký thất bại.');
           await login(username, password);
-      } catch (err: any) {
-          setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+            setError(err.message);
+        } else {
+            setError("Đã có lỗi không xác định xảy ra");
+        }
           throw err;
       } finally {
           setIsLoading(false);

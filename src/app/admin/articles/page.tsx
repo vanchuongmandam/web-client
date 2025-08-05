@@ -69,7 +69,7 @@ export default function AdminArticlesPage() {
         const data = await getArticles();
         setArticles(data);
       } catch (error) {
-        toast({ variant: "destructive", title: "Lỗi", description: "Không thể tải danh sách bài viết." });
+        toast({ variant: "destructive", title: "Lỗi", description: (error as Error).message });
       } finally {
         setIsLoading(false);
       }
@@ -87,8 +87,12 @@ export default function AdminArticlesPage() {
       // Cập nhật lại giao diện ngay lập tức
       setArticles(prev => prev.filter(article => article.slug !== slugToDelete));
       toast({ title: "Thành công!", description: "Bài viết đã được xóa." });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Lỗi", description: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            toast({ variant: "destructive", title: "Lỗi", description: error.message });
+        } else {
+            toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
+        }
     }
   };
   
@@ -145,7 +149,7 @@ export default function AdminArticlesPage() {
                        <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
-                            <AlertDialogDescription>Hành động này sẽ xóa vĩnh viễn bài viết "{article.title}". Bạn không thể hoàn tác.</AlertDialogDescription>
+                            <AlertDialogDescription>Hành động này sẽ xóa vĩnh viễn bài viết &quot;{article.title}&quot;. Bạn không thể hoàn tác.</AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Hủy</AlertDialogCancel>

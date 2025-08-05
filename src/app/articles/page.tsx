@@ -75,7 +75,7 @@ export default function ArticlesPage() {
     const [articles, setArticles] = useState<Article[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [, setSelectedCategory] = useState<string>('all');
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {

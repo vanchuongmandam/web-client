@@ -80,7 +80,7 @@ export default function AdminCategoriesPage() {
         const data = await getCategories();
         setCategories(data);
       } catch (error) {
-        toast({ variant: "destructive", title: "Lỗi", description: "Không thể tải danh sách danh mục." });
+        toast({ variant: "destructive", title: "Lỗi", description: (error as Error).message });
       } finally {
         setIsLoading(false);
       }
@@ -99,8 +99,12 @@ export default function AdminCategoriesPage() {
       setCategories(prev => [...prev, newCat]);
       setNewCategoryName('');
       toast({ title: "Thành công!", description: "Đã tạo danh mục mới." });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Lỗi", description: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            toast({ variant: "destructive", title: "Lỗi", description: error.message });
+        } else {
+            toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
+        }
     } finally {
       setIsSubmitting(false);
     }
@@ -112,8 +116,12 @@ export default function AdminCategoriesPage() {
       await deleteCategoryById(idToDelete, token);
       setCategories(prev => prev.filter(cat => cat._id !== idToDelete));
       toast({ title: "Thành công!", description: "Danh mục đã được xóa." });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Lỗi", description: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            toast({ variant: "destructive", title: "Lỗi", description: error.message });
+        } else {
+            toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
+        }
     }
   };
   
@@ -174,7 +182,7 @@ export default function AdminCategoriesPage() {
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
-                        <AlertDialogDescription>Hành động này sẽ xóa vĩnh viễn danh mục "{cat.name}". Nếu có bài viết nào thuộc danh mục này, bạn có thể cần phải cập nhật chúng.</AlertDialogDescription>
+                        <AlertDialogDescription>Hành động này sẽ xóa vĩnh viễn danh mục &quot;{cat.name}&quot;. Nếu có bài viết nào thuộc danh mục này, bạn có thể cần phải cập nhật chúng.</AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Hủy</AlertDialogCancel>
