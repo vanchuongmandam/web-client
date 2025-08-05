@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/context/AuthContext';
@@ -17,67 +17,47 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import RichTextEditor from '@/components/ui/rich-text-editor';
 import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
-
-// --- Sửa Zod Schema ---
 const articleFormSchema = z.object({
   title: z.string().min(5, { message: "Tiêu đề phải có ít nhất 5 ký tự." }),
   slug: z.string().min(3, { message: "Slug phải có ít nhất 3 ký tự." }).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug chỉ được chứa chữ thường, số và dấu gạch ngang." }),
   author: z.string().min(2, { message: "Tên tác giả là bắt buộc." }),
   excerpt: z.string().min(10, { message: "Tóm tắt phải có ít nhất 10 ký tự." }),
-  content: z.string().min(50, { message: "Nội dung phải có ít nhất 50 ký tự." }),
+  content: z.string().min(10, { message: "Nội dung là bắt buộc." }),
   category: z.string({ required_error: "Vui lòng chọn một danh mục." }),
-  // Gỡ bỏ .min(1) để không bắt buộc phải có media
   media: z.array(z.object({
       url: z.string(),
       mediaType: z.enum(['image', 'video']),
       caption: z.string().optional(),
   })),
 });
-
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
 
-
-// --- API Functions ---
 async function getCategories(): Promise<Category[]> {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const res = await fetch(`${apiBaseUrl}/categories`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`);
     if (!res.ok) throw new Error("Failed to fetch categories");
     return res.json();
 }
-
 async function uploadFile(file: File, token: string): Promise<Media> {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     const formData = new FormData();
     formData.append('mediaFile', file);
-    const res = await fetch(`${apiBaseUrl}/upload`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
     });
     if (!res.ok) throw new Error("File upload failed");
-    // API của bạn trả về một object có chứa `url` và `mediaType`
     const data = await res.json();
-    return {
-        url: data.url,
-        mediaType: data.mediaType,
-    };
+    return { url: data.url, mediaType: data.mediaType };
 }
-
 async function createArticle(data: ArticleFormValues, token: string) {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const dataToSend = {
-        ...data,
-        date: new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' })
-    };
-    const res = await fetch(`${apiBaseUrl}/articles`, {
+    const dataToSend = { ...data, date: new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' }) };
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(dataToSend)
     });
     if (!res.ok) {
@@ -87,8 +67,6 @@ async function createArticle(data: ArticleFormValues, token: string) {
     return res.json();
 }
 
-
-// --- Main Component ---
 export default function NewArticlePage() {
     const router = useRouter();
     const { token } = useAuth();
@@ -98,38 +76,30 @@ export default function NewArticlePage() {
 
     const form = useForm<ArticleFormValues>({
         resolver: zodResolver(articleFormSchema),
-        // Đặt giá trị mặc định cho media là một mảng rỗng
-        defaultValues: { media: [] },
+        defaultValues: { media: [], title: '', slug: '', author: '', excerpt: '', content: '' },
     });
     const mediaValue = form.watch('media');
 
     useEffect(() => {
-        getCategories().then(setCategories).catch(() => {
-            toast({ variant: "destructive", title: "Lỗi", description: "Không thể tải danh mục." });
-        });
+        getCategories().then(setCategories).catch(() => toast({ variant: "destructive", title: "Lỗi", description: "Không thể tải danh mục." }));
     }, [toast]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !token) return;
-
         setIsUploading(true);
         try {
             const newMedia = await uploadFile(file, token);
             form.setValue('media', [...form.getValues('media'), newMedia]);
         } catch (error) {
-            toast({ variant: "destructive", title: "Upload thất bại", description: "Không thể tải file lên." });
+            toast({ variant: "destructive", title: "Upload thất bại" });
         } finally {
             setIsUploading(false);
             e.target.value = '';
         }
     };
     
-    const removeMedia = (index: number) => {
-        const updatedMedia = [...form.getValues('media')];
-        updatedMedia.splice(index, 1);
-        form.setValue('media', updatedMedia);
-    };
+    const removeMedia = (index: number) => form.setValue('media', form.getValues('media').filter((_, i) => i !== index));
 
     const onSubmit = async (data: ArticleFormValues) => {
         if (!token) return;
@@ -152,7 +122,7 @@ export default function NewArticlePage() {
                             <p className="text-muted-foreground mt-2">Điền thông tin chi tiết dưới đây.</p>
                         </div>
                         <div className="flex gap-2">
-                           <Button variant="outline" asChild><Link href="/admin/articles">Hủy</Link></Button>
+                           <Button type="button" variant="outline" asChild><Link href="/admin/articles">Hủy</Link></Button>
                            <Button type="submit" disabled={form.formState.isSubmitting}>
                                 {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Đăng bài viết
@@ -160,37 +130,24 @@ export default function NewArticlePage() {
                         </div>
                     </header>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Left Column */}
                         <div className="lg:col-span-2 space-y-6">
-                            <FormField control={form.control} name="title" render={({ field }) => (
-                                <FormItem><FormLabel>Tiêu đề</FormLabel><FormControl><Input placeholder="Tiêu đề bài viết..." {...field} /></FormControl><FormMessage /></FormItem>
-                            )} />
+                            <FormField control={form.control} name="title" render={({ field }) => ( <FormItem><FormLabel>Tiêu đề</FormLabel><FormControl><Input placeholder="Tiêu đề bài viết..." {...field} /></FormControl><FormMessage /></FormItem> )} />
                              <FormField control={form.control} name="content" render={({ field }) => (
-                                <FormItem><FormLabel>Nội dung</FormLabel><FormControl><Textarea placeholder="Soạn thảo nội dung chính..." {...field} rows={20} /></FormControl><FormMessage /></FormItem>
+                                <FormItem><FormLabel>Nội dung</FormLabel><FormControl><RichTextEditor placeholder="Soạn thảo nội dung chính tại đây..." value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>
                             )} />
                         </div>
-                        {/* Right Column */}
                         <div className="space-y-6">
                             <Card>
                                 <CardHeader><CardTitle>Thông tin bài viết</CardTitle></CardHeader>
                                 <CardContent className="space-y-4">
-                                    <FormField control={form.control} name="slug" render={({ field }) => (
-                                        <FormItem><FormLabel>Slug (URL)</FormLabel><FormControl><Input placeholder="vi-du-slug" {...field} /></FormControl><FormMessage /></FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="author" render={({ field }) => (
-                                        <FormItem><FormLabel>Tác giả</FormLabel><FormControl><Input placeholder="Tên tác giả" {...field} /></FormControl><FormMessage /></FormItem>
-                                    )} />
+                                    <FormField control={form.control} name="slug" render={({ field }) => ( <FormItem><FormLabel>Slug (URL)</FormLabel><FormControl><Input placeholder="vi-du-slug" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                                    <FormField control={form.control} name="author" render={({ field }) => ( <FormItem><FormLabel>Tác giả</FormLabel><FormControl><Input placeholder="Tên tác giả" {...field} /></FormControl><FormMessage /></FormItem> )} />
                                     <FormField control={form.control} name="category" render={({ field }) => (
                                         <FormItem><FormLabel>Danh mục</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="Chọn một danh mục" /></SelectTrigger></FormControl>
-                                                <SelectContent>{categories.map(cat => <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>)}</SelectContent>
-                                            </Select><FormMessage />
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Chọn một danh mục" /></SelectTrigger></FormControl><SelectContent>{categories.map(cat => <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>)}</SelectContent></Select><FormMessage />
                                         </FormItem>
                                     )} />
-                                     <FormField control={form.control} name="excerpt" render={({ field }) => (
-                                        <FormItem><FormLabel>Đoạn trích (Excerpt)</FormLabel><FormControl><Textarea placeholder="Một đoạn tóm tắt ngắn..." {...field} /></FormControl><FormMessage /></FormItem>
-                                    )} />
+                                     <FormField control={form.control} name="excerpt" render={({ field }) => ( <FormItem><FormLabel>Đoạn trích (Excerpt)</FormLabel><FormControl><Textarea placeholder="Một đoạn tóm tắt ngắn..." {...field} /></FormControl><FormMessage /></FormItem> )} />
                                 </CardContent>
                             </Card>
                             <Card>
@@ -200,11 +157,7 @@ export default function NewArticlePage() {
                                         <FormLabel>File ảnh/video</FormLabel>
                                         <FormControl>
                                             <div className="relative">
-                                                <Button type="button" variant="outline" asChild>
-                                                    <label htmlFor="file-upload" className="cursor-pointer w-full">
-                                                        <Upload className="mr-2 h-4 w-4" /> Upload File
-                                                    </label>
-                                                </Button>
+                                                <Button type="button" variant="outline" asChild><label htmlFor="file-upload" className="cursor-pointer w-full"><Upload className="mr-2 h-4 w-4" /> Upload File</label></Button>
                                                 <Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading}/>
                                                 {isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}
                                             </div>

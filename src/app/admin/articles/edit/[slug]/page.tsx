@@ -17,25 +17,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import RichTextEditor from '@/components/ui/rich-text-editor';
 import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
-// --- Sửa Zod Schema ---
 const articleFormSchema = z.object({
   title: z.string().min(5, { message: "Tiêu đề phải có ít nhất 5 ký tự." }),
   slug: z.string().min(3, { message: "Slug phải có ít nhất 3 ký tự." }).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug chỉ được chứa chữ thường, số và dấu gạch ngang." }),
   author: z.string().min(2, { message: "Tên tác giả là bắt buộc." }),
   excerpt: z.string().min(10, { message: "Tóm tắt phải có ít nhất 10 ký tự." }),
-  content: z.string().min(50, { message: "Nội dung phải có ít nhất 50 ký tự." }),
+  content: z.string().min(10, { message: "Nội dung là bắt buộc." }),
   category: z.string({ required_error: "Vui lòng chọn một danh mục." }),
-  // Gỡ bỏ .min(1) để không bắt buộc phải có media
   media: z.array(z.object({
       url: z.string(),
       mediaType: z.enum(['image', 'video']),
       caption: z.string().optional(),
   })),
 });
-
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
 
 async function getCategories(): Promise<Category[]> {
@@ -43,7 +41,6 @@ async function getCategories(): Promise<Category[]> {
     if (!res.ok) throw new Error("Failed to fetch categories");
     return res.json();
 }
-
 async function uploadFile(file: File, token: string): Promise<Media> {
     const formData = new FormData();
     formData.append('mediaFile', file);
@@ -56,13 +53,11 @@ async function uploadFile(file: File, token: string): Promise<Media> {
     const data = await res.json();
     return { url: data.url, mediaType: data.mediaType };
 }
-
 async function getArticleBySlug(slug: string): Promise<Article | null> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/${slug}`);
     if (!res.ok) return null;
     return res.json();
 }
-
 async function updateArticle(slug: string, data: ArticleFormValues, token: string) {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/${slug}`, {
         method: 'PUT',
@@ -88,7 +83,7 @@ export default function EditArticlePage() {
 
     const form = useForm<ArticleFormValues>({
         resolver: zodResolver(articleFormSchema),
-        defaultValues: { media: [] },
+        defaultValues: { media: [], title: '', slug: '', author: '', excerpt: '', content: '' },
     });
     const mediaValue = form.watch('media');
 
@@ -128,9 +123,7 @@ export default function EditArticlePage() {
         }
     };
     
-    const removeMedia = (index: number) => {
-        form.setValue('media', form.getValues('media').filter((_, i) => i !== index));
-    };
+    const removeMedia = (index: number) => form.setValue('media', form.getValues('media').filter((_, i) => i !== index));
 
     const onSubmit = async (data: ArticleFormValues) => {
         if (!token) return;
@@ -167,7 +160,9 @@ export default function EditArticlePage() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-2 space-y-6">
                             <FormField control={form.control} name="title" render={({ field }) => ( <FormItem><FormLabel>Tiêu đề</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="content" render={({ field }) => ( <FormItem><FormLabel>Nội dung</FormLabel><FormControl><Textarea {...field} rows={20} /></FormControl><FormMessage /></FormItem> )} />
+                            <FormField control={form.control} name="content" render={({ field }) => (
+                                <FormItem><FormLabel>Nội dung</FormLabel><FormControl><RichTextEditor placeholder="Soạn thảo nội dung..." value={field.value} onChange={field.onChange}/></FormControl><FormMessage /></FormItem>
+                            )} />
                         </div>
                         <div className="space-y-6">
                             <Card>

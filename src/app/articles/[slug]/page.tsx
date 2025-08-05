@@ -26,16 +26,16 @@ async function getArticle(slug: string): Promise<Article | null> {
   }
 }
 
-// --- Component trang chi tiết bài viết ---
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+// --- Component trang chi tiết bài viết (Đã sửa) ---
+// Sửa trực tiếp ở chữ ký của hàm để lấy slug ra ngay lập tức
+export default async function ArticlePage({ params: { slug } }: { params: { slug: string } }) {
+  // Bây giờ 'slug' đã có sẵn, không cần dòng const { slug } = params; nữa
   const article = await getArticle(slug);
 
   if (!article) {
     notFound();
   }
   
-  // Lấy ảnh đại diện từ mảng media
   const heroImage = article.media?.find(m => m.mediaType === 'image')?.url;
 
   return (
@@ -54,7 +54,6 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           </p>
         </header>
 
-        {/* Hiển thị ảnh nếu có */}
         {heroImage && (
             <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-8">
                 <Image
