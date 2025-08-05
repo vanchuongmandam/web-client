@@ -1,4 +1,4 @@
-// src/app/api/admin/generate-embeddings/route.ts
+/*
 
 import { NextRequest, NextResponse } from 'next/server';
 import { embed } from '@genkit-ai/ai/embedder';
@@ -68,3 +68,4 @@ export async function POST(req: NextRequest) {
         await client.close();
     }
 }
+*/

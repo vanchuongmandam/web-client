@@ -13,6 +13,7 @@
     "db:generate-embeddings": "node scripts/generate-embeddings.mjs"
   },
   "dependencies": {
+    "@genkit-ai/ai": "^1.15.5",
     "@genkit-ai/googleai": "^1.15.5",
     "@genkit-ai/next": "^1.14.1",
     "@hookform/resolvers": "^4.1.3",
