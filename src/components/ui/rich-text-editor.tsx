@@ -5,17 +5,14 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Bold, Italic, Strikethrough, List, ListOrdered, Heading2, Heading3 } from 'lucide-react';
 import { Button } from './button';
-import { useState, useEffect } from 'react';
 import { Skeleton } from './skeleton';
 
-
-// --- Toolbar (giữ nguyên) ---
 const Toolbar = ({ editor }: { editor: any }) => {
   if (!editor) {
     return null;
   }
   return (
-    <div className="border border-input bg-transparent rounded-t-md p-1 flex items-center gap-1">
+    <div className="border border-input bg-transparent rounded-t-md p-1 flex items-center gap-1 flex-wrap">
       <Button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'} size="sm"><Heading2 className="h-4 w-4" /></Button>
       <Button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} variant={editor.isActive('heading', { level: 3 }) ? 'secondary' : 'ghost'} size="sm"><Heading3 className="h-4 w-4" /></Button>
       <Button type="button" onClick={() => editor.chain().focus().toggleBold().run()} variant={editor.isActive('bold') ? 'secondary' : 'ghost'} size="sm"><Bold className="h-4 w-4" /></Button>
@@ -27,8 +24,6 @@ const Toolbar = ({ editor }: { editor: any }) => {
   );
 };
 
-
-// --- Component Editor chính (Đã sửa) ---
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -36,8 +31,6 @@ interface RichTextEditorProps {
 }
 
 export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
-  const [isMounted, setIsMounted] = useState(false);
-
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -46,6 +39,8 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
       }),
     ],
     content: value,
+    // THE REAL FIX IS HERE: Following Tiptap's direct instructions
+    immediatelyRender: false, 
     editorProps: {
       attributes: {
         class: 'prose dark:prose-invert min-h-[250px] w-full rounded-b-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
@@ -56,26 +51,12 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     },
   });
 
-  // Chỉ set isMounted thành true khi component đã ở trên client
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Cập nhật nội dung cho editor khi `value` từ form thay đổi
-  useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value);
-    }
-  }, [value, editor]);
-
-
-  // Nếu chưa mount (đang ở SSR), hiển thị skeleton để tránh lỗi
-  if (!isMounted) {
+  if (!editor) {
     return <Skeleton className="h-[300px] w-full rounded-md" />;
   }
 
   return (
-    <div>
+    <div className="flex flex-col">
       <Toolbar editor={editor} />
       <EditorContent editor={editor} placeholder={placeholder} />
     </div>
