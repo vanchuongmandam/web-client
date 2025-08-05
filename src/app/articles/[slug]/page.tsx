@@ -1,4 +1,5 @@
 // src/app/articles/[slug]/page.tsx
+export const runtime = 'edge'; 
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
