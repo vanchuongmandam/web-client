@@ -1,4 +1,6 @@
 // src/app/admin/articles/edit/[slug]/page.tsx
+export const runtime = 'edge'; 
+
 "use client";
 
 import { useState, useEffect } from 'react';
