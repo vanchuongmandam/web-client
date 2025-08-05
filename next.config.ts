@@ -28,6 +28,10 @@ const nextConfig: NextConfig = {
         stream: false, // Stream module
         tls: false,   // TLS (Transport Layer Security) module
         net: false,   // Network module
+        zlib: false,  
+        http: false,   
+        http2: false, 
+        dns: false,    
         // crypto: false,
         // path: false,
         // util: false,
