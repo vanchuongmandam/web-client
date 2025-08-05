@@ -1,0 +1,64 @@
+name: Build, Test and Deploy Next.js App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build & Test Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8 
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm' 
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run linter
+        run: pnpm run lint
+
+      - name: Build application
+        run: pnpm run build
+
+  # --- Job 2: Deploy to VPS ---
+  deploy:
+    name: Deploy to VPS
+    needs: build-and-test 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          port: 22 
+          script: |
+            cd ${{ secrets.VPS_WORKDIR }}
+            
+            echo "--- 1. Pulling latest code from main branch ---"
+            git pull origin main
+            
+            echo "--- 2. Installing production dependencies with pnpm ---"
+            pnpm install --prod
+            
+            echo "--- 3. Building the Next.js application ---"
+            pnpm run build
+            
+            echo "--- 4. Restarting the app with PM2 ---"
+            pm2 restart web-client || pm2 start pnpm --name web-client -- start
