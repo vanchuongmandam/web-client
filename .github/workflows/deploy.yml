@@ -3,7 +3,7 @@ name: Build, Test and Deploy Next.js App
 on:
   push:
     branches:
-      - main
+      - deploy
 
 jobs:
   build-and-test:
