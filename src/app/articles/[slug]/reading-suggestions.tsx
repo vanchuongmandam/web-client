@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getReadingSuggestions } from "@/ai/flows/reading-suggestions";
+//import { getReadingSuggestions } from "@/ai/flows/reading-suggestions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, Loader2, BookText } from "lucide-react";
@@ -19,12 +19,12 @@ export default function ReadingSuggestions({ articleContent }: { articleContent:
     setSuggestions([]);
 
     try {
-      const result = await getReadingSuggestions({ articleContent });
-      if (result.suggestions && result.suggestions.length > 0) {
+      // const result = await getReadingSuggestions({ articleContent });
+      /*if (result.suggestions && result.suggestions.length > 0) {
         setSuggestions(result.suggestions);
-      } else {
+      } else {*/
         setError("Không tìm thấy gợi ý nào phù hợp.");
-      }
+      //}
     } catch (e) {
       console.error(e);
       setError("Đã có lỗi xảy ra khi lấy gợi ý. Vui lòng thử lại.");

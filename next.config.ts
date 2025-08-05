@@ -35,10 +35,8 @@ const nextConfig: NextConfig = {
         os: false,            // Operating System module
         path: false,          // Path manipulation module
         querystring: false,   // Query string parsing module
-        
-        // crypto: false,
-        // path: false,
-        // util: false,
+        crypto: false,
+        util: false,
       };
     }
 

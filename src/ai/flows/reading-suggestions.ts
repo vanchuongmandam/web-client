@@ -7,7 +7,7 @@
  * - ReadingSuggestionsInput - The input type for the getReadingSuggestions function.
  * - ReadingSuggestionsOutput - The return type for the getReadingSuggestions function.
  */
-
+/*
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
@@ -54,3 +54,4 @@ const readingSuggestionsFlow = ai.defineFlow(
     return output!;
   }
 );
+*/
