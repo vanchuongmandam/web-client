@@ -1,8 +1,6 @@
 // src/app/articles/page.tsx
-export const runtime = 'edge'; 
-
 "use client";
-
+export const runtime = 'edge'; 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { Article, Category } from '@/lib/types';
