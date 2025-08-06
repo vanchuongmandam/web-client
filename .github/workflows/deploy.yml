@@ -53,7 +53,7 @@ jobs:
             git pull origin deploy
             
             echo "--- 2. Installing production dependencies with pnpm ---"
-            pnpm install --prod
+            pnpm install 
             
             echo "--- 3. Building the Next.js application ---"
             pnpm run build
