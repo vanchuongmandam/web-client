@@ -1,2 +1,6 @@
+packages:
+  - '.'
+
 ignoredBuiltDependencies:
   - unrs-resolver
+
