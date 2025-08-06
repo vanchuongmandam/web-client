@@ -1,10 +1,10 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google";
+import { Alegreya as FontSerif, Inter as FontSans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { Header } from "@/components/header"; // Sửa lại: Thêm dấu {}
+import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
@@ -12,6 +12,13 @@ import { AuthProvider } from "@/context/AuthContext";
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+const fontSerif = FontSerif({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
@@ -28,8 +35,9 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable
+          "min-h-screen bg-background font-serif antialiased",
+          fontSans.variable,
+          fontSerif.variable
         )}
       >
         <AuthProvider>
