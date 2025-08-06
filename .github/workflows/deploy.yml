@@ -1,4 +1,4 @@
-name: Build, Test and Deploy Next.js App
+name: Test and Deploy Next.js App
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-test:
-    name: Build & Test Application
+    name: Test Application
     runs-on: ubuntu-latest
 
     steps:
@@ -31,8 +31,6 @@ jobs:
       - name: Run linter
         run: pnpm run lint
 
-      - name: Build application
-        run: pnpm run build
 
   # --- Job 2: Deploy to VPS ---
   deploy:

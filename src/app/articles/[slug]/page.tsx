@@ -62,6 +62,7 @@ export default async function ArticlePage({ params: { slug } }: { params: { slug
                     fill
                     className="object-cover"
                     priority
+                    unoptimized
                 />
             </div>
         )}
