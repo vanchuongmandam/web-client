@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 "use client";
 
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 
@@ -42,46 +42,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // --- Hàm Đăng xuất ---
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
     router.push('/login');
-  };
+  }, [router]);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('authToken');
-    const storedUser = localStorage.getItem('authUser');
-
     if (storedToken) {
       try {
         const decodedToken: DecodedToken = jwtDecode(storedToken);
-        // exp được tính bằng giây, Date.now() tính bằng mili giây
         if (decodedToken.exp * 1000 < Date.now()) {
-          // Token đã hết hạn
           logout();
         } else {
-          // Token vẫn còn hạn
           setToken(storedToken);
+          const storedUser = localStorage.getItem('authUser');
           if (storedUser && storedUser !== 'undefined') {
             setUser(JSON.parse(storedUser));
           }
         }
       } catch (e) {
-        // Lỗi giải mã token (token không hợp lệ)
         console.error("Invalid token:", e);
         logout();
       }
     }
     setIsLoading(false);
-  }, []);
+  }, [logout]);
 
   const clearError = () => setError(null);
 
-  // --- Hàm Đăng nhập ---
-  const login = async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -100,19 +93,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('authUser', JSON.stringify(data.user));
       router.push('/');
     } catch (err: unknown) {
-        if (err instanceof Error) {
-            setError(err.message);
-        } else {
-            setError("Đã có lỗi không xác định xảy ra");
-        }
-      throw err;
+        if (err instanceof Error) { setError(err.message); } 
+        else { setError("Đã có lỗi không xác định xảy ra"); }
+        throw err;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
   
-  // --- Hàm Đăng ký ---
-  const register = async (username: string, password: string) => {
+  const register = useCallback(async (username: string, password: string) => {
       setIsLoading(true);
       setError(null);
       try {
@@ -126,19 +115,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!response.ok) throw new Error(data.message || 'Đăng ký thất bại.');
           await login(username, password);
       } catch (err: unknown) {
-        if (err instanceof Error) {
-            setError(err.message);
-        } else {
-            setError("Đã có lỗi không xác định xảy ra");
-        }
-          throw err;
+        if (err instanceof Error) { setError(err.message); } 
+        else { setError("Đã có lỗi không xác định xảy ra"); }
+        throw err;
       } finally {
           setIsLoading(false);
       }
-  };
+  }, [login]);
+
+  const value = useMemo(() => ({
+    user,
+    token,
+    login,
+    register,
+    logout,
+    isLoading,
+    error,
+    clearError
+  }), [user, token, isLoading, error, logout, login, register]);
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading, error, clearError }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
