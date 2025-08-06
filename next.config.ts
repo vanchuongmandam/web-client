@@ -8,7 +8,6 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['apivcmd.thptchuyenhatinh.edu.vn'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -23,11 +22,11 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    
     dangerouslyAllowSVG: true,
-    loader: 'default',
-    unoptimized: false,
+    domains: ['apivcmd.thptchuyenhatinh.edu.vn'],
   },
-
+  trailingSlash: false, 
 };
 
 export default nextConfig;
