@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    domains: ['apivcmd.thptchuyenhatinh.edu.vn'],
     remotePatterns: [
       {
         protocol: 'https',
