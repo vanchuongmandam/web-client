@@ -3,6 +3,7 @@
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { jwtDecode } from 'jwt-decode';
 
 // --- Định nghĩa kiểu dữ liệu ---
 interface User {
@@ -10,6 +11,14 @@ interface User {
   username: string;
   role: string;
 }
+
+interface DecodedToken {
+  id: string;
+  username: string;
+  iat: number;
+  exp: number;
+}
+
 
 interface AuthContextType {
   user: User | null;
@@ -33,29 +42,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    try {
-      const storedToken = localStorage.getItem('authToken');
-      const storedUser = localStorage.getItem('authUser');
+  // --- Hàm Đăng xuất ---
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authUser');
+    router.push('/login');
+  };
 
-      // --- SỬA LỖI TẠI ĐÂY ---
-      // Chỉ parse JSON nếu storedUser thực sự tồn tại và không phải là chuỗi 'undefined'
-      if (storedToken && storedUser && storedUser !== 'undefined') {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } else {
-        // Nếu không có dữ liệu hợp lệ, đảm bảo mọi thứ đều trống
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('authUser');
+  useEffect(() => {
+    const storedToken = localStorage.getItem('authToken');
+    const storedUser = localStorage.getItem('authUser');
+
+    if (storedToken) {
+      try {
+        const decodedToken: DecodedToken = jwtDecode(storedToken);
+        // exp được tính bằng giây, Date.now() tính bằng mili giây
+        if (decodedToken.exp * 1000 < Date.now()) {
+          // Token đã hết hạn
+          logout();
+        } else {
+          // Token vẫn còn hạn
+          setToken(storedToken);
+          if (storedUser && storedUser !== 'undefined') {
+            setUser(JSON.parse(storedUser));
+          }
+        }
+      } catch (e) {
+        // Lỗi giải mã token (token không hợp lệ)
+        console.error("Invalid token:", e);
+        logout();
       }
-    } catch (e) {
-      console.error("Failed to parse auth data from localStorage", e);
-      // Dọn dẹp nếu có lỗi xảy ra
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('authUser');
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
   const clearError = () => setError(null);
@@ -115,15 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } finally {
           setIsLoading(false);
       }
-  };
-
-  // --- Hàm Đăng xuất ---
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
-    router.push('/login');
   };
 
   return (
