@@ -50,7 +50,7 @@ jobs:
             cd ${{ secrets.VPS_WORKDIR }}
             
             echo "--- 1. Pulling latest code from main branch ---"
-            git pull origin main
+            git pull origin deploy
             
             echo "--- 2. Installing production dependencies with pnpm ---"
             pnpm install --prod
