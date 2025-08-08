@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { generateSlug } from '@/lib/utils';
 import type { Category, Media, Article } from '@/lib/types';
 
 import dynamic from 'next/dynamic';
@@ -23,6 +24,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
+import { Switch } from '@/components/ui/switch';
 
 const RichTextEditor = dynamic(() => import('@/components/ui/rich-text-editor'), { 
   ssr: false,
@@ -36,6 +38,7 @@ const articleFormSchema = z.object({
   excerpt: z.string().min(10, { message: "Tóm tắt phải có ít nhất 10 ký tự." }),
   content: z.string().min(10, { message: "Nội dung là bắt buộc." }),
   category: z.string({ required_error: "Vui lòng chọn một danh mục." }),
+  trending: z.boolean().default(false),
   media: z.array(z.object({
       url: z.string(),
       mediaType: z.enum(['image', 'video']),
@@ -91,9 +94,18 @@ export default function EditArticlePage() {
 
     const form = useForm<ArticleFormValues>({
         resolver: zodResolver(articleFormSchema),
-        defaultValues: { media: [], title: '', slug: '', author: '', excerpt: '', content: '' },
+        defaultValues: { media: [], title: '', slug: '', author: '', excerpt: '', content: '', trending: false },
     });
     const mediaValue = form.watch('media');
+    const titleValue = form.watch('title');
+
+    useEffect(() => {
+        // Chỉ tự động cập nhật slug nếu người dùng đang gõ tiêu đề
+        if (form.formState.isDirty) {
+            const slug = generateSlug(titleValue);
+            form.setValue('slug', slug, { shouldValidate: true });
+        }
+    }, [titleValue, form]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -172,7 +184,7 @@ export default function EditArticlePage() {
                             <Card>
                                 <CardHeader><CardTitle>Thông tin bài viết</CardTitle></CardHeader>
                                 <CardContent className="space-y-4">
-                                    <FormField control={form.control} name="slug" render={({ field }) => ( <FormItem><FormLabel>Slug (URL)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                                    <FormField control={form.control} name="slug" render={({ field }) => ( <FormItem><FormLabel>Slug (URL)</FormLabel><FormControl><Input readOnly {...field} /></FormControl><FormMessage /></FormItem> )} />
                                     <FormField control={form.control} name="author" render={({ field }) => ( <FormItem><FormLabel>Tác giả</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                                     <FormField control={form.control} name="category" render={({ field }) => (
                                         <FormItem><FormLabel>Danh mục</FormLabel>
@@ -180,6 +192,12 @@ export default function EditArticlePage() {
                                         </FormItem>
                                     )} />
                                      <FormField control={form.control} name="excerpt" render={({ field }) => ( <FormItem><FormLabel>Đoạn trích</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
+                                     <FormField control={form.control} name="trending" render={({ field }) => (
+                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                            <div className="space-y-0.5"><FormLabel>Bài viết nổi bật (Trending)</FormLabel></div>
+                                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        </FormItem>
+                                    )} />
                                 </CardContent>
                             </Card>
                             <Card>
