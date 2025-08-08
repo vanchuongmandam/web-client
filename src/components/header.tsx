@@ -25,8 +25,6 @@ import {
 const navItems = [
   { name: 'Trang chủ', href: '/' },
   { name: 'Bài Viết', href: '/articles' },
-  { name: 'Sách Hay', href: '#' },
-  { name: 'Tác Giả', href: '#' },
   { name: 'Liên Hệ', href: '#' },
 ];
 
