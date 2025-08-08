@@ -1,10 +1,8 @@
 // src/lib/tiptap-extensions/font-size.ts
 import { Extension } from '@tiptap/core';
 
-// Định nghĩa các cỡ chữ hợp lệ
 export const FONT_SIZES = ['12px', '14px', '16px', '18px', '20px', '24px', '30px'];
 
-// Khai báo kiểu dữ liệu để TypeScript hiểu thuộc tính mới
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     fontSize: {
@@ -14,13 +12,12 @@ declare module '@tiptap/core' {
   }
 }
 
-// Tạo extension
 export const FontSize = Extension.create({
   name: 'fontSize',
 
   addOptions() {
     return {
-      types: ['textStyle'], // Áp dụng cho kiểu chữ (textStyle)
+      types: ['textStyle'], 
     };
   },
 

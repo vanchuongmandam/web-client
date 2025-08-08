@@ -1,10 +1,8 @@
 // src/lib/tiptap-extensions/line-height.ts
 import { Extension } from '@tiptap/core';
 
-// Định nghĩa các mức giãn dòng hợp lệ
-export const LINE_HEIGHTS = ['1', '1.5', '2', '2.5'];
+export const LINE_HEIGHTS = ['1', '1.25', '1.5', '1.75', '2', '2.25', '2.5'];
 
-// Khai báo kiểu dữ liệu để TypeScript hiểu thuộc tính mới
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     lineHeight: {
@@ -20,7 +18,7 @@ export const LineHeight = Extension.create({
 
   addOptions() {
     return {
-      types: ['heading', 'paragraph'], // Chỉ áp dụng cho tiêu đề và đoạn văn
+      types: ['heading', 'paragraph'], 
       defaultLineHeight: '1.5',
     };
   },
