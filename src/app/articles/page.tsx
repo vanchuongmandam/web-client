@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
 // --- API Functions (Throw error on failure) ---
@@ -35,7 +35,7 @@ const ArticleCard = ({ article }: { article: Article }) => (
                         alt={article.title} 
                         fill 
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Tối ưu sizes
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                 ) : <div className="h-full w-full bg-secondary"></div>}
             </div>
@@ -53,20 +53,46 @@ const ArticleCard = ({ article }: { article: Article }) => (
     </Card>
 );
 
-const CategoryOptions = ({ categories, level = 0 }: { categories: Category[], level?: number }) => (
-  <>
-    {categories.map(category => (
-      <Fragment key={category._id}>
-        <SelectItem value={category.slug}>
-          {'— '.repeat(level)}{category.name}
-        </SelectItem>
-        {category.children && category.children.length > 0 && (
-          <CategoryOptions categories={category.children} level={level + 1} />
-        )}
-      </Fragment>
-    ))}
-  </>
+const CategoryOptions = ({ categories }: { categories: Category[] }) => (
+    <>
+        {categories.map(category => (
+            <Fragment key={category._id}>
+                {category.children && category.children.length > 0 ? (
+                    <SelectGroup>
+                        <SelectLabel>{category.name}</SelectLabel>
+                        <SelectItem value={category.slug}>Tất cả danh mục</SelectItem>
+                        {category.children.map(child => (
+                            <SelectItem key={child._id} value={child.slug}>
+                                {child.name}
+                            </SelectItem>
+                        ))}
+                    </SelectGroup>
+                ) : (
+                    <SelectItem value={category.slug}>{category.name}</SelectItem>
+                )}
+            </Fragment>
+        ))}
+    </>
 );
+
+// Helper function to find a category and its parent
+const findCategoryWithParent = (
+    slug: string, 
+    categories: Category[], 
+    parent: Category | null = null
+): { found: Category; parent: Category | null } | null => {
+    for (const category of categories) {
+        if (category.slug === slug) {
+            return { found: category, parent };
+        }
+        if (category.children && category.children.length > 0) {
+            const result = findCategoryWithParent(slug, category.children, category);
+            if (result) return result;
+        }
+    }
+    return null;
+};
+
 
 const ArticlesView = () => {
     const searchParams = useSearchParams();
@@ -102,7 +128,7 @@ const ArticlesView = () => {
 
     const handleCategoryChange = (slug: string) => {
         const params = new URLSearchParams(searchParams.toString());
-        if (slug === 'all') {
+        if (!slug) {
             params.delete('category');
         } else {
             params.set('category', slug);
@@ -123,18 +149,18 @@ const ArticlesView = () => {
             return slugs;
         };
 
-        const findCategoryBySlug = (cats: Category[]): Category | null => {
+        const findCategoryBySlug = (cats: Category[], slug: string): Category | null => {
             for (const cat of cats) {
-                if (cat.slug === categorySlug) return cat;
+                if (cat.slug === slug) return cat;
                 if (cat.children) {
-                    const found = findCategoryBySlug(cat.children);
+                    const found = findCategoryBySlug(cat.children, slug);
                     if (found) return found;
                 }
             }
             return null;
         }
 
-        const selectedCategory = findCategoryBySlug(categories);
+        const selectedCategory = findCategoryBySlug(categories, categorySlug);
         if (!selectedCategory) return [];
 
         const validSlugs = getAllChildSlugs(selectedCategory);
@@ -143,18 +169,34 @@ const ArticlesView = () => {
 
     const currentCategoryName = useMemo(() => {
         if (!categorySlug) return "Tất cả bài viết";
-        const findCategory = (cats: Category[]): Category | null => {
+        const findCategory = (cats: Category[], slug:string): Category | null => {
              for (const cat of cats) {
-                if (cat.slug === categorySlug) return cat;
+                if (cat.slug === slug) return cat;
                 if (cat.children) {
-                    const found = findCategory(cat.children);
+                    const found = findCategory(cat.children, slug);
                     if (found) return found;
                 }
             }
             return null;
         }
-        return findCategory(categories)?.name || "Bài viết";
+        return findCategory(categories, categorySlug)?.name || "Bài viết";
     }, [categories, categorySlug]);
+
+    const categoryOptionsToDisplay = useMemo(() => {
+        if (!categorySlug) {
+            return categories; // Show all categories if none is selected
+        }
+        const result = findCategoryWithParent(categorySlug, categories);
+        if (result) {
+            // If the selected category has a parent, show only that parent and its children
+            if (result.parent) {
+                return [result.parent];
+            }
+            // If the selected category is a parent itself, show only it and its children
+            return [result.found];
+        }
+        return categories; // Fallback
+    }, [categorySlug, categories]);
     
     return (
         <div className="container mx-auto px-4 py-8">
@@ -164,11 +206,10 @@ const ArticlesView = () => {
             </header>
 
             <div className="mb-8 flex justify-end">
-                <Select onValueChange={handleCategoryChange} value={categorySlug || 'all'} disabled={isLoading}>
+                <Select onValueChange={handleCategoryChange} value={categorySlug || ''} disabled={isLoading}>
                     <SelectTrigger className="w-[280px]"><SelectValue placeholder="Lọc theo danh mục..." /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">Tất cả danh mục</SelectItem>
-                        <CategoryOptions categories={categories} />
+                        <CategoryOptions categories={categoryOptionsToDisplay} />
                     </SelectContent>
                 </Select>
             </div>

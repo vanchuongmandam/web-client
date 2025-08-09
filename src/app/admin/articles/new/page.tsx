@@ -1,10 +1,10 @@
 // src/app/admin/articles/new/page.tsx
 "use client";
 
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/context/AuthContext';
@@ -36,7 +36,7 @@ const articleFormSchema = z.object({
   author: z.string().min(2, { message: "Tên tác giả là bắt buộc." }),
   excerpt: z.string().min(10, { message: "Tóm tắt phải có ít nhất 10 ký tự." }),
   content: z.string().min(10, { message: "Nội dung là bắt buộc." }),
-  category: z.string({ required_error: "Vui lòng chọn một danh mục." }),
+  category: z.string({ required_error: "Vui lòng chọn một danh mục con." }),
   trending: z.boolean().default(false),
   media: z.array(z.object({
       url: z.string(),
@@ -46,7 +46,7 @@ const articleFormSchema = z.object({
 });
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
 
-// Hàm gọi API lấy danh mục cây
+// API calls
 async function getCategories(): Promise<Category[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`);
     if (!res.ok) throw new Error("Failed to fetch categories");
@@ -65,6 +65,7 @@ async function uploadFile(file: File, token: string): Promise<Media> {
     const data = await res.json();
     return { url: data.url, mediaType: data.mediaType };
 }
+
 async function createArticle(data: ArticleFormValues, token: string) {
     const dataToSend = { ...data, date: new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' }) };
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles`, {
@@ -79,29 +80,14 @@ async function createArticle(data: ArticleFormValues, token: string) {
     return res.json();
 }
 
-// Component để render các lựa chọn danh mục
-const CategoryOptions = ({ categories, level = 0 }: { categories: Category[], level?: number }) => {
-  return (
-    <>
-      {categories.map(category => (
-        <Fragment key={category._id}>
-          <SelectItem value={category._id}>
-            {'— '.repeat(level)}{category.name}
-          </SelectItem>
-          {category.children && category.children.length > 0 && (
-            <CategoryOptions categories={category.children} level={level + 1} />
-          )}
-        </Fragment>
-      ))}
-    </>
-  );
-};
-
 export default function NewArticlePage() {
     const router = useRouter();
     const { token } = useAuth();
     const { toast } = useToast();
     const [categories, setCategories] = useState<Category[]>([]);
+    const [parentCategories, setParentCategories] = useState<Category[]>([]);
+    const [childCategories, setChildCategories] = useState<Category[]>([]);
+    const [selectedParent, setSelectedParent] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false);
 
     const form = useForm<ArticleFormValues>({
@@ -117,9 +103,21 @@ export default function NewArticlePage() {
     }, [titleValue, form]);
 
     useEffect(() => {
-        getCategories().then(setCategories).catch(() => toast({ variant: "destructive", title: "Lỗi", description: "Không thể tải danh mục." }));
+        getCategories()
+            .then(data => {
+                setCategories(data);
+                setParentCategories(data.filter(c => c.children && c.children.length > 0));
+            })
+            .catch(() => toast({ variant: "destructive", title: "Lỗi", description: "Không thể tải danh mục." }));
     }, [toast]);
 
+    const handleParentCategoryChange = (parentId: string) => {
+        form.setValue('category', ''); // Reset child category selection
+        setSelectedParent(parentId);
+        const parent = categories.find(c => c._id === parentId);
+        setChildCategories(parent?.children || []);
+    };
+    
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !token) return;
@@ -172,11 +170,35 @@ export default function NewArticlePage() {
                                 <CardContent className="space-y-4">
                                     <FormField control={form.control} name="slug" render={({ field }) => ( <FormItem><FormLabel>Slug (URL)</FormLabel><FormControl><Input placeholder="Tự động tạo..." readOnly {...field} /></FormControl><FormMessage /></FormItem> )} />
                                     <FormField control={form.control} name="author" render={({ field }) => ( <FormItem><FormLabel>Tác giả</FormLabel><FormControl><Input placeholder="Tên tác giả" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                                    
+                                    <FormItem>
+                                        <FormLabel>Danh mục cha</FormLabel>
+                                        <Select onValueChange={handleParentCategoryChange} value={selectedParent}>
+                                            <FormControl>
+                                                <SelectTrigger><SelectValue placeholder="Chọn danh mục cha" /></SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {parentCategories.map(cat => (
+                                                    <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </FormItem>
+
                                     <FormField control={form.control} name="category" render={({ field }) => (
-                                        <FormItem><FormLabel>Danh mục</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Chọn danh mục" /></SelectTrigger></FormControl>
-                                              <SelectContent><CategoryOptions categories={categories} /></SelectContent>
-                                            </Select><FormMessage />
+                                        <FormItem>
+                                            <FormLabel>Danh mục con</FormLabel>
+                                            <Select onValueChange={field.onChange} value={field.value} disabled={!selectedParent}>
+                                                <FormControl>
+                                                    <SelectTrigger><SelectValue placeholder="Chọn danh mục con" /></SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {childCategories.map(cat => (
+                                                        <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
                                         </FormItem>
                                     )} />
                                      <FormField control={form.control} name="excerpt" render={({ field }) => ( <FormItem><FormLabel>Đoạn trích</FormLabel><FormControl><Textarea placeholder="Tóm tắt ngắn..." {...field} /></FormControl><FormMessage /></FormItem> )} />

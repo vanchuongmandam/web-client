@@ -1,7 +1,7 @@
 // src/app/admin/categories/page.tsx
 "use client";
 
-import { useState, useEffect, FormEvent, Fragment } from 'react';
+import { useState, useEffect, FormEvent, Fragment, useCallback } from 'react';
 import type { Category } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -95,7 +95,7 @@ export default function AdminCategoriesPage() {
   const { token } = useAuth();
   const { toast } = useToast();
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await getCategories();
@@ -105,11 +105,11 @@ export default function AdminCategoriesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
