@@ -1,7 +1,7 @@
 // src/app/admin/articles/new/page.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -46,11 +46,13 @@ const articleFormSchema = z.object({
 });
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
 
+// Hàm gọi API lấy danh mục cây
 async function getCategories(): Promise<Category[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`);
     if (!res.ok) throw new Error("Failed to fetch categories");
     return res.json();
 }
+
 async function uploadFile(file: File, token: string): Promise<Media> {
     const formData = new FormData();
     formData.append('mediaFile', file);
@@ -76,6 +78,24 @@ async function createArticle(data: ArticleFormValues, token: string) {
     }
     return res.json();
 }
+
+// Component để render các lựa chọn danh mục
+const CategoryOptions = ({ categories, level = 0 }: { categories: Category[], level?: number }) => {
+  return (
+    <>
+      {categories.map(category => (
+        <Fragment key={category._id}>
+          <SelectItem value={category._id}>
+            {'— '.repeat(level)}{category.name}
+          </SelectItem>
+          {category.children && category.children.length > 0 && (
+            <CategoryOptions categories={category.children} level={level + 1} />
+          )}
+        </Fragment>
+      ))}
+    </>
+  );
+};
 
 export default function NewArticlePage() {
     const router = useRouter();
@@ -126,8 +146,6 @@ export default function NewArticlePage() {
         } catch (error: unknown) {
             if (error instanceof Error) {
                 toast({ variant: "destructive", title: "Lỗi", description: error.message });
-            } else {
-                toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
             }
         }
     };
@@ -156,22 +174,24 @@ export default function NewArticlePage() {
                                     <FormField control={form.control} name="author" render={({ field }) => ( <FormItem><FormLabel>Tác giả</FormLabel><FormControl><Input placeholder="Tên tác giả" {...field} /></FormControl><FormMessage /></FormItem> )} />
                                     <FormField control={form.control} name="category" render={({ field }) => (
                                         <FormItem><FormLabel>Danh mục</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Chọn danh mục" /></SelectTrigger></FormControl><SelectContent>{categories.map(cat => <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>)}</SelectContent></Select><FormMessage />
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Chọn danh mục" /></SelectTrigger></FormControl>
+                                              <SelectContent><CategoryOptions categories={categories} /></SelectContent>
+                                            </Select><FormMessage />
                                         </FormItem>
                                     )} />
                                      <FormField control={form.control} name="excerpt" render={({ field }) => ( <FormItem><FormLabel>Đoạn trích</FormLabel><FormControl><Textarea placeholder="Tóm tắt ngắn..." {...field} /></FormControl><FormMessage /></FormItem> )} />
                                      <FormField control={form.control} name="trending" render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                            <div className="space-y-0.5"><FormLabel>Bài viết nổi bật (Trending)</FormLabel></div>
+                                            <div className="space-y-0.5"><FormLabel>Bài viết nổi bật</FormLabel></div>
                                             <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                                         </FormItem>
                                     )} />
                                 </CardContent>
                             </Card>
                             <Card>
-                                <CardHeader><CardTitle>Media (Tùy chọn)</CardTitle></CardHeader>
+                                <CardHeader><CardTitle>Media</CardTitle></CardHeader>
                                 <CardContent>
-                                    <FormItem><FormLabel>File ảnh/video</FormLabel><FormControl><div className="relative"><Button type="button" variant="outline" asChild><label htmlFor="file-upload" className="cursor-pointer w-full"><Upload className="mr-2 h-4 w-4" /> Upload File</label></Button><Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading}/>{isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}</div></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Ảnh đại diện</FormLabel><FormControl><div className="relative"><Button type="button" variant="outline" asChild><label htmlFor="file-upload" className="cursor-pointer w-full"><Upload className="mr-2 h-4 w-4" /> Upload File</label></Button><Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading}/>{isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}</div></FormControl><FormMessage /></FormItem>
                                     <div className="mt-4 space-y-2">
                                         {mediaValue.map((m, index) => (
                                             <div key={index} className="flex items-center gap-2 p-2 border rounded-md">

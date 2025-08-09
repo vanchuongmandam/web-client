@@ -1,52 +1,46 @@
 // src/lib/types.ts
 
-export interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-}
-
-// Cấu trúc cho một media item trong bài viết
+// Định nghĩa cho một file media (ảnh hoặc video)
 export interface Media {
   url: string;
   mediaType: 'image' | 'video';
   caption?: string;
 }
 
+// Định nghĩa cho một bình luận
+export interface Comment {
+  _id: string;
+  articleId: string;
+  author: {
+    _id: string;
+    username: string;
+  };
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Định nghĩa cho một danh mục (ĐÃ SỬA: Thêm 'children')
+export interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+  parent?: string; // ID của danh mục cha
+  children: Category[]; // Mảng chứa các danh mục con
+}
+
+// Định nghĩa cho một bài viết
 export interface Article {
   _id: string;
-  id?: string;
   slug: string;
   title: string;
   author: string;
   date: string;
-  category: Category;
+  category: Category; // Vẫn là một object Category
   excerpt: string;
   content: string;
-  media: Media[]; // Thay thế imageUrl bằng mảng media
-  trending?: boolean;
-}
-
-export interface Book {
-  id:string;
-  title: string;
-  author: string;
-  imageUrl: string;
-  imageHint: string;
-}
-
-export interface User {
-  _id: string;
-  username:string;
-  role: string;
-}
-
-export interface Comment {
-  _id: string;
-  content: string;
-  author: User;
-  article: string;
-  parentComment?: string | null;
+  media: Media[];
+  trending: boolean;
   createdAt: string;
-  children?: Comment[]; 
+  updatedAt: string;
 }

@@ -1,17 +1,18 @@
-'use client';
+// src/components/header.tsx
+"use client";
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetTrigger, 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
   SheetClose,
-  SheetHeader,  // Import thêm
-  SheetTitle    // Import thêm
 } from '@/components/ui/sheet';
-import { Menu, Feather, User, LogOut } from 'lucide-react';
+import { Menu, Feather } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,17 +20,33 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-
+} from "@/components/ui/dropdown-menu";
+import type { Category } from '@/lib/types';
 
 const navItems = [
   { name: 'Trang chủ', href: '/' },
-  { name: 'Bài Viết', href: '/articles' },
-  { name: 'Liên Hệ', href: '#' },
+  // Đã xóa "Tất cả bài viết"
 ];
+
+async function getCategories(): Promise<Category[]> {
+  try {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const response = await fetch(`${apiBaseUrl}/categories`);
+    if (!response.ok) return [];
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch categories:", error);
+    return [];
+  }
+}
 
 export function Header() {
   const { user, logout, isLoading } = useAuth();
+  const [parentCategories, setParentCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    getCategories().then(setParentCategories);
+  }, []);
 
   return (
     <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
@@ -43,96 +60,90 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+          <nav className="hidden md:flex items-center gap-1 text-sm font-medium">
             {navItems.map((item) => (
-              <Link key={item.name} href={item.href} className="transition-colors hover:text-primary">
+              <Link key={item.name} href={item.href} className="transition-colors hover:text-primary px-1 py-0 rounded-md">
                 {item.name}
+              </Link>
+            ))}
+            {parentCategories.map((category) => (
+              <Link key={category._id} href={`/articles?category=${category.slug}`} className="transition-colors hover:text-primary px-2 py-2 rounded-md">
+                {category.name}
               </Link>
             ))}
           </nav>
 
-          {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center gap-2">
-            {isLoading ? (
-              <div className="flex items-center gap-2">
-                  <div className="h-9 w-24 rounded-md bg-gray-200 animate-pulse"></div>
-                  <div className="h-9 w-24 rounded-md bg-gray-200 animate-pulse"></div>
-              </div>
-            ) : user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    <span>Chào, {user.username}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Tài khoản</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild><Link href="/profile">Hồ sơ</Link></DropdownMenuItem>
-                  {user.role === 'admin' && (
-                    <DropdownMenuItem asChild><Link href="/admin">Trang quản trị</Link></DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="text-red-500 cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Đăng xuất</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <>
-                <Button variant="ghost" asChild><Link href="/login">Đăng nhập</Link></Button>
-                <Button asChild><Link href="/register">Đăng ký</Link></Button>
-              </>
-            )}
-          </div>
+          <div className="flex items-center gap-2">
+            {/* Auth Section */}
+            <div className="hidden sm:block">
+              {isLoading ? (
+                <div className="h-10 w-24 bg-muted rounded-md animate-pulse"></div>
+              ) : user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <Avatar>
+                      <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${user.username}`} />
+                      <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Chào, {user.username}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {user.role === 'admin' && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin">Trang quản trị</Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={logout}>Đăng xuất</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button asChild>
+                  <Link href="/login">Đăng nhập</Link>
+                </Button>
+              )}
+            </div>
 
-          {/* Mobile Menu */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle Menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              {/* --- SỬA LỖI TẠI ĐÂY --- */}
-              <SheetHeader>
-                <SheetTitle className="sr-only">Menu</SheetTitle>
-              </SheetHeader>
-              <div className="flex flex-col h-full p-6 pt-0">
-                <nav className="flex flex-col gap-6 text-lg font-medium mt-8">
+            {/* Mobile Navigation Trigger */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Mở menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left">
+                <nav className="grid gap-4 py-6">
                   {navItems.map((item) => (
                     <SheetClose asChild key={item.name}>
-                      <Link href={item.href} className="transition-colors hover:text-primary">
+                      <Link href={item.href} className="flex w-full items-center py-2 text-lg font-semibold">
                         {item.name}
                       </Link>
                     </SheetClose>
                   ))}
+                  {parentCategories.map((item) => (
+                    <SheetClose asChild key={item._id}>
+                      <Link href={`/articles?category=${item.slug}`} className="flex w-full items-center py-2 text-lg font-semibold">
+                        {item.name}
+                      </Link>
+                    </SheetClose>
+                  ))}
+                  
+                   <div className="sm:hidden pt-4 border-t">
+                      {user ? (
+                        <div className="space-y-2">
+                          <p className="font-semibold">{user.username}</p>
+                           {user.role === 'admin' && <SheetClose asChild><Link href="/admin" className="block w-full">Trang quản trị</Link></SheetClose>}
+                          <Button onClick={logout} variant="ghost" className="w-full justify-start p-0">Đăng xuất</Button>
+                        </div>
+                      ) : (
+                         <SheetClose asChild><Button asChild className="w-full"><Link href="/login">Đăng nhập</Link></Button></SheetClose>
+                      )}
+                   </div>
                 </nav>
-                <div className="mt-auto space-y-2">
-                   {isLoading ? (
-                      <div className="h-9 w-full rounded-md bg-gray-200 animate-pulse"></div>
-                   ) : user ? (
-                      <>
-                        <p className="text-center text-muted-foreground">Chào, {user.username}</p>
-                        <Button variant="destructive" className="w-full" onClick={logout}>Đăng xuất</Button>
-                      </>
-                   ) : (
-                     <>
-                       <SheetClose asChild>
-                         <Button variant="ghost" className="w-full" asChild><Link href="/login">Đăng nhập</Link></Button>
-                       </SheetClose>
-                       <SheetClose asChild>
-                         <Button className="w-full" asChild><Link href="/register">Đăng ký</Link></Button>
-                       </SheetClose>
-                     </>
-                   )}
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </header>

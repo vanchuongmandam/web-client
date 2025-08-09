@@ -1,7 +1,7 @@
 // src/app/admin/categories/page.tsx
 "use client";
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, Fragment } from 'react';
 import type { Category } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, CornerDownRight } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +23,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Separator } from '@/components/ui/separator';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { generateSlug } from '@/lib/utils';
 
 // --- API Functions ---
 async function getCategories(): Promise<Category[]> {
@@ -32,7 +33,7 @@ async function getCategories(): Promise<Category[]> {
   return res.json();
 }
 
-async function createCategory(data: { name: string, slug: string }, token: string): Promise<Category> {
+async function createCategory(data: { name: string, slug: string, parentId?: string }, token: string): Promise<Category> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -56,25 +57,32 @@ async function deleteCategoryById(id: string, token: string): Promise<void> {
   }
 }
 
-// Helper để tạo slug tự động (ĐÃ SỬA)
-const generateSlug = (name: string): string => {
-  if (!name) return '';
-  
-  // Chuyển đổi chuỗi thành dạng chuẩn NFD (Normalization Form Decomposed)
-  // và loại bỏ các dấu thanh (diacritics)
-  const nonAccentVietnamese = name
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd').replace(/Đ/g, 'D');
-
-  return nonAccentVietnamese
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '') // Loại bỏ các ký tự đặc biệt không phải chữ, số, khoảng trắng hoặc gạch ngang
-    .trim() // Xóa khoảng trắng đầu và cuối
-    .replace(/\s+/g, '-') // Thay thế một hoặc nhiều khoảng trắng bằng một gạch ngang
-    .replace(/-+/g, '-'); // Thay thế một hoặc nhiều gạch ngang bằng một gạch ngang
+// Component con để render danh sách danh mục (hỗ trợ đệ quy)
+const CategoryItem = ({ category, level = 0, onDelete }: { category: Category; level?: number; onDelete: (id: string) => void; }) => {
+  return (
+    <>
+      <div className="flex items-center justify-between p-3 border-b rounded-md">
+        <div className="flex items-center">
+          {level > 0 && <CornerDownRight className="h-4 w-4 mr-2 text-muted-foreground" style={{ marginLeft: `${level * 1.5}rem` }} />}
+          <div>
+            <p className="font-medium">{category.name}</p>
+            <p className="text-sm text-muted-foreground">Slug: {category.slug}</p>
+          </div>
+        </div>
+        <AlertDialog>
+            <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><X className="h-4 w-4 text-destructive"/></Button></AlertDialogTrigger>
+            <AlertDialogContent>
+                <AlertDialogHeader><AlertDialogTitle>Bạn có chắc chắn?</AlertDialogTitle><AlertDialogDescription>Hành động này sẽ xóa danh mục &quot;{category.name}&quot;. Hành động này không thể hoàn tác.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Hủy</AlertDialogCancel><AlertDialogAction onClick={() => onDelete(category._id)}>Tiếp tục Xóa</AlertDialogAction></AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+      </div>
+      {category.children && category.children.map(child => (
+        <CategoryItem key={child._id} category={child} level={level + 1} onDelete={onDelete} />
+      ))}
+    </>
+  );
 };
-
 
 // --- Main Component ---
 export default function AdminCategoriesPage() {
@@ -82,24 +90,26 @@ export default function AdminCategoriesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [parentCategoryId, setParentCategoryId] = useState<string | undefined>(undefined);
   
   const { token } = useAuth();
   const { toast } = useToast();
 
+  const fetchCategories = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getCategories();
+      setCategories(data);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Lỗi", description: (error as Error).message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getCategories();
-        setCategories(data);
-      } catch (error) {
-        toast({ variant: "destructive", title: "Lỗi", description: (error as Error).message });
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchCategories();
-  }, [toast]);
+  }, []);
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
@@ -107,16 +117,20 @@ export default function AdminCategoriesPage() {
 
     setIsSubmitting(true);
     const slug = generateSlug(newCategoryName);
+    const dataToSend: { name: string, slug: string, parentId?: string } = { name: newCategoryName, slug };
+    if (parentCategoryId) {
+      dataToSend.parentId = parentCategoryId;
+    }
+
     try {
-      const newCat = await createCategory({ name: newCategoryName, slug }, token);
-      setCategories(prev => [...prev, newCat]);
+      await createCategory(dataToSend, token);
+      await fetchCategories(); // Tải lại toàn bộ cây danh mục
       setNewCategoryName('');
+      setParentCategoryId(undefined);
       toast({ title: "Thành công!", description: "Đã tạo danh mục mới." });
     } catch (error: unknown) {
         if (error instanceof Error) {
             toast({ variant: "destructive", title: "Lỗi", description: error.message });
-        } else {
-            toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
         }
     } finally {
       setIsSubmitting(false);
@@ -127,15 +141,25 @@ export default function AdminCategoriesPage() {
     if (!token) return;
     try {
       await deleteCategoryById(idToDelete, token);
-      setCategories(prev => prev.filter(cat => cat._id !== idToDelete));
+      await fetchCategories(); // Tải lại cây
       toast({ title: "Thành công!", description: "Danh mục đã được xóa." });
     } catch (error: unknown) {
         if (error instanceof Error) {
             toast({ variant: "destructive", title: "Lỗi", description: error.message });
-        } else {
-            toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
         }
     }
+  };
+
+  // Hàm để làm phẳng cây danh mục cho dropdown
+  const flattenCategories = (categories: Category[], level = 0): { _id: string, name: string }[] => {
+    let flatList: { _id: string, name: string }[] = [];
+    for (const category of categories) {
+      flatList.push({ _id: category._id, name: `${'— '.repeat(level)}${category.name}` });
+      if (category.children) {
+        flatList = flatList.concat(flattenCategories(category.children, level + 1));
+      }
+    }
+    return flatList;
   };
   
   return (
@@ -146,18 +170,24 @@ export default function AdminCategoriesPage() {
       </header>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Thêm danh mục mới</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle>Thêm danh mục mới</CardTitle></CardHeader>
         <CardContent>
-          <form onSubmit={handleCreate} className="flex items-center gap-4">
+          <form onSubmit={handleCreate} className="space-y-4">
             <Input
-              placeholder="Tên danh mục mới (vd: Tản văn)"
+              placeholder="Tên danh mục mới..."
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               disabled={isSubmitting}
-              className="flex-1"
             />
+            <Select onValueChange={(value) => setParentCategoryId(value === 'none' ? undefined : value)} disabled={isSubmitting}>
+              <SelectTrigger><SelectValue placeholder="Chọn danh mục cha (tùy chọn)" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Không có</SelectItem>
+                {flattenCategories(categories).map(cat => (
+                  <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button type="submit" disabled={isSubmitting || !newCategoryName.trim()}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Thêm
@@ -169,42 +199,11 @@ export default function AdminCategoriesPage() {
       <Separator className="my-8"/>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Danh sách danh mục</CardTitle>
-          <CardDescription>Tổng số: {categories.length} danh mục</CardDescription>
-        </CardHeader>
+        <CardHeader><CardTitle>Danh sách danh mục</CardTitle></CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {categories.map((cat) => (
-                <div key={cat._id} className="flex items-center justify-between p-3 border rounded-md">
-                  <div>
-                    <p className="font-medium">{cat.name}</p>
-                    <p className="text-sm text-muted-foreground">Slug: {cat.slug}</p>
-                  </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon"><X className="h-4 w-4 text-destructive"/></Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
-                        <AlertDialogDescription>Hành động này sẽ xóa vĩnh viễn danh mục &quot;{cat.name}&quot;. Nếu có bài viết nào thuộc danh mục này, bạn có thể cần phải cập nhật chúng.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(cat._id)}>Tiếp tục Xóa</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              ))}
+          {isLoading ? ( <Skeleton className="h-24 w-full" /> ) : (
+            <div>
+              {categories.map((cat) => ( <CategoryItem key={cat._id} category={cat} onDelete={handleDelete} /> ))}
             </div>
           )}
         </CardContent>
