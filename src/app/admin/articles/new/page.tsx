@@ -46,6 +46,23 @@ const articleFormSchema = z.object({
 });
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
 
+// --- Helper to get correct MIME type from extension ---
+const getMimeTypeFromExtension = (filename: string): string | undefined => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    const mimeTypes: { [key: string]: string } = {
+        'mp4': 'video/mp4',
+        'mov': 'video/quicktime',
+        'avi': 'video/x-msvideo',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+    };
+    return extension ? mimeTypes[extension] : undefined;
+};
+
+
 // API calls
 async function getCategories(): Promise<Category[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`);
@@ -56,9 +73,8 @@ async function getCategories(): Promise<Category[]> {
 async function uploadFile(file: File, token: string, categoryPath: string): Promise<Media> {
     const formData = new FormData();
     formData.append('mediaFile', file);
-    formData.append('categoryPath', categoryPath); // Add the category path
+    formData.append('categoryPath', categoryPath); 
     
-    // Use the new single file upload endpoint
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload/single`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -69,7 +85,7 @@ async function uploadFile(file: File, token: string, categoryPath: string): Prom
         throw new Error(errorData.message || "File upload failed");
     }
     const data = await res.json();
-    return data.media; // The API now returns the media object directly
+    return data.media; 
 }
 
 async function createArticle(data: ArticleFormValues, token: string) {
@@ -125,19 +141,14 @@ export default function NewArticlePage() {
     };
     
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file || !token) return;
+        const originalFile = e.target.files?.[0];
+        if (!originalFile || !token) return;
 
-        // Get category slugs for path
         const parentId = selectedParent;
         const childId = form.getValues('category');
 
         if (!parentId || !childId) {
-            toast({
-                variant: "destructive",
-                title: "Chưa chọn danh mục",
-                description: "Vui lòng chọn danh mục cha và danh mục con trước khi upload ảnh.",
-            });
+            toast({ variant: "destructive", title: "Chưa chọn danh mục", description: "Vui lòng chọn danh mục cha và con trước khi upload ảnh." });
             e.target.value = '';
             return;
         }
@@ -150,12 +161,21 @@ export default function NewArticlePage() {
              e.target.value = '';
              return;
         }
-
+        
+        // --- FIX: Correct MIME type before upload ---
+        const correctMimeType = getMimeTypeFromExtension(originalFile.name);
+        if (!correctMimeType) {
+            toast({ variant: "destructive", title: "Loại file không hỗ trợ", description: "Vui lòng chọn file hình ảnh hoặc video." });
+            e.target.value = '';
+            return;
+        }
+        
+        const fileToUpload = new File([originalFile], originalFile.name, { type: correctMimeType });
         const categoryPath = `${parentSlug}/${childSlug}`;
-
+        
         setIsUploading(true);
         try {
-            const newMedia = await uploadFile(file, token, categoryPath);
+            const newMedia = await uploadFile(fileToUpload, token, categoryPath);
             form.setValue('media', [...form.getValues('media'), newMedia]);
         } catch (error) {
             toast({ variant: "destructive", title: "Upload thất bại", description: (error as Error).message });

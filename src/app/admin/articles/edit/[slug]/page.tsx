@@ -46,6 +46,21 @@ const articleFormSchema = z.object({
 });
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
 
+const getMimeTypeFromExtension = (filename: string): string | undefined => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    const mimeTypes: { [key: string]: string } = {
+        'mp4': 'video/mp4',
+        'mov': 'video/quicktime',
+        'avi': 'video/x-msvideo',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+    };
+    return extension ? mimeTypes[extension] : undefined;
+};
+
 // API calls
 async function getCategories(): Promise<Category[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`);
@@ -165,8 +180,8 @@ export default function EditArticlePage() {
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file || !token) return;
+        const originalFile = e.target.files?.[0];
+        if (!originalFile || !token) return;
 
         const parentId = selectedParent;
         const childId = form.getValues('category');
@@ -186,11 +201,19 @@ export default function EditArticlePage() {
              return;
         }
 
+        const correctMimeType = getMimeTypeFromExtension(originalFile.name);
+        if (!correctMimeType) {
+            toast({ variant: "destructive", title: "Loại file không hỗ trợ", description: "Vui lòng chọn file hình ảnh hoặc video." });
+            e.target.value = '';
+            return;
+        }
+        
+        const fileToUpload = new File([originalFile], originalFile.name, { type: correctMimeType });
         const categoryPath = `${parent.slug}/${child.slug}`;
 
         setIsUploading(true);
         try {
-            const newMedia = await uploadFile(file, token, categoryPath);
+            const newMedia = await uploadFile(fileToUpload, token, categoryPath);
             form.setValue('media', [...form.getValues('media'), newMedia]);
         } catch (error) {
             toast({ variant: "destructive", title: "Upload thất bại", description: (error as Error).message });
