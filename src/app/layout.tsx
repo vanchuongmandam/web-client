@@ -1,7 +1,9 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
-import { Poppins as FontSans, Alegreya as FontSerif } from "next/font/google";
+// Import 'localFont' to use self-hosted fonts
+import localFont from "next/font/local"; 
+import { Alegreya as FontSerif } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/header";
@@ -9,14 +11,57 @@ import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
 
-const fontSans = FontSans({
-  subsets: ["latin", "vietnamese"], // Added vietnamese subset
-  weight: ["400", "500", "600", "700"],
+// Configure the local Poppins font
+const fontSans = localFont({
+  src: [
+    {
+      path: '../assets/fonts/Poppins-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/Poppins-Italic.ttf',
+      weight: '400',
+      style: 'italic',
+    },
+    {
+      path: '../assets/fonts/Poppins-Medium.ttf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/Poppins-MediumItalic.ttf',
+      weight: '500',
+      style: 'italic',
+    },
+    {
+      path: '../assets/fonts/Poppins-SemiBold.ttf',
+      weight: '600',
+      style: 'normal',
+    },
+     {
+      path: '../assets/fonts/Poppins-SemiBoldItalic.ttf',
+      weight: '600',
+      style: 'italic',
+    },
+    {
+      path: '../assets/fonts/Poppins-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/Poppins-BoldItalic.ttf',
+      weight: '700',
+      style: 'italic',
+    },
+  ],
   variable: "--font-sans",
+  display: 'swap', // Improves font loading performance
 });
 
+
 const fontSerif = FontSerif({
-  subsets: ["latin", "vietnamese"], // Added vietnamese subset
+  subsets: ["latin", "vietnamese"],
   weight: ["400", "500", "700"],
   style: ["normal", "italic"],
   variable: "--font-serif",
@@ -36,7 +81,7 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased", // Changed to font-sans
+          "min-h-screen bg-background font-sans antialiased",
           fontSans.variable,
           fontSerif.variable
         )}
