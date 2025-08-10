@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
-import { Alegreya as FontSerif, Inter as FontSans } from "next/font/google";
+import { Poppins as FontSans, Alegreya as FontSerif } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/header";
@@ -10,12 +10,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
 
 const fontSans = FontSans({
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"], // Added vietnamese subset
+  weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
 });
 
 const fontSerif = FontSerif({
-  subsets: ["latin"],
+  subsets: ["latin", "vietnamese"], // Added vietnamese subset
   weight: ["400", "500", "700"],
   style: ["normal", "italic"],
   variable: "--font-serif",
@@ -35,7 +36,7 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-serif antialiased",
+          "min-h-screen bg-background font-sans antialiased", // Changed to font-sans
           fontSans.variable,
           fontSerif.variable
         )}

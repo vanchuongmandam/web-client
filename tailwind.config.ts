@@ -17,14 +17,14 @@ export default {
       },
     },
     fontSize: {
-      sm: '0.95rem', // ~18px
-      base: '1.125rem', // ~20px
-      lg: '1.25rem', // ~22.5px
-      xl: '1.5rem', // ~27px
-      '2xl': '1.75rem', // ~31.5px
-      '3xl': '2rem', // ~35px
-      '4xl': '2.25rem', // ~40px
-      '5xl': '2.5rem', // ~45px
+      xs: '0.778rem',  // ~14px
+      sm: '0.889rem',  // ~16px
+      base: '1rem',      // 18px (DEFAULT)
+      lg: '1.111rem',  // ~20px
+      xl: '1.222rem',   // ~22px
+      '2xl': '1.5rem',  // 27px
+      '3xl': '1.833rem', // ~33px
+      '4xl': '2.167rem', // ~39px
     },
     extend: {
       fontFamily: {

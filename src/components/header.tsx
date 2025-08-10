@@ -59,7 +59,7 @@ export function Header() {
         <div className="container mx-auto px-4 flex h-24 items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <Feather className="h-9 w-9 text-primary" />
-              <span className="font-headline text-3xl font-bold text-primary whitespace-nowrap">
+              <span className="font-headline text-4xl font-bold text-primary whitespace-nowrap">
                 Văn Chương Mạn Đàm
               </span>
             </Link>
@@ -171,9 +171,9 @@ export function Header() {
 
             {/* Center: Main Navigation Links */}
             <div className="flex items-center gap-1">
-              <Link href="/" className="transition-colors hover:text-primary px-3 py-2 rounded-md">Trang chủ</Link>
+              <Link href="/" className="transition-colors hover:text-primary px-2 py-2 rounded-md">Trang chủ</Link>
               {parentCategories.map((category) => (
-                <Link key={category._id} href={`/articles?category=${category.slug}`} className="transition-colors hover:text-primary px-3 py-2 rounded-md">
+                <Link key={category._id} href={`/articles?category=${category.slug}`} className="transition-colors hover:text-primary px-2 py-2 rounded-md">
                   {category.name}
                 </Link>
               ))}

@@ -201,7 +201,7 @@ const ArticlesView = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <header className="mb-8">
-                <h1 className="text-4xl font-headline font-bold text-primary capitalize">{currentCategoryName}</h1>
+                <h1 className="text-3xl font-headline font-bold text-primary capitalize">{currentCategoryName}</h1>
                 <p className="text-muted-foreground mt-2">Khám phá kho tàng tri thức và những sáng tác đặc sắc của chúng tôi.</p>
             </header>
 
@@ -224,7 +224,7 @@ const ArticlesView = () => {
                         {filteredArticles.map(article => ( <ArticleCard key={article._id} article={article} /> ))}
                     </div>
                 ) : (
-                    <div className="text-center py-16"><p className="text-lg text-muted-foreground">Không tìm thấy bài viết nào trong danh mục này.</p></div>
+                    <div className="text-center py-16"><p className="text-base text-muted-foreground">Không tìm thấy bài viết nào trong danh mục này.</p></div>
                 )
             )}
         </div>

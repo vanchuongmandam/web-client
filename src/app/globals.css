@@ -61,9 +61,8 @@
     --chart-5: 340 75% 55%;
   }
 
-  /* --- TĂNG CỠ CHỮ GỐC TẠI ĐÂY --- */
   html {
-    font-size: 18px; /* Tăng từ 16px (mặc định) lên 18px */
+    font-size: 18px; /* Set base font size to 18px */
   }
 }
 
