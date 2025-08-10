@@ -16,6 +16,16 @@ export default {
         "2xl": "1400px",
       },
     },
+    fontSize: {
+      sm: '0.95rem', // ~18px
+      base: '1.125rem', // ~20px
+      lg: '1.25rem', // ~22.5px
+      xl: '1.5rem', // ~27px
+      '2xl': '1.75rem', // ~31.5px
+      '3xl': '2rem', // ~35px
+      '4xl': '2.25rem', // ~40px
+      '5xl': '2.5rem', // ~45px
+    },
     extend: {
       fontFamily: {
         sans: ['var(--font-sans)', ...fontFamily.sans],
