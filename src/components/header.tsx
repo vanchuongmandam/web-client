@@ -12,7 +12,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from '@/components/ui/sheet';
-import { Menu, Feather, LogIn, UserPlus } from 'lucide-react';
+import { Menu, Feather, LogIn, UserPlus, Search, LayoutGrid } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,8 +21,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { Category } from '@/lib/types';
-import { cn } from '@/lib/utils';
 
 const navItems = [
   { name: 'Trang chủ', href: '/' },
@@ -48,122 +52,137 @@ export function Header() {
     getCategories().then(setParentCategories);
   }, []);
 
-  const renderNavLinks = (isMobile = false) => (
-    <>
-      {navItems.map((item) => 
-        isMobile ? (
-          <SheetClose asChild key={item.name}>
-            <Button variant="ghost" asChild className="w-full justify-start py-4 text-lg">
-              <Link href={item.href}>{item.name}</Link>
-            </Button>
-          </SheetClose>
-        ) : (
-          <Button variant="ghost" asChild key={item.name}>
-            <Link href={item.href}>{item.name}</Link>
-          </Button>
-        )
-      )}
-      {parentCategories.map((category) =>
-        isMobile ? (
-          <SheetClose asChild key={category._id}>
-            <Button variant="ghost" asChild className="w-full justify-start py-4 text-lg">
-              <Link href={`/articles?category=${category.slug}`}>{category.name}</Link>
-            </Button>
-          </SheetClose>
-        ) : (
-          <Button variant="ghost" asChild key={category._id}>
-            <Link href={`/articles?category=${category.slug}`}>{category.name}</Link>
-          </Button>
-        )
-      )}
-    </>
-  );
-  
-  const renderAuthControls = (isMobile = false) => {
-    if (isLoading) {
-      return <div className="h-10 w-24 bg-muted rounded-md animate-pulse"></div>;
-    }
-    if (user) {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${user.username}`} />
-              <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Chào, {user.username}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {user.role === 'admin' && (
-              <DropdownMenuItem asChild>
-                <Link href="/admin">Trang quản trị</Link>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={logout}>Đăng xuất</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
-    return (
-      <div className={cn("flex items-center gap-2", isMobile && "flex-col w-full")}>
-        <Button asChild variant="ghost" className={cn(isMobile && "w-full justify-start")}><Link href="/login"><LogIn />Đăng nhập</Link></Button>
-        <Button asChild className={cn(isMobile && "w-full justify-start")}><Link href="/register"><UserPlus />Đăng ký</Link></Button>
-      </div>
-    );
-  };
-
   return (
-    <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
-      <div className="container mx-auto px-4 flex h-20 items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <Feather className="h-8 w-8 text-primary" />
-          <span className="font-headline text-2xl font-bold text-primary whitespace-nowrap hidden sm:inline">
-            Văn Chương Mạn Đàm
-          </span>
-        </Link>
-        
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-2">
-          {renderNavLinks(false)}
-        </nav>
+    <>
+      {/* Top Bar - Scrolls away */}
+      <div className="bg-card border-b">
+        <div className="container mx-auto px-4 flex h-24 items-center justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <Feather className="h-9 w-9 text-primary" />
+              <span className="font-headline text-3xl font-bold text-primary whitespace-nowrap">
+                Văn Chương Mạn Đàm
+              </span>
+            </Link>
 
-        {/* Desktop Auth */}
-        <div className="hidden md:flex items-center">
-          {renderAuthControls(false)}
-        </div>
+            <div className="flex items-center gap-4">
+              {/* Auth Section for Desktop */}
+              <div className="hidden sm:flex items-center">
+                {isLoading ? (
+                  <div className="h-12 w-28 bg-muted rounded-md animate-pulse"></div>
+                ) : user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${user.username}`} />
+                        <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Chào, {user.username}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {user.role === 'admin' && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin">Trang quản trị</Link>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={logout}>Đăng xuất</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <div className="flex flex-col gap-1.5 items-end">
+                     <Button asChild variant="ghost" size="sm">
+                        <Link href="/login"><LogIn className="mr-2 h-4 w-4"/>Đăng nhập</Link>
+                    </Button>
+                    <Button asChild size="sm">
+                        <Link href="/register"><UserPlus className="mr-2 h-4 w-4"/>Đăng ký</Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
 
-        {/* Mobile Navigation Trigger */}
-        <div className="md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Mở menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-full max-w-sm flex flex-col p-0">
-                 <div className="p-4 border-b">
-                    <SheetClose asChild>
-                        <Link href="/" className="flex items-center gap-3">
-                          <Feather className="h-8 w-8 text-primary" />
-                          <span className="font-headline text-2xl font-bold text-primary whitespace-nowrap">
-                            Văn Chương Mạn Đàm
-                          </span>
+              {/* Mobile Navigation Trigger */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="md:hidden">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Mở menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left">
+                  <nav className="grid gap-4 py-6">
+                    {navItems.map((item) => (
+                      <SheetClose asChild key={item.name}>
+                        <Link href={item.href} className="flex w-full items-center py-2 text-lg font-semibold">
+                          {item.name}
                         </Link>
-                    </SheetClose>
-                 </div>
-                 <nav className="flex-grow flex flex-col gap-2 p-4">
-                   {renderNavLinks(true)}
-                 </nav>
-                 <div className="p-4 border-t">
-                   {renderAuthControls(true)}
-                 </div>
-              </SheetContent>
-            </Sheet>
+                      </SheetClose>
+                    ))}
+                    {parentCategories.map((item) => (
+                      <SheetClose asChild key={item._id}>
+                        <Link href={`/articles?category=${item.slug}`} className="flex w-full items-center py-2 text-lg font-semibold">
+                          {item.name}
+                        </Link>
+                      </SheetClose>
+                    ))}
+                    <div className="sm:hidden pt-4 border-t">
+                        {user ? (
+                          <div className="space-y-2">
+                            <p className="font-semibold">{user.username}</p>
+                            {user.role === 'admin' && <SheetClose asChild><Link href="/admin" className="block w-full">Trang quản trị</Link></SheetClose>}
+                            <Button onClick={logout} variant="ghost" className="w-full justify-start p-0">Đăng xuất</Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <SheetClose asChild><Button asChild className="w-full justify-start" variant="ghost"><Link href="/login"><LogIn className="mr-2 h-4 w-4"/>Đăng nhập</Link></Button></SheetClose>
+                            <SheetClose asChild><Button asChild className="w-full justify-start"><Link href="/register"><UserPlus className="mr-2 h-4 w-4"/>Đăng ký</Link></Button></SheetClose>
+                          </div>
+                        )}
+                    </div>
+                  </nav>
+                </SheetContent>
+              </Sheet>
+            </div>
         </div>
       </div>
-    </header>
+
+      {/* Bottom Bar - Sticky */}
+      <nav className="bg-card/80 backdrop-blur-sm sticky top-0 z-40 border-b">
+          <div className="container mx-auto px-4 hidden md:flex items-center justify-between h-14 text-sm font-medium">
+            {/* Left side: Category Popover */}
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm"><LayoutGrid className="mr-2 h-4 w-4"/> Danh mục</Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto" align="start">
+                    <div className="grid grid-flow-col auto-cols-max gap-x-8 gap-y-4">
+                        {parentCategories.map((parent) => (
+                            <div key={parent._id} className="flex flex-col space-y-2">
+                                <Link href={`/articles?category=${parent.slug}`} className="font-bold text-base hover:text-primary transition-colors">{parent.name}</Link>
+                                <div className="flex flex-col space-y-1.5">
+                                    {parent.children?.map((child) => (
+                                        <Link key={child._id} href={`/articles?category=${child.slug}`} className="text-muted-foreground hover:text-primary transition-colors">{child.name}</Link>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </PopoverContent>
+            </Popover>
+
+            {/* Center: Main Navigation Links */}
+            <div className="flex items-center gap-1">
+              <Link href="/" className="transition-colors hover:text-primary px-3 py-2 rounded-md">Trang chủ</Link>
+              {parentCategories.map((category) => (
+                <Link key={category._id} href={`/articles?category=${category.slug}`} className="transition-colors hover:text-primary px-3 py-2 rounded-md">
+                  {category.name}
+                </Link>
+              ))}
+            </div>
+            
+            {/* Right side: Search Button */}
+            <Button variant="ghost" size="icon"><Search className="h-5 w-5"/></Button>
+          </div>
+      </nav>
+    </>
   );
 }

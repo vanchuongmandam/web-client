@@ -4,9 +4,11 @@
 
 @layer base {
   :root {
-    --background: 45 91% 84%;
+    /* Swapped background and card */
+    --background: 45 91% 88%; 
+    --card: 45 91% 84%;
+    
     --foreground: 30 20% 20%;
-    --card: 45 91% 88%;
     --card-foreground: 30 20% 20%;
     --popover: 45 91% 88%;
     --popover-foreground: 30 20% 20%;
@@ -31,9 +33,11 @@
     --chart-5: 27 87% 67%;
   }
   .dark {
-    --background: 30 10% 10%;
+    /* Swapped background and card */
+    --background: 30 10% 15%;
+    --card: 30 10% 10%;
+
     --foreground: 45 30% 85%;
-    --card: 30 10% 15%;
     --card-foreground: 45 30% 85%;
     --popover: 30 10% 10%;
     --popover-foreground: 45 30% 85%;
