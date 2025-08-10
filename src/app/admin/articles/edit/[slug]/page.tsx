@@ -52,23 +52,31 @@ async function getCategories(): Promise<Category[]> {
     if (!res.ok) throw new Error("Failed to fetch categories");
     return res.json();
 }
-async function uploadFile(file: File, token: string): Promise<Media> {
+
+async function uploadFile(file: File, token: string, categoryPath: string): Promise<Media> {
     const formData = new FormData();
     formData.append('mediaFile', file);
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload`, {
+    formData.append('categoryPath', categoryPath);
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload/single`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
     });
-    if (!res.ok) throw new Error("File upload failed");
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "File upload failed");
+    }
     const data = await res.json();
-    return { url: data.url, mediaType: data.mediaType };
+    return data.media;
 }
+
 async function getArticleBySlug(slug: string): Promise<Article | null> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/${slug}`);
     if (!res.ok) return null;
     return res.json();
 }
+
 async function updateArticle(slug: string, data: ArticleFormValues, token: string) {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/${slug}`, {
         method: 'PUT',
@@ -82,7 +90,6 @@ async function updateArticle(slug: string, data: ArticleFormValues, token: strin
     return res.json();
 }
 
-// Find parent category of a given child category ID
 const findParentCategory = (categories: Category[], childId: string): Category | null => {
     for (const parent of categories) {
         if (parent.children && parent.children.some(child => child._id === childId)) {
@@ -127,7 +134,8 @@ export default function EditArticlePage() {
             try {
                 const [cats, articleData] = await Promise.all([ getCategories(), getArticleBySlug(slug) ]);
                 setAllCategories(cats);
-                setParentCategories(cats.filter(c => c.children && c.children.length > 0));
+                const parents = cats.filter(c => c.children && c.children.length > 0);
+                setParentCategories(parents);
 
                 if (articleData) {
                     const parent = findParentCategory(cats, articleData.category._id);
@@ -159,9 +167,30 @@ export default function EditArticlePage() {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !token) return;
+
+        const parentId = selectedParent;
+        const childId = form.getValues('category');
+
+        if (!parentId || !childId) {
+            toast({ variant: "destructive", title: "Chưa chọn danh mục", description: "Vui lòng chọn danh mục cha và con trước khi upload." });
+            e.target.value = '';
+            return;
+        }
+        
+        const parent = parentCategories.find(p => p._id === parentId);
+        const child = childCategories.find(c => c._id === childId);
+
+        if(!parent?.slug || !child?.slug) {
+             toast({ variant: "destructive", title: "Lỗi", description: "Không tìm thấy slug cho danh mục đã chọn." });
+             e.target.value = '';
+             return;
+        }
+
+        const categoryPath = `${parent.slug}/${child.slug}`;
+
         setIsUploading(true);
         try {
-            const newMedia = await uploadFile(file, token);
+            const newMedia = await uploadFile(file, token, categoryPath);
             form.setValue('media', [...form.getValues('media'), newMedia]);
         } catch (error) {
             toast({ variant: "destructive", title: "Upload thất bại", description: (error as Error).message });

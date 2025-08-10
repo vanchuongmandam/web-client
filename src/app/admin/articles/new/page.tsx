@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/context/AuthContext';
@@ -53,17 +53,23 @@ async function getCategories(): Promise<Category[]> {
     return res.json();
 }
 
-async function uploadFile(file: File, token: string): Promise<Media> {
+async function uploadFile(file: File, token: string, categoryPath: string): Promise<Media> {
     const formData = new FormData();
     formData.append('mediaFile', file);
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload`, {
+    formData.append('categoryPath', categoryPath); // Add the category path
+    
+    // Use the new single file upload endpoint
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload/single`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
     });
-    if (!res.ok) throw new Error("File upload failed");
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "File upload failed");
+    }
     const data = await res.json();
-    return { url: data.url, mediaType: data.mediaType };
+    return data.media; // The API now returns the media object directly
 }
 
 async function createArticle(data: ArticleFormValues, token: string) {
@@ -112,7 +118,7 @@ export default function NewArticlePage() {
     }, [toast]);
 
     const handleParentCategoryChange = (parentId: string) => {
-        form.setValue('category', ''); // Reset child category selection
+        form.setValue('category', '');
         setSelectedParent(parentId);
         const parent = categories.find(c => c._id === parentId);
         setChildCategories(parent?.children || []);
@@ -121,9 +127,35 @@ export default function NewArticlePage() {
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !token) return;
+
+        // Get category slugs for path
+        const parentId = selectedParent;
+        const childId = form.getValues('category');
+
+        if (!parentId || !childId) {
+            toast({
+                variant: "destructive",
+                title: "Chưa chọn danh mục",
+                description: "Vui lòng chọn danh mục cha và danh mục con trước khi upload ảnh.",
+            });
+            e.target.value = '';
+            return;
+        }
+
+        const parentSlug = parentCategories.find(p => p._id === parentId)?.slug;
+        const childSlug = childCategories.find(c => c._id === childId)?.slug;
+        
+        if(!parentSlug || !childSlug) {
+             toast({ variant: "destructive", title: "Lỗi", description: "Không tìm thấy slug cho danh mục đã chọn." });
+             e.target.value = '';
+             return;
+        }
+
+        const categoryPath = `${parentSlug}/${childSlug}`;
+
         setIsUploading(true);
         try {
-            const newMedia = await uploadFile(file, token);
+            const newMedia = await uploadFile(file, token, categoryPath);
             form.setValue('media', [...form.getValues('media'), newMedia]);
         } catch (error) {
             toast({ variant: "destructive", title: "Upload thất bại", description: (error as Error).message });

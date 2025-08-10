@@ -6,11 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Article } from "@/lib/types";
 
+// Import the new image gallery component
+import { ArticleImageGallery } from "./article-image-gallery";
+
 import RelatedArticles from "./related-articles";
 import ReadingSuggestions from "./reading-suggestions";
 import CommentSection from "./comment-section";
 
-// --- Hàm gọi API để lấy một bài viết cụ thể ---
+// --- API Function to get a specific article ---
 async function getArticle(slug: string): Promise<Article | null> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -26,17 +29,17 @@ async function getArticle(slug: string): Promise<Article | null> {
   }
 }
 
-// --- Component trang chi tiết bài viết (Đã sửa) ---
-// Sửa trực tiếp ở chữ ký của hàm để lấy slug ra ngay lập tức
-export default async function ArticlePage({ params: { slug } }: { params: { slug: string } }) {
-  // Bây giờ 'slug' đã có sẵn, không cần dòng const { slug } = params; nữa
+// --- Article Detail Page Component (FIXED) ---
+export default async function ArticlePage({ params }: { params: { slug: string } }) {
+  const { slug } = params; // Correctly destructure slug from params
   const article = await getArticle(slug);
 
   if (!article) {
     notFound();
   }
   
-  const heroImage = article.media?.find(m => m.mediaType === 'image')?.url;
+  // Filter for all media of type 'image'
+  const articleImages = article.media?.filter(m => m.mediaType === 'image') || [];
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
@@ -50,21 +53,15 @@ export default async function ArticlePage({ params: { slug } }: { params: { slug
             {article.title}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Bởi <span className="font-semibold text-foreground">{article.author}</span>
+            By <span className="font-semibold text-foreground">{article.author}</span>
           </p>
         </header>
 
-        {heroImage && (
-            <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-8">
-                <Image
-                    src={heroImage}
-                    alt={article.title}
-                    fill
-                    className="object-cover"
-                    priority
-                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1024px"
-                />
-            </div>
+        {/* --- New Image Gallery Section --- */}
+        {articleImages.length > 0 && (
+          <div className="mb-8">
+            <ArticleImageGallery images={articleImages} />
+          </div>
         )}
         
         <div
