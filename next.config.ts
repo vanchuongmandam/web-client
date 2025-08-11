@@ -19,11 +19,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'apivcmd.thptchuyenhatinh.edu.vn',
         port: '',
-        pathname: '/media/**', // Cụ thể hơn
+        pathname: '/media/**',
       },
     ],
     dangerouslyAllowSVG: true,
-    // domains: ['apivcmd.thptchuyenhatinh.edu.vn'], // Đã lỗi thời, remotePatterns tốt hơn
+    deviceSizes: [320, 640, 768, 1024, 1200, 1920, 2048, 3840],
   },
   trailingSlash: false, 
 };
