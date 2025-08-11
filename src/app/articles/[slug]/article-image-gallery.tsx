@@ -9,7 +9,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 import { X, PlayCircle } from 'lucide-react';
-import { CustomVideoPlayer } from '@/components/ui/custom-video-player'; // Import the new component
+import { CustomVideoPlayer } from '@/components/ui/custom-video-player'; 
 
 interface ArticleMediaGalleryProps {
   media: Media[];
