@@ -43,29 +43,29 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      <article>
-        <header className="mb-8">
-          <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
+      <article className="w-full overflow-hidden break-words">
+        <header className="mb-8 w-full">
+          <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-muted-foreground">
             <Badge variant="secondary">{article.category.name}</Badge>
             <span>{article.date}</span>
           </div>
-          <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight text-primary">
+          <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight text-primary break-words hyphens-auto">
             {article.title}
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground">
+          <p className="mt-4 text-lg text-muted-foreground break-words">
             By <span className="font-semibold text-foreground">{article.author}</span>
           </p>
         </header>
 
         {/* --- New Image Gallery Section --- */}
         {articleImages.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-8 w-full overflow-hidden">
             <ArticleImageGallery images={articleImages} />
           </div>
         )}
         
         <div
-          className="prose prose-lg dark:prose-invert max-w-none prose-p:font-body prose-headings:font-headline"
+          className="prose prose-lg dark:prose-invert max-w-none prose-p:font-body prose-headings:font-headline w-full overflow-hidden break-words prose-p:break-words prose-headings:break-words prose-li:break-words"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
       </article>

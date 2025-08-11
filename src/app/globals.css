@@ -62,7 +62,13 @@
   }
 
   html {
-    font-size: 18px; /* Set base font size to 18px */
+    font-size: 18px; /* Base font size for desktop */
+  }
+
+  @media (max-width: 768px) {
+    html {
+      font-size: 16px; /* Reduced font size for mobile */
+    }
   }
 }
 

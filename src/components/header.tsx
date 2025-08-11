@@ -59,7 +59,7 @@ export function Header() {
         <div className="container mx-auto px-4 flex h-24 items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <Feather className="h-9 w-9 text-primary" />
-              <span className="font-headline text-4xl font-bold text-primary whitespace-nowrap">
+              <span className="font-headline text-2xl md:text-4xl font-bold text-primary whitespace-nowrap">
                 Văn Chương Mạn Đàm
               </span>
             </Link>
