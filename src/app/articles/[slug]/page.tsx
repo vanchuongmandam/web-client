@@ -30,7 +30,7 @@ async function getArticle(slug: string): Promise<Article | null> {
 }
 
 // --- Article Detail Page Component (FIXED) ---
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function ArticlePage({ params }: { params: { slug:string } }) {
   const { slug } = params; // Correctly destructure slug from params
   const article = await getArticle(slug);
 
@@ -38,9 +38,6 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     notFound();
   }
   
-  // Filter for all media of type 'image'
-  const articleImages = article.media?.filter(m => m.mediaType === 'image') || [];
-
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
       <article className="w-full overflow-hidden break-words">
@@ -58,9 +55,9 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         </header>
 
         {/* --- New Image Gallery Section --- */}
-        {articleImages.length > 0 && (
+        {article.media && article.media.length > 0 && (
           <div className="mb-8 w-full overflow-hidden">
-            <ArticleImageGallery images={articleImages} />
+            <ArticleImageGallery media={article.media} />
           </div>
         )}
         
