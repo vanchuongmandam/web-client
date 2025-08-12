@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +13,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from '@/components/ui/sheet';
-import { Menu, Feather, LogIn, UserPlus, Search, LayoutGrid } from 'lucide-react';
+import { Menu, LogIn, UserPlus, Search, LayoutGrid } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import type { Category } from '@/lib/types';
+import Logo from '@/assets/logo/vanchuongmandam-logo.svg';
+import LogoText from '@/assets/logo/vanchuongmandam-chu.svg';
+
+
 
 const navItems = [
   { name: 'Trang chủ', href: '/' },
@@ -56,12 +61,10 @@ export function Header() {
     <>
       {/* Top Bar - Scrolls away */}
       <div className="bg-card border-b">
-        <div className="container mx-auto px-4 flex h-24 items-center justify-between">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
-              <Feather className="h-9 w-9 text-primary" />
-              <span className="font-headline text-2xl md:text-4xl font-bold text-primary whitespace-nowrap">
-                Văn Chương Mạn Đàm
-              </span>
+              <Image src={Logo} alt="vanchuongmandam" height={115} />
+              <Image src={LogoText} alt="vanchuongmandam" height={150} />
             </Link>
 
             <div className="flex items-center gap-4">
