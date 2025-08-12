@@ -69,7 +69,22 @@ const fontSerif = FontSerif({
 
 export const metadata: Metadata = {
   title: "Văn Chương Mạn Đàm",
-  description: "Một không gian cho những thảo luận và phân tích văn học sâu sắc.",
+  description: "Fanpage được sáng lập bởi đội ngũ Admin giàu kinh nghiệm Trường THPT Chuyên Hà Tĩnh - GV Ngữ văn và Cựu HSGQG môn Văn. Ở đây có: tiếng nói TRI ÂM qua trang sách, CÂU CHUYỆN văn chương thú vị và KIẾN THỨC cần thiết cho tất cả các kì thi.",
+  keywords: [
+    "văn học",
+    "văn chương",
+    "phân tích văn học", 
+    "thảo luận văn học",
+    "tác phẩm văn học",
+    "văn học Việt Nam",
+    "văn học thế giới",
+    "phê bình văn học",
+    "cộng đồng văn học"
+  ],
+  authors: [{ name: "Văn Chương Mạn Đàm Team" }],
+  creator: "Thái Thanh Huyền",
+  publisher: "Văn Chương Mạn Đàm",
+  category: "Literature",
 };
 
 export default function RootLayout({

@@ -9,7 +9,8 @@ export default function Footer() {
           <div>
             <h3 className="font-headline text-xl font-semibold mb-4">Văn Chương Mạn Đàm</h3>
             <p className="text-sm text-muted-foreground">
-              Một không gian dành cho những tâm hồn yêu văn chương, nơi chia sẻ tri thức và lan toả đam mê.
+            Fanpage được sáng lập bởi đội ngũ Admin giàu kinh nghiệm Trường THPT Chuyên Hà Tĩnh - GV Ngữ văn và Cựu HSGQG môn Văn.
+            Ở đây có: tiếng nói TRI ÂM qua trang sách, CÂU CHUYỆN văn chương thú vị và KIẾN THỨC cần thiết cho tất cả các kì thi.
             </p>
           </div>
           <div>
