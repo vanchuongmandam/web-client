@@ -63,7 +63,7 @@ export function Header() {
       <div className="bg-card border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
-              <Image src={Logo} alt="vanchuongmandam" height={115} />
+              <Image src={Logo} alt="vanchuongmandam" height={120} />
               <Image src={LogoText} alt="vanchuongmandam" height={150} />
             </Link>
 
