@@ -30,6 +30,7 @@ import {
 import type { Category } from '@/lib/types';
 import Logo from '@/assets/logo/vanchuongmandam-logo.svg';
 import LogoText from '@/assets/logo/vanchuongmandam-chu.svg';
+import BannerImage from '@/assets/logo/banner.webp';
 
 
 
@@ -59,9 +60,12 @@ export function Header() {
 
   return (
     <>
-      {/* Top Bar - Scrolls away */}
-      <div className="bg-card border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div 
+        className="relative overflow-hidden border-b" 
+        style={{ backgroundImage: `url(${BannerImage.src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+      >
+        <div className="absolute inset-0 bg-card/50 backdrop-blur-sm z-0"></div>
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between relative z-10">
             <Link href="/" className="flex items-center gap-3">
               <Image src={Logo} alt="vanchuongmandam" height={120} />
               <Image src={LogoText} alt="vanchuongmandam" height={150} />
@@ -164,7 +168,7 @@ export function Header() {
                                 <div className="flex flex-col space-y-1.5">
                                     {parent.children?.map((child) => (
                                         <Link key={child._id} href={`/articles?category=${child.slug}`} className="text-muted-foreground hover:text-primary transition-colors">{child.name}</Link>
-                                    ))}
+                                    ))}\
                                 </div>
                             </div>
                         ))}
