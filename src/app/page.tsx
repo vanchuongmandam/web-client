@@ -46,8 +46,8 @@ export default async function Home() {
   // --- Data filter ---
   const featuredArticle = articles[0];
   const trendingArticles = articles.filter(a => a.trending);
-  const criticismArticles = articles.filter(a => a.category.name === 'Phê bình & Tiểu luận').slice(0, 4);
-  const creativeWritingArticles = articles.filter(a => a.category.name === 'Sáng tác').slice(0, 3);
+  const criticismArticles = articles.filter(a => a.category.slug === 'van-chuong-hoc-va-thi').slice(0, 4);
+  const creativeWritingArticles = articles.filter(a => a.category.slug === 'thu-vien').slice(0, 3);
   const newspaperArticles = articles.filter(a => a.category.slug === 'bai-bao').slice(0, 4);
   const featuredImage = featuredArticle?.media?.find(m => m.mediaType === 'image')?.url;
 
