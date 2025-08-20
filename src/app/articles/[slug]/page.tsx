@@ -50,7 +50,7 @@ export default async function ArticlePage({ params }: { params: { slug:string } 
             {article.title}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground break-words">
-            By <span className="font-semibold text-foreground">{article.author}</span>
+            Bởi <span className="font-semibold text-foreground">{article.author}</span>
           </p>
         </header>
 
