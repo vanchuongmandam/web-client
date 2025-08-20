@@ -168,7 +168,7 @@ export function Header() {
                                 <div className="flex flex-col space-y-1.5">
                                     {parent.children?.map((child) => (
                                         <Link key={child._id} href={`/articles?category=${child.slug}`} className="text-muted-foreground hover:text-primary transition-colors">{child.name}</Link>
-                                    ))}\
+                                    ))}
                                 </div>
                             </div>
                         ))}
