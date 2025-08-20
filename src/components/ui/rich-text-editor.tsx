@@ -17,8 +17,8 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
     return null;
   }
 
-  const currentLineHeight = editor.getAttributes('paragraph').lineHeight || editor.getAttributes('heading').lineHeight || '1.5';
-  const currentFontSize = editor.getAttributes('textStyle').fontSize || '16px';
+  const currentLineHeight = editor.getAttributes('paragraph').lineHeight || editor.getAttributes('heading').lineHeight || '1.75';
+  const currentFontSize = editor.getAttributes('textStyle').fontSize || '18px';
 
   return (
     <div className="border border-input bg-transparent rounded-t-md p-1 flex items-center gap-1 flex-wrap">
@@ -101,8 +101,8 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
         bulletList: { HTMLAttributes: { class: 'list-disc pl-4' } },
         heading: { levels: [1, 2, 3] }, // Configure heading levels
       }),
-      LineHeight,
-      TextStyle,
+      LineHeight.configure({ defaultLineHeight: '1.75' }),
+      TextStyle.configure({ defaultParagraphFontSize: '18px' }),
       FontSize,
       TextAlign.configure({
         types: ['heading', 'paragraph'], // Apply text alignment to headings and paragraphs

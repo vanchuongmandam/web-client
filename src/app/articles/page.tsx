@@ -202,7 +202,7 @@ const ArticlesView = () => {
         <div className="container mx-auto px-4 py-8">
             <header className="mb-8">
                 <h1 className="text-3xl font-headline font-bold text-primary capitalize">{currentCategoryName}</h1>
-                <p className="text-muted-foreground mt-2">Khám phá kho tàng tri thức và những sáng tác đặc sắc của chúng tôi.</p>
+                <p className="text-muted-foreground mt-2">Hãy chọn cho mình Chuyên mục yêu thích để cùng chúng tôi Mạn Đàm Văn Chương nhé!</p>
             </header>
 
             <div className="mb-8 flex justify-end">
