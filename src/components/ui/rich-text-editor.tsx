@@ -3,13 +3,14 @@
 
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Bold, Italic, Strikethrough, List, ListOrdered, Heading2, Heading3, Pilcrow, CaseSensitive } from 'lucide-react';
+import { Bold, Italic, Strikethrough, List, ListOrdered, Heading2, Heading3, Pilcrow, CaseSensitive, AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
 import { Button } from './button';
 import { Skeleton } from './skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import LineHeight, { LINE_HEIGHTS } from '@/lib/tiptap-extensions/line-height';
 import FontSize, { FONT_SIZES } from '@/lib/tiptap-extensions/font-size';
-import { TextStyle } from '@tiptap/extension-text-style'; // Cần extension này
+import { TextStyle } from '@tiptap/extension-text-style';
+import TextAlign from '@tiptap/extension-text-align'; 
 
 const Toolbar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
@@ -29,6 +30,12 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
       <Button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'} size="sm"><List className="h-4 w-4" /></Button>
       <Button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'} size="sm"><ListOrdered className="h-4 w-4" /></Button>
       
+      {/* Nút Căn Chỉnh */}
+      <Button type="button" onClick={() => editor.chain().focus().setTextAlign('left').run()} variant={editor.isActive({ textAlign: 'left' }) ? 'secondary' : 'ghost'} size="sm"><AlignLeft className="h-4 w-4" /></Button>
+      <Button type="button" onClick={() => editor.chain().focus().setTextAlign('center').run()} variant={editor.isActive({ textAlign: 'center' }) ? 'secondary' : 'ghost'} size="sm"><AlignCenter className="h-4 w-4" /></Button>
+      <Button type="button" onClick={() => editor.chain().focus().setTextAlign('right').run()} variant={editor.isActive({ textAlign: 'right' }) ? 'secondary' : 'ghost'} size="sm"><AlignRight className="h-4 w-4" /></Button>
+      <Button type="button" onClick={() => editor.chain().focus().setTextAlign('justify').run()} variant={editor.isActive({ textAlign: 'justify' }) ? 'secondary' : 'ghost'} size="sm"><AlignJustify className="h-4 w-4" /></Button>
+
       {/* Nút Cỡ Chữ */}
        <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -92,10 +99,14 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
       StarterKit.configure({
         orderedList: { HTMLAttributes: { class: 'list-decimal pl-4' } },
         bulletList: { HTMLAttributes: { class: 'list-disc pl-4' } },
+        heading: { levels: [1, 2, 3] }, // Configure heading levels
       }),
       LineHeight,
-      TextStyle, // Cần extension này
-      FontSize,  // Thêm extension cỡ chữ
+      TextStyle,
+      FontSize,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'], // Apply text alignment to headings and paragraphs
+      }),
     ],
     content: value,
     immediatelyRender: false, 
