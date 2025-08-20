@@ -17,8 +17,8 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
     return null;
   }
 
-  const currentLineHeight = editor.getAttributes('paragraph').lineHeight || editor.getAttributes('heading').lineHeight || '1.75';
-  const currentFontSize = editor.getAttributes('textStyle').fontSize || '18px';
+  const currentLineHeight = editor.getAttributes('paragraph').lineHeight || editor.getAttributes('heading').lineHeight || '1.5';
+  const currentFontSize = editor.getAttributes('textStyle').fontSize || '16px';
 
   return (
     <div className="border border-input bg-transparent rounded-t-md p-1 flex items-center gap-1 flex-wrap">
