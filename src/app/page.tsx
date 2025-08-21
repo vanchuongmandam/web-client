@@ -13,15 +13,23 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Article } from "@/lib/types";
+import type { Article, Category } from "@/lib/types";
 
 
-async function getArticles(): Promise<Article[]> {
+async function getArticles(categorySlug?: string): Promise<Article[]> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiBaseUrl}/articles`, { cache: 'no-store' });
+    let apiUrl: string;
+
+    if (categorySlug) {
+      apiUrl = `${apiBaseUrl}/categories/${categorySlug}/articles`;
+    } else {
+      apiUrl = `${apiBaseUrl}/articles`; 
+    }
+
+    const response = await fetch(apiUrl, { next: { revalidate: 3600 } });
     if (!response.ok) {
-      console.error("Failed to fetch articles:", await response.text());
+      console.error("Failed to fetch articles:", response.status, await response.text());
       return [];
     }
     return await response.json();
@@ -31,10 +39,59 @@ async function getArticles(): Promise<Article[]> {
   }
 }
 
-export default async function Home() {
-  const articles = await getArticles();
 
-  if (articles.length === 0) {
+async function getCategories(): Promise<Category[]> {
+  try {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const response = await fetch(`${apiBaseUrl}/categories`, { next: { revalidate: 3600 } });
+    if (!response.ok) {
+      console.error("Failed to fetch categories:", response.status, await response.text());
+      return [];
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("An error occurred while fetching categories:", error);
+    return [];
+  }
+}
+
+export default async function Home() {
+  const allArticles = await getArticles();
+  const categories = await getCategories();
+
+  const featuredArticle = allArticles[0];
+  const trendingArticles = allArticles.filter(a => a.trending);
+
+  const leftColumnSlugs = [
+    'danh-cho-chuyen-van',
+    'van-chuong-hoc-va-thi',
+    'van-chuong-thu-vi',
+    'dien-dan-van-chuong',
+  ];
+
+  const rightColumnSlugs = [
+    'goc-sang-tac',
+  ];
+
+  const leftColumnSections = await Promise.all(
+    leftColumnSlugs.map(async (slug) => {
+      const articles = await getArticles(slug);
+      const category = categories.find(cat => cat.slug === slug);
+      return { slug, name: category?.name || slug, articles };
+    })
+  );
+
+  const rightColumnSections = await Promise.all(
+    rightColumnSlugs.map(async (slug) => {
+      const articles = await getArticles(slug);
+      const category = categories.find(cat => cat.slug === slug);
+      return { slug, name: category?.name || slug, articles };
+    })
+  );
+
+  const featuredImage = featuredArticle?.media?.find(m => m.mediaType === 'image')?.url;
+
+  if (allArticles.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h2 className="text-2xl font-bold">Không thể tải được bài viết</h2>
@@ -42,14 +99,6 @@ export default async function Home() {
       </div>
     );
   }
-
-  // --- Data filter ---
-  const featuredArticle = articles[0];
-  const trendingArticles = articles.filter(a => a.trending);
-  const criticismArticles = articles.filter(a => a.category.slug === 'van-chuong-hoc-va-thi').slice(0, 4);
-  const creativeWritingArticles = articles.filter(a => a.category.slug === 'thu-vien').slice(0, 3);
-  const newspaperArticles = articles.filter(a => a.category.slug === 'bai-bao').slice(0, 4);
-  const featuredImage = featuredArticle?.media?.find(m => m.mediaType === 'image')?.url;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -83,43 +132,30 @@ export default async function Home() {
         
         {/* === LEFT COLUMN (MAIN CONTENT) === */}
         <div className="lg:col-span-2 space-y-12">
-          {/* Criticism Section */}
-          {criticismArticles.length > 0 && (
-            <section>
-              <h2 className="font-headline text-3xl font-bold mb-6">Phê bình & Tiểu luận</h2>
+          {leftColumnSections.map((section) => section.articles.length > 0 && (
+            <section key={section.slug}>
+              <h2 className="font-headline text-3xl font-bold mb-6">{section.name}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {criticismArticles.map((article) => (
+                {section.articles.slice(0, 4).map((article) => (
                   <ArticleCard key={article.slug} article={article} />
                 ))}
               </div>
             </section>
-          )}
-
-          {/* Creative Writing Section */}
-          {creativeWritingArticles.length > 0 && (
-            <section>
-              <h2 className="font-headline text-3xl font-bold mb-6">Sáng tác</h2>
-              <div className="space-y-6">
-                {creativeWritingArticles.map((article) => (
-                  <ArticleListItem key={article.slug} article={article} />
-                ))}
-              </div>
-            </section>
-           )}
+          ))}
         </div>
 
         {/* === RIGHT COLUMN (STICKY SIDEBAR) === */}
         <aside>
-          {newspaperArticles.length > 0 && (
-            <section className="sticky top-8">
-              <h2 className="font-headline text-3xl font-bold mb-6">Bài báo</h2>
+          {rightColumnSections.map((section) => section.articles.length > 0 && (
+            <section key={section.slug} className="sticky top-8">
+              <h2 className="font-headline text-3xl font-bold mb-6">{section.name}</h2>
               <div className="grid grid-cols-2 gap-4">
-                {newspaperArticles.map((article) => (
+                {section.articles.slice(0, 4).map((article) => (
                   <NewspaperArticleCard key={article.slug} article={article} />
                 ))}
               </div>
             </section>
-          )}
+          ))}
         </aside>
       </div>
     </div>
