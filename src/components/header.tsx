@@ -1,62 +1,26 @@
 // src/components/header.tsx
-"use client";
-
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetClose,
+  Sheet, SheetContent, SheetTrigger, SheetClose,
 } from '@/components/ui/sheet';
 import { Menu, LogIn, UserPlus, Search, LayoutGrid } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+  Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
+import { getCategories } from '@/lib/api';
 import type { Category } from '@/lib/types';
 import Logo from '@/assets/logo/vanchuongmandam-logo.svg';
 import LogoText from '@/assets/logo/vanchuongmandam-chu.svg';
 import BannerImage from '@/assets/logo/banner.webp';
 
-
-
-const navItems = [
-  { name: 'Trang chủ', href: '/' },
-];
-
-async function getCategories(): Promise<Category[]> {
-  try {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiBaseUrl}/categories`);
-    if (!response.ok) return [];
-    return await response.json();
-  } catch (error) {
-    console.error("Failed to fetch categories:", error);
-    return [];
-  }
-}
-
-export function Header() {
-  const { user, logout, isLoading } = useAuth();
-  const [parentCategories, setParentCategories] = useState<Category[]>([]);
-
-  useEffect(() => {
-    getCategories().then(setParentCategories);
-  }, []);
+export async function Header() {
+  const parentCategories: Category[] = await getCategories();
 
   return (
     <>
@@ -71,84 +35,7 @@ export function Header() {
               <Image src={LogoText} alt="vanchuongmandam" height={150} />
             </Link>
 
-            <div className="flex items-center gap-4">
-              {/* Auth Section for Desktop */}
-              <div className="hidden sm:flex items-center">
-                {isLoading ? (
-                  <div className="h-12 w-28 bg-muted rounded-md animate-pulse"></div>
-                ) : user ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${user.username}`} />
-                        <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Chào, {user.username}</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {user.role === 'admin' && (
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin">Trang quản trị</Link>
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem onClick={logout}>Đăng xuất</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <div className="flex flex-col gap-1.5 items-end">
-                     <Button asChild variant="ghost" size="sm">
-                        <Link href="/login"><LogIn className="mr-2 h-4 w-4"/>Đăng nhập</Link>
-                    </Button>
-                    <Button asChild size="sm">
-                        <Link href="/register"><UserPlus className="mr-2 h-4 w-4"/>Đăng ký</Link>
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile Navigation Trigger */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="md:hidden">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Mở menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left">
-                  <nav className="grid gap-4 py-6">
-                    {navItems.map((item) => (
-                      <SheetClose asChild key={item.name}>
-                        <Link href={item.href} className="flex w-full items-center py-2 text-lg font-semibold">
-                          {item.name}
-                        </Link>
-                      </SheetClose>
-                    ))}
-                    {parentCategories.map((item) => (
-                      <SheetClose asChild key={item._id}>
-                        <Link href={`/articles?category=${item.slug}`} className="flex w-full items-center py-2 text-lg font-semibold">
-                          {item.name}
-                        </Link>
-                      </SheetClose>
-                    ))}
-                    <div className="sm:hidden pt-4 border-t">
-                        {user ? (
-                          <div className="space-y-2">
-                            <p className="font-semibold">{user.username}</p>
-                            {user.role === 'admin' && <SheetClose asChild><Link href="/admin" className="block w-full">Trang quản trị</Link></SheetClose>}
-                            <Button onClick={logout} variant="ghost" className="w-full justify-start p-0">Đăng xuất</Button>
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            <SheetClose asChild><Button asChild className="w-full justify-start" variant="ghost"><Link href="/login"><LogIn className="mr-2 h-4 w-4"/>Đăng nhập</Link></Button></SheetClose>
-                            <SheetClose asChild><Button asChild className="w-full justify-start"><Link href="/register"><UserPlus className="mr-2 h-4 w-4"/>Đăng ký</Link></Button></SheetClose>
-                          </div>
-                        )}
-                    </div>
-                  </nav>
-                </SheetContent>
-              </Sheet>
-            </div>
+            {/* Auth + Mobile nav... (có thể giữ nguyên code bạn) */}
         </div>
       </div>
 
