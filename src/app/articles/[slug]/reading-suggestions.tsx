@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, Loader2, BookText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export default function ReadingSuggestions({ articleContent: _ }: { articleContent: string }) {
+export default function ReadingSuggestions({ articleContent }: { articleContent: Record<string, any> }) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +19,10 @@ export default function ReadingSuggestions({ articleContent: _ }: { articleConte
     setSuggestions([]);
 
     try {
-      // const result = await getReadingSuggestions({ articleContent });
+      // NOTE: If you enable getReadingSuggestions, you might need to convert
+      // articleContent from JSON to plain text or a format suitable for the AI flow.
+      // For example: const plainTextContent = convertJsonToPlainText(articleContent);
+      // const result = await getReadingSuggestions({ articleContent: plainTextContent });
       /*if (result.suggestions && result.suggestions.length > 0) {
         setSuggestions(result.suggestions);
       } else {*/

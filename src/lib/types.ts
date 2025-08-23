@@ -38,7 +38,8 @@ export interface Article {
   date: string;
   category: Category; // Vẫn là một object Category
   excerpt: string;
-  content: string;
+  // Updated content to be a JSON object
+  content: Record<string, any>;
   media: Media[];
   trending: boolean;
   createdAt: string;

@@ -35,7 +35,10 @@ const articleFormSchema = z.object({
   slug: z.string().min(3, { message: "Slug phải có ít nhất 3 ký tự." }).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug chỉ được chứa chữ thường, số và dấu gạch ngang." }),
   author: z.string().min(2, { message: "Tên tác giả là bắt buộc." }),
   excerpt: z.string().min(10, { message: "Tóm tắt phải có ít nhất 10 ký tự." }),
-  content: z.string().min(10, { message: "Nội dung là bắt buộc." }),
+  // Updated content to accept JSON object
+  content: z.record(z.string(), z.any()).refine(val => Object.keys(val).length > 0, {
+    message: "Nội dung là bắt buộc."
+  }),
   category: z.string({ required_error: "Vui lòng chọn một danh mục con." }),
   trending: z.boolean().default(false),
   media: z.array(z.object({
@@ -114,7 +117,20 @@ export default function NewArticlePage() {
 
     const form = useForm<ArticleFormValues>({
         resolver: zodResolver(articleFormSchema),
-        defaultValues: { media: [], title: '', slug: '', author: '', excerpt: '', content: '', trending: false },
+        defaultValues: { media: [], title: '', slug: '', author: '', excerpt: '', content: {
+          "type": "doc",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": ""
+                }
+              ]
+            }
+          ]
+        }, trending: false },
     });
     const mediaValue = form.watch('media');
     const titleValue = form.watch('title');

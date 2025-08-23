@@ -88,9 +88,9 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
 };
 
 interface RichTextEditorProps {
-  value?: string;
-  content?: string; 
-  onChange?: (value: string) => void;
+  value?: Record<string, any>;
+  content?: Record<string, any>; 
+  onChange?: (value: Record<string, any>) => void;
   placeholder?: string;
   editable?: boolean; 
   className?: string;
@@ -135,7 +135,7 @@ export default function RichTextEditor({
       },
     },
     onUpdate: editable && onChange ? ({ editor }) => {
-      onChange(editor.getHTML());
+      onChange(editor.getJSON());
     } : undefined, 
   });
 
