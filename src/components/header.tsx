@@ -8,7 +8,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { Menu, Search, LayoutGrid } from "lucide-react";
+import { Menu, LayoutGrid } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -20,6 +20,7 @@ import { AuthControls } from "@/components/auth-controls";
 import Logo from "@/assets/logo/vanchuongmandam-logo.svg";
 import LogoText from "@/assets/logo/vanchuongmandam-chu.svg";
 import BannerImage from "@/assets/logo/banner.webp";
+import { SearchButtonAndOverlay } from "@/components/search-button-and-overlay"; // Import new component
 
 export async function Header() {
   const parentCategories: Category[] = await getCategories();
@@ -145,10 +146,8 @@ export async function Header() {
             ))}
           </div>
 
-          {/* Right side: Search Button */}
-          <Button variant="ghost" size="icon">
-            <Search className="h-5 w-5" />
-          </Button>
+          {/* Right side: Search Button - REPLACED */}
+          <SearchButtonAndOverlay />
         </div>
       </nav>
     </>
