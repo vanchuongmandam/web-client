@@ -9,6 +9,7 @@ import type { Article } from "@/lib/types";
 // Import the new image gallery component
 import { ArticleImageGallery } from "./article-image-gallery";
 
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import RelatedArticles from "./related-articles";
 import ReadingSuggestions from "./reading-suggestions";
 import CommentSection from "./comment-section";
@@ -61,9 +62,10 @@ export default async function ArticlePage({ params }: { params: { slug:string } 
           </div>
         )}
         
-        <div
-          className="prose prose-lg dark:prose-invert max-w-none prose-p:font-body prose-headings:font-headline w-full overflow-hidden break-words prose-p:break-words prose-headings:break-words prose-li:break-words"
-          dangerouslySetInnerHTML={{ __html: article.content }}
+        <RichTextEditor 
+          content={article.content} 
+          editable={false}
+          className="w-full overflow-hidden"
         />
       </article>
 

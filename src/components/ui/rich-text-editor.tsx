@@ -1,4 +1,4 @@
-// src/components/ui/rich-text-editor.tsx
+// src/components/ui/rich-text-editor.tsx 
 "use client";
 
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
@@ -88,17 +88,29 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
 };
 
 interface RichTextEditorProps {
-  value: string;
-  onChange: (value: string) => void;
+  value?: string;
+  content?: string; 
+  onChange?: (value: string) => void;
   placeholder?: string;
+  editable?: boolean;
+  className?: string;
 }
 
-export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
+export default function RichTextEditor({ 
+  value, 
+  content,
+  onChange, 
+  placeholder, 
+  editable = true, 
+  className = ""
+}: RichTextEditorProps) {
+  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         orderedList: { HTMLAttributes: { class: 'list-decimal pl-4' } },
         bulletList: { HTMLAttributes: { class: 'list-disc pl-4' } },
+        heading: { levels: [1, 2, 3] },
       }),
       LineHeight,
       TextStyle, 
@@ -107,20 +119,31 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
         types: ['heading', 'paragraph'], 
       }), 
     ],
-    content: value,
+    content: editable ? value : content, 
+    editable: editable, 
     immediatelyRender: false, 
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert min-h-[250px] w-full rounded-b-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+        class: editable 
+          ? 'prose dark:prose-invert min-h-[250px] w-full rounded-b-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+          : `prose prose-lg dark:prose-invert max-w-none prose-headings:font-headline prose-headings:text-foreground prose-p:text-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-em:text-foreground prose-ul:space-y-1 prose-ol:space-y-1 prose-li:text-foreground break-words hyphens-auto whitespace-pre-wrap ${className}`, // 👈 CSS khác nhau cho readonly
       },
     },
-    onUpdate({ editor }) {
+    onUpdate: editable && onChange ? ({ editor }) => {
       onChange(editor.getHTML());
-    },
+    } : undefined, // 👈 Chỉ call onChange khi editable
   });
 
   if (!editor) {
     return <Skeleton className="h-[300px] w-full rounded-md" />;
+  }
+
+  if (!editable) {
+    return (
+      <div className={`rich-text-content ${className}`}>
+        <EditorContent editor={editor} />
+      </div>
+    );
   }
 
   return (
