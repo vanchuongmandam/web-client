@@ -9,7 +9,7 @@ import { Skeleton } from './skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import LineHeight, { LINE_HEIGHTS } from '@/lib/tiptap-extensions/line-height';
 import FontSize, { FONT_SIZES } from '@/lib/tiptap-extensions/font-size';
-import { TextStyle } from '@tiptap/extension-text-style';
+import { TextStyle } from '@tiptap/extension-text-style'; 
 import TextAlign from '@tiptap/extension-text-align'; 
 
 const Toolbar = ({ editor }: { editor: Editor | null }) => {
@@ -99,12 +99,13 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
       StarterKit.configure({
         orderedList: { HTMLAttributes: { class: 'list-decimal pl-4' } },
         bulletList: { HTMLAttributes: { class: 'list-disc pl-4' } },
-        heading: { levels: [1, 2, 3] }, // Configure heading levels
       }),
-      FontSize,
+      LineHeight,
+      TextStyle, 
+      FontSize, 
       TextAlign.configure({
-        types: ['heading', 'paragraph'], // Apply text alignment to headings and paragraphs
-      }),
+        types: ['heading', 'paragraph'], 
+      }), 
     ],
     content: value,
     immediatelyRender: false, 
