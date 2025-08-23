@@ -1,4 +1,4 @@
-// src/components/ui/rich-text-editor.tsx 
+// src/components/ui/rich-text-editor.tsx (Enhanced với readonly mode)
 "use client";
 
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
@@ -92,7 +92,7 @@ interface RichTextEditorProps {
   content?: string; 
   onChange?: (value: string) => void;
   placeholder?: string;
-  editable?: boolean;
+  editable?: boolean; 
   className?: string;
 }
 
@@ -111,6 +111,11 @@ export default function RichTextEditor({
         orderedList: { HTMLAttributes: { class: 'list-decimal pl-4' } },
         bulletList: { HTMLAttributes: { class: 'list-disc pl-4' } },
         heading: { levels: [1, 2, 3] },
+        paragraph: {
+          HTMLAttributes: {
+            class: 'whitespace-pre-wrap', 
+          }
+        },
       }),
       LineHeight,
       TextStyle, 
@@ -119,19 +124,19 @@ export default function RichTextEditor({
         types: ['heading', 'paragraph'], 
       }), 
     ],
-    content: editable ? value : content, 
+    content: editable ? value : content,
     editable: editable, 
     immediatelyRender: false, 
     editorProps: {
       attributes: {
         class: editable 
-          ? 'prose dark:prose-invert min-h-[250px] w-full rounded-b-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-          : `prose prose-lg dark:prose-invert max-w-none prose-headings:font-headline prose-headings:text-foreground prose-p:text-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-em:text-foreground prose-ul:space-y-1 prose-ol:space-y-1 prose-li:text-foreground break-words hyphens-auto whitespace-pre-wrap ${className}`, // 👈 CSS khác nhau cho readonly
+          ? 'prose dark:prose-invert min-h-[250px] w-full rounded-b-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 whitespace-pre-wrap' // 👈 Thêm whitespace-pre-wrap
+          : `prose prose-lg dark:prose-invert max-w-none prose-headings:font-headline prose-headings:text-foreground prose-p:text-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-em:text-foreground prose-ul:space-y-1 prose-ol:space-y-1 prose-li:text-foreground break-words hyphens-auto whitespace-pre-wrap ${className}`, // 👈 Đã có whitespace-pre-wrap
       },
     },
     onUpdate: editable && onChange ? ({ editor }) => {
       onChange(editor.getHTML());
-    } : undefined, // 👈 Chỉ call onChange khi editable
+    } : undefined, 
   });
 
   if (!editor) {
