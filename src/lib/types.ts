@@ -3,7 +3,7 @@
 // Định nghĩa cho một file media (ảnh hoặc video)
 export interface Media {
   url: string;
-  mediaType: 'image' | 'video';
+  mediaType: 'image' | 'video' | 'pdf';
   caption?: string;
 }
 

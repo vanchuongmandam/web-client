@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Upload, X, Image as ImageIcon, FileText } from 'lucide-react'; // Added FileText icon
 import Image from 'next/image';
 import { Switch } from '@/components/ui/switch';
 
@@ -43,7 +43,7 @@ const articleFormSchema = z.object({
   trending: z.boolean().default(false),
   media: z.array(z.object({
       url: z.string(),
-      mediaType: z.enum(['image', 'video']),
+      mediaType: z.enum(['image', 'video', 'pdf']), // ĐÃ SỬA: Thêm 'pdf'
       caption: z.string().optional(),
   })),
 });
@@ -60,6 +60,7 @@ const getMimeTypeFromExtension = (filename: string): string | undefined => {
         'png': 'image/png',
         'gif': 'image/gif',
         'webp': 'image/webp',
+        'pdf': 'application/pdf', // ĐÃ SỬA: Thêm PDF mime type
     };
     return extension ? mimeTypes[extension] : undefined;
 };
@@ -220,7 +221,7 @@ export default function EditArticlePage() {
 
         const correctMimeType = getMimeTypeFromExtension(originalFile.name);
         if (!correctMimeType) {
-            toast({ variant: "destructive", title: "Loại file không hỗ trợ", description: "Vui lòng chọn file hình ảnh hoặc video." });
+            toast({ variant: "destructive", title: "Loại file không hỗ trợ", description: "Vui lòng chọn file hình ảnh, video hoặc PDF." }); // ĐÃ SỬA: Cập nhật thông báo lỗi
             e.target.value = '';
             return;
         }
@@ -298,7 +299,7 @@ export default function EditArticlePage() {
                                         </FormItem>
                                     )} />
 
-                                     <FormField control={form.control} name="excerpt" render={({ field }) => ( <FormItem><FormLabel>Đoạn trôm</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
+                                     <FormField control={form.control} name="excerpt" render={({ field }) => ( <FormItem><FormLabel>Đoạn trích</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem> )} />
                                      <FormField control={form.control} name="trending" render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                                             <div className="space-y-0.5"><FormLabel>Bài viết nổi bật</FormLabel></div>
@@ -310,12 +311,13 @@ export default function EditArticlePage() {
                             <Card>
                                 <CardHeader><CardTitle>Media</CardTitle></CardHeader>
                                 <CardContent>
-                                    <FormItem><FormLabel>Ảnh đại diện</FormLabel><FormControl><div className="relative"><Button type="button" variant="outline" asChild><label htmlFor="file-upload" className="cursor-pointer w-full"><Upload className="mr-2 h-4 w-4" /> Upload File</label></Button><Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading}/>{isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}</div></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Ảnh đại diện / Video / PDF</FormLabel><FormControl><div className="relative"><Button type="button" variant="outline" asChild><label htmlFor="file-upload" className="cursor-pointer w-full"><Upload className="mr-2 h-4 w-4" /> Upload File</label></Button><Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading} accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.pdf"/>{isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}</div></FormControl><FormMessage /></FormItem>
                                     <div className="mt-4 space-y-2">
                                         {mediaValue && mediaValue.map((m, index) => (
                                             <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
                                                 {m.mediaType === 'image' && m.url && <Image src={m.url} alt="preview" width={40} height={40} className="rounded object-cover"/>}
-                                                {m.mediaType !== 'image' && <ImageIcon className="h-10 w-10 text-muted-foreground"/>}
+                                                {m.mediaType === 'pdf' && <FileText className="h-10 w-10 text-red-500"/>} {/* ĐÃ SỬA: Hiển thị icon PDF */}
+                                                {m.mediaType === 'video' && <ImageIcon className="h-10 w-10 text-muted-foreground"/>} {/* Giữ lại icon chung cho video hoặc có thể thêm icon video cụ thể */}
                                                 <p className="text-sm truncate flex-1">{m.url.split('/').pop()}</p>
                                                 <Button type="button" variant="ghost" size="icon" onClick={() => removeMedia(index)}><X className="h-4 w-4"/></Button>
                                             </div>
