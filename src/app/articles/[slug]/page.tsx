@@ -10,6 +10,7 @@ import type { Article } from "@/lib/types";
 import { ArticleImageGallery } from "./article-image-gallery";
 
 import RichTextEditor from "@/components/ui/rich-text-editor";
+import ArticlePdfSection from "./article-pdf-section";
 import RelatedArticles from "./related-articles";
 import ReadingSuggestions from "./reading-suggestions";
 import CommentSection from "./comment-section";
@@ -56,10 +57,15 @@ export default async function ArticlePage({ params }: { params: { slug:string } 
         </header>
 
         {/* --- New Image Gallery Section --- */}
-        {article.media && article.media.length > 0 && (
+        {article.media && article.media.length > 0 && article.media.some(m => m.mediaType === "image" || m.mediaType === "video") && (
           <div className="mb-8 w-full overflow-hidden">
             <ArticleImageGallery media={article.media} />
           </div>
+        )}
+
+        {/* --- PDF Section --- */}
+        {article.media && article.media.some(m => m.mediaType === "pdf") && (
+          <ArticlePdfSection pdfs={article.media.filter(m => m.mediaType === "pdf")} />
         )}
         
         <RichTextEditor 
@@ -67,6 +73,7 @@ export default async function ArticlePage({ params }: { params: { slug:string } 
           editable={false}
           className="w-full overflow-hidden"
         />
+
       </article>
 
       <Separator className="my-12" />

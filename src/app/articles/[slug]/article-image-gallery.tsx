@@ -16,6 +16,7 @@ interface ArticleMediaGalleryProps {
 }
 
 const MediaItem = ({ media, onClick, isOverlay, remainingCount }: { media: Media, onClick: () => void, isOverlay?: boolean, remainingCount?: number }) => {
+  if (media.mediaType === 'pdf') return null;
   const isVideo = media.mediaType === 'video';
   return (
     <div
@@ -31,8 +32,6 @@ const MediaItem = ({ media, onClick, isOverlay, remainingCount }: { media: Media
               muted
               loop
               playsInline
-              // A poster image would be great for performance and UX
-              // poster="/path/to/poster.jpg" 
             />
           </div>
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity group-hover:opacity-80">
@@ -59,6 +58,8 @@ const MediaItem = ({ media, onClick, isOverlay, remainingCount }: { media: Media
 
 
 export function ArticleImageGallery({ media }: ArticleMediaGalleryProps) {
+  // Chỉ lấy media là image hoặc video
+  const filteredMedia = media.filter(m => m.mediaType === 'image' || m.mediaType === 'video');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
@@ -94,41 +95,41 @@ export function ArticleImageGallery({ media }: ArticleMediaGalleryProps) {
     };
   }, [api]);
 
-  const totalMedia = media.length;
+  const totalMedia = filteredMedia.length;
 
   const renderGrid = () => {
     switch (totalMedia) {
       case 1:
         return (
           <div className="w-full" style={{ aspectRatio: '16/9' }}>
-            <MediaItem media={media[0]} onClick={() => openLightbox(0)} />
+            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} />
           </div>
         );
       case 2:
         return (
           <div className="grid grid-cols-2 gap-1" style={{ aspectRatio: '2/1' }}>
-            <MediaItem media={media[0]} onClick={() => openLightbox(0)} />
-            <MediaItem media={media[1]} onClick={() => openLightbox(1)} />
+            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} />
+            <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} />
           </div>
         );
       case 3:
         return (
           <div className="grid grid-cols-3 grid-rows-2 gap-1 h-96 lg:h-[500px]">
             <div className="col-span-2 row-span-2">
-              <MediaItem media={media[0]} onClick={() => openLightbox(0)} />
+              <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} />
             </div>
             <div className="col-span-1 row-span-1">
-              <MediaItem media={media[1]} onClick={() => openLightbox(1)} />
+              <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} />
             </div>
             <div className="col-span-1 row-span-1">
-              <MediaItem media={media[2]} onClick={() => openLightbox(2)} />
+              <MediaItem media={filteredMedia[2]} onClick={() => openLightbox(2)} />
             </div>
           </div>
         );
       default: // 4 or more
         return (
           <div className="grid grid-cols-2 grid-rows-2 gap-1 h-96 lg:h-[600px]">
-            {media.slice(0, 4).map((item, index) => {
+            {filteredMedia.slice(0, 4).map((item, index) => {
               const isLastVisible = index === 3 && totalMedia > 4;
               return (
                 <MediaItem
@@ -170,7 +171,7 @@ export function ArticleImageGallery({ media }: ArticleMediaGalleryProps) {
             className="w-full max-w-5xl"
           >
             <CarouselContent>
-              {media.map((item, index) => (
+              {filteredMedia.map((item, index) => (
                 <CarouselItem key={index} className="flex items-center justify-center">
                   <div className="relative w-full h-full md:h-[80vh] flex flex-col items-center justify-center">
                     {item.mediaType === 'image' ? (
