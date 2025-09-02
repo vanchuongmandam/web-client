@@ -92,14 +92,14 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
         </div>
         <div className="flex-grow overflow-y-auto">
           {searchQuery && searchResults.length === 0 && (
-            <p className="text-center text-gray-500">Không tìm thấy kết quả nào.</p>
+            <p className="text-center text-muted-foreground">Không tìm thấy kết quả nào.</p>
           )}
           {searchResults.map((article) => (
             <Link key={article.id} href={`/articles/${article.slug}`} onClick={handleResultClick}>
-              <Card className="mb-2 hover:bg-gray-100 transition-colors cursor-pointer">
+              <Card className="mb-2 hover:bg-accent/50 transition-colors cursor-pointer">
                 <CardContent className="p-4">
                   <CardTitle className="text-lg font-semibold">{article.title}</CardTitle>
-                  <p className="text-sm text-gray-600 line-clamp-2">{article.content_snippet}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{article.content_snippet}</p>
                   {article.category_slug && (
                     <p className="text-xs text-primary mt-1">Chuyên mục: {article.category_slug}</p>
                   )}

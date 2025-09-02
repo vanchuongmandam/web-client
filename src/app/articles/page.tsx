@@ -1,4 +1,4 @@
-// src/app/articles/page.tsx
+
 "use client";
 
 import { useState, useEffect, useMemo, Suspense, Fragment } from 'react';
@@ -60,7 +60,7 @@ const CategoryOptions = ({ categories }: { categories: Category[] }) => (
                 {category.children && category.children.length > 0 ? (
                     <SelectGroup>
                         <SelectLabel>{category.name}</SelectLabel>
-                        <SelectItem value={category.slug}>Tất cả danh mục</SelectItem>
+                        <SelectItem value={category.slug}>Tất cả</SelectItem>
                         {category.children.map(child => (
                             <SelectItem key={child._id} value={child.slug}>
                                 {child.name}
@@ -93,7 +93,6 @@ const findCategoryWithParent = (
     return null;
 };
 
-
 const ArticlesView = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -105,6 +104,7 @@ const ArticlesView = () => {
     const [articles, setArticles] = useState<Article[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [sortOrder, setSortOrder] = useState('newest');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -128,7 +128,7 @@ const ArticlesView = () => {
 
     const handleCategoryChange = (slug: string) => {
         const params = new URLSearchParams(searchParams.toString());
-        if (!slug) {
+        if (!slug || slug === 'all') {
             params.delete('category');
         } else {
             params.set('category', slug);
@@ -136,36 +136,55 @@ const ArticlesView = () => {
         router.push(`${pathname}?${params.toString()}`);
     };
     
-    const filteredArticles = useMemo(() => {
-        if (!categorySlug) return articles;
-
-        const getAllChildSlugs = (category: Category): string[] => {
-            let slugs = [category.slug];
-            if (category.children && category.children.length > 0) {
-                category.children.forEach(child => {
-                    slugs = slugs.concat(getAllChildSlugs(child));
-                });
-            }
-            return slugs;
-        };
-
-        const findCategoryBySlug = (cats: Category[], slug: string): Category | null => {
-            for (const cat of cats) {
-                if (cat.slug === slug) return cat;
-                if (cat.children) {
-                    const found = findCategoryBySlug(cat.children, slug);
-                    if (found) return found;
+    const displayedArticles = useMemo(() => {
+        // 1. Filtering
+        let filtered = articles;
+        if (categorySlug) {
+            const getAllChildSlugs = (category: Category): string[] => {
+                let slugs = [category.slug];
+                if (category.children && category.children.length > 0) {
+                    category.children.forEach(child => {
+                        slugs = slugs.concat(getAllChildSlugs(child));
+                    });
                 }
+                return slugs;
+            };
+
+            const findCategoryBySlug = (cats: Category[], slug: string): Category | null => {
+                for (const cat of cats) {
+                    if (cat.slug === slug) return cat;
+                    if (cat.children) {
+                        const found = findCategoryBySlug(cat.children, slug);
+                        if (found) return found;
+                    }
+                }
+                return null;
             }
-            return null;
+
+            const selectedCategory = findCategoryBySlug(categories, categorySlug);
+            if (selectedCategory) {
+                const validSlugs = getAllChildSlugs(selectedCategory);
+                filtered = articles.filter(article => validSlugs.includes(article.category.slug));
+            } else {
+                filtered = [];
+            }
         }
 
-        const selectedCategory = findCategoryBySlug(categories, categorySlug);
-        if (!selectedCategory) return [];
-
-        const validSlugs = getAllChildSlugs(selectedCategory);
-        return articles.filter(article => validSlugs.includes(article.category.slug));
-    }, [articles, categories, categorySlug]);
+        // 2. Sorting
+        return [...filtered].sort((a, b) => {
+            switch (sortOrder) {
+                case 'newest':
+                    // Assuming createdAt is available from timestamps: true
+                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                case 'oldest':
+                    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                case 'a-z':
+                    return a.title.localeCompare(b.title);
+                default:
+                    return 0;
+            }
+        });
+    }, [articles, categories, categorySlug, sortOrder]);
 
     const currentCategoryName = useMemo(() => {
         if (!categorySlug) return "Tất cả bài viết";
@@ -188,11 +207,9 @@ const ArticlesView = () => {
         }
         const result = findCategoryWithParent(categorySlug, categories);
         if (result) {
-            // If the selected category has a parent, show only that parent and its children
             if (result.parent) {
                 return [result.parent];
             }
-            // If the selected category is a parent itself, show only it and its children
             return [result.found];
         }
         return categories; // Fallback
@@ -205,9 +222,21 @@ const ArticlesView = () => {
                 <p className="text-muted-foreground mt-2">Hãy chọn cho mình Chuyên mục yêu thích để cùng chúng tôi Mạn Đàm Văn Chương nhé!</p>
             </header>
 
-            <div className="mb-8 flex justify-end">
-                <Select onValueChange={handleCategoryChange} value={categorySlug || ''} disabled={isLoading}>
-                    <SelectTrigger className="w-[280px]"><SelectValue placeholder="Lọc theo danh mục..." /></SelectTrigger>
+            <div className="mb-8 flex flex-col sm:flex-row justify-end gap-4">
+                 <Select onValueChange={setSortOrder} defaultValue={sortOrder} disabled={isLoading}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                        <SelectValue placeholder="Sắp xếp theo..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="newest">Mới nhất</SelectItem>
+                        <SelectItem value="oldest">Cũ nhất</SelectItem>
+                        <SelectItem value="a-z">A-Z</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Select onValueChange={handleCategoryChange} value={categorySlug || 'all'} disabled={isLoading}>
+                    <SelectTrigger className="w-full sm:w-[280px]">
+                        <SelectValue placeholder="Lọc theo danh mục..." />
+                    </SelectTrigger>
                     <SelectContent>
                         <CategoryOptions categories={categoryOptionsToDisplay} />
                     </SelectContent>
@@ -219,9 +248,9 @@ const ArticlesView = () => {
                     {Array.from({ length: 6 }).map((_, index) => (<Card key={index}><Skeleton className="h-[200px] w-full" /><CardContent className="p-4"><Skeleton className="h-4 w-1/4 mb-2" /><Skeleton className="h-6 w-full mb-2" /><Skeleton className="h-4 w-full" /></CardContent><CardFooter><Skeleton className="h-4 w-1/2" /></CardFooter></Card>))}
                 </div>
             ) : (
-                filteredArticles.length > 0 ? (
+                displayedArticles.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredArticles.map(article => ( <ArticleCard key={article._id} article={article} /> ))}
+                        {displayedArticles.map(article => ( <ArticleCard key={article._id} article={article} /> ))}
                     </div>
                 ) : (
                     <div className="text-center py-16"><p className="text-base text-muted-foreground">Không tìm thấy bài viết nào trong danh mục này.</p></div>

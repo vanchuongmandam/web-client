@@ -54,7 +54,7 @@ export async function Header() {
               </p>
             </div>
           </div>
-          <div className="md:hidden text-xs italic text-muted-foreground mt-3">
+          <div className="md:hidden text-xs italic text-muted-foreground mt-3 text-center">
             <p>Think deeper, feel kinder, read wider.</p>
             <p>Suy nghĩ sâu hơn, cảm nhân ái hơn, đọc rộng hơn.</p>
           </div>
