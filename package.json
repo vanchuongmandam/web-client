@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-      "cron:search": "node scripts/search-cron.js"
+    "cron:search": "node scripts/search-cron.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
