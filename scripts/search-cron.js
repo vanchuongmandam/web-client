@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { buildSearchData } from "./buildSearchData.js";
+import { buildSearchData } from "./buildSearchData.mjs";
 
 buildSearchData();
 
