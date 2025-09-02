@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+      "cron:search": "node scripts/search-cron.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
@@ -47,6 +48,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.475.0",
     "next": "15.3.3",
+    "node-cron": "^4.2.1",
     "patch-package": "^8.0.0",
     "pdfjs-dist": "^5.4.54",
     "postcss": "^8",

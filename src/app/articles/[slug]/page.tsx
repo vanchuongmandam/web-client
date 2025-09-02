@@ -1,4 +1,4 @@
-// src/app/articles/[slug]/page.tsx
+
 export const runtime = 'edge';
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -19,7 +19,8 @@ import CommentSection from "./comment-section";
 async function getArticle(slug: string): Promise<Article | null> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiBaseUrl}/articles/${slug}`, { cache: 'no-store' });
+    // OPTIMIZED: Changed cache strategy to revalidate every hour
+    const response = await fetch(`${apiBaseUrl}/articles/${slug}`, { next: { revalidate: 3600 } });
     if (!response.ok) {
       if (response.status === 404) return null;
       throw new Error(`Failed to fetch article: ${response.statusText}`);
