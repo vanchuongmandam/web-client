@@ -3,7 +3,7 @@ import { writeFileSync } from 'fs';
 import { join } from 'path';
 import 'dotenv/config'; // Load environment variables
 
-async function buildSearchData() {
+export async function buildSearchData() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'; // Fallback to localhost
   const ARTICLES_API_URL = `${API_BASE_URL}/articles`; // Corrected endpoint as per user's input
 
@@ -37,4 +37,3 @@ async function buildSearchData() {
   }
 }
 
-buildSearchData();
