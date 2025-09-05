@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Article } from "@/lib/types";
+import type { Metadata } from "next";
 
 // Import the new image gallery component
 import { ArticleImageGallery } from "./article-image-gallery";
@@ -32,9 +33,49 @@ async function getArticle(slug: string): Promise<Article | null> {
   }
 }
 
+// --- generateMetadata for dynamic SEO / OG tags ---
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const { slug } = await params;   
+  const article = await getArticle(slug);
+  if (!article) {
+    return {
+      title: "Bài viết không tồn tại",
+      description: "Bài viết bạn tìm kiếm không tồn tại hoặc đã bị xóa.",
+    };
+  }
+
+  const url = `https://vanchuongmandam.thptchuyenhatinh.edu.vn/articles/${article.slug}`;
+  const image = article.media?.find(m => m.mediaType === "image")?.url || "/default-thumbnail.jpg";
+
+  return {
+    title: article.title,
+    description: article.excerpt || article.content.slice(0, 150) + "...",
+    openGraph: {
+      title: article.title,
+      description: article.excerpt || article.content.slice(0, 150) + "...",
+      url,
+      type: "article",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.excerpt || article.content.slice(0, 150) + "...",
+      images: [image],
+    },
+  };
+}
+
 // --- Article Detail Page Component (FIXED) ---
 export default async function ArticlePage({ params }: { params: { slug:string } }) {
-  const { slug } = params; // Correctly destructure slug from params
+  const { slug } = await params; 
   const article = await getArticle(slug);
 
   if (!article) {
