@@ -10,6 +10,7 @@ import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
+import Script from "next/script";
 
 // Configure the local Poppins font
 const fontSans = localFont({
@@ -110,6 +111,19 @@ export default function RootLayout({
           <Toaster />
         </AuthProvider>
       </body>
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=G-GYC404ZRLL"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-GYC404ZRLL');
+        `}
+      </Script>
     </html>
   );
 }
