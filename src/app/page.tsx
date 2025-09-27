@@ -32,7 +32,9 @@ async function getArticles(categorySlug?: string): Promise<Article[]> {
       console.error("Failed to fetch articles:", response.status, await response.text());
       return [];
     }
-    return await response.json();
+    const articles = await response.json();
+    // Sắp xếp bài viết theo ngày tạo, mới nhất lên đầu
+    return articles.sort((a: Article, b: Article) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   } catch (error) {
     console.error("An error occurred while fetching articles:", error);
     return [];
