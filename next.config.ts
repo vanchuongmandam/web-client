@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/media/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'media.vanchuongmandam.com',
+        port: '',
+        pathname: '/media/**',
+      },
     ],
     dangerouslyAllowSVG: true,
     deviceSizes: [320, 640, 768, 1024, 1200, 1920, 2048, 3840],
