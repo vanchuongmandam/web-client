@@ -9,6 +9,8 @@ import type { Metadata } from "next";
 
 // Import the new image gallery component
 import { ArticleImageGallery } from "./article-image-gallery";
+import { ZenModeToggle } from "@/components/zen-mode-toggle";
+import { QuoteCardGenerator } from "@/components/quote-card-generator";
 
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import ArticlePdfSection from "./article-pdf-section";
@@ -35,7 +37,7 @@ async function getArticle(slug: string): Promise<Article | null> {
 
 // --- generateMetadata for dynamic SEO / OG tags ---
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const { slug } = await params;   
+  const { slug } = await params;
   const article = await getArticle(slug);
   if (!article) {
     return {
@@ -74,14 +76,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 // --- Article Detail Page Component (FIXED) ---
-export default async function ArticlePage({ params }: { params: { slug:string } }) {
-  const { slug } = await params; 
+export default async function ArticlePage({ params }: { params: { slug: string } }) {
+  const { slug } = await params;
   const article = await getArticle(slug);
 
   if (!article) {
     notFound();
   }
-  
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
       <article className="w-full overflow-hidden break-words">
@@ -89,6 +91,10 @@ export default async function ArticlePage({ params }: { params: { slug:string } 
           <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-muted-foreground">
             <Badge variant="secondary">{article.category.name}</Badge>
             <span>{article.date}</span>
+            <div className="ml-auto flex items-center gap-2">
+              <QuoteCardGenerator initialText={article.title} author={article.author} />
+              <ZenModeToggle />
+            </div>
           </div>
           <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight text-primary break-words hyphens-auto">
             {article.title}
@@ -109,9 +115,9 @@ export default async function ArticlePage({ params }: { params: { slug:string } 
         {article.media && article.media.some(m => m.mediaType === "pdf") && (
           <ArticlePdfSection pdfs={article.media.filter(m => m.mediaType === "pdf")} />
         )}
-        
-        <RichTextEditor 
-          content={article.content} 
+
+        <RichTextEditor
+          content={article.content}
           editable={false}
           className="w-full overflow-hidden"
         />
@@ -119,15 +125,15 @@ export default async function ArticlePage({ params }: { params: { slug:string } 
       </article>
 
       <Separator className="my-12" />
-      
-      <RelatedArticles 
-        currentArticleSlug={article.slug} 
-        categorySlug={article.category.slug} 
+
+      <RelatedArticles
+        currentArticleSlug={article.slug}
+        categorySlug={article.category.slug}
       />
 
       <div className="mt-12">
-        <ReadingSuggestions 
-          articleContent={article.content} 
+        <ReadingSuggestions
+          articleContent={article.content}
         />
       </div>
 

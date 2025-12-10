@@ -2,7 +2,7 @@
 
 import type { Metadata } from "next";
 // Import 'localFont' to use self-hosted fonts
-import localFont from "next/font/local"; 
+import localFont from "next/font/local";
 import { Alegreya as FontSerif } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,8 @@ import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
+import { ZenModeProvider } from "@/context/ZenModeContext";
+import { ZenModeLayoutWrapper } from "@/components/zen-mode-layout-wrapper";
 import Script from "next/script";
 
 // Configure the local Poppins font
@@ -40,7 +42,7 @@ const fontSans = localFont({
       weight: '600',
       style: 'normal',
     },
-     {
+    {
       path: '../assets/fonts/Poppins-SemiBoldItalic.ttf',
       weight: '600',
       style: 'italic',
@@ -74,7 +76,7 @@ export const metadata: Metadata = {
   keywords: [
     "văn học",
     "văn chương",
-    "phân tích văn học", 
+    "phân tích văn học",
     "thảo luận văn học",
     "tác phẩm văn học",
     "văn học Việt Nam",
@@ -103,11 +105,11 @@ export default function RootLayout({
         )}
       >
         <AuthProvider>
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-          </div>
+          <ZenModeProvider>
+            <ZenModeLayoutWrapper header={<Header />} footer={<Footer />}>
+              {children}
+            </ZenModeLayoutWrapper>
+          </ZenModeProvider>
           <Toaster />
         </AuthProvider>
       </body>

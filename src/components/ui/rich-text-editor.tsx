@@ -9,8 +9,11 @@ import { Skeleton } from './skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown-menu';
 import LineHeight, { LINE_HEIGHTS } from '@/lib/tiptap-extensions/line-height';
 import FontSize, { FONT_SIZES } from '@/lib/tiptap-extensions/font-size';
-import { TextStyle } from '@tiptap/extension-text-style'; 
-import TextAlign from '@tiptap/extension-text-align'; 
+import { TextStyle } from '@tiptap/extension-text-style';
+import TextAlign from '@tiptap/extension-text-align';
+import { CommentMark } from '@/lib/tiptap-extensions/comment-mark';
+import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
+import { MarginaliaBubbleMenu } from '@/components/marginalia-bubble-menu';
 
 const Toolbar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) {
@@ -29,7 +32,7 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
       <Button type="button" onClick={() => editor.chain().focus().toggleStrike().run()} variant={editor.isActive('strike') ? 'secondary' : 'ghost'} size="sm"><Strikethrough className="h-4 w-4" /></Button>
       <Button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'} size="sm"><List className="h-4 w-4" /></Button>
       <Button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'} size="sm"><ListOrdered className="h-4 w-4" /></Button>
-      
+
       {/* Nút Căn Chỉnh */}
       <Button type="button" onClick={() => editor.chain().focus().setTextAlign('left').run()} variant={editor.isActive({ textAlign: 'left' }) ? 'secondary' : 'ghost'} size="sm"><AlignLeft className="h-4 w-4" /></Button>
       <Button type="button" onClick={() => editor.chain().focus().setTextAlign('center').run()} variant={editor.isActive({ textAlign: 'center' }) ? 'secondary' : 'ghost'} size="sm"><AlignCenter className="h-4 w-4" /></Button>
@@ -37,7 +40,7 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
       <Button type="button" onClick={() => editor.chain().focus().setTextAlign('justify').run()} variant={editor.isActive({ textAlign: 'justify' }) ? 'secondary' : 'ghost'} size="sm"><AlignJustify className="h-4 w-4" /></Button>
 
       {/* Nút Cỡ Chữ */}
-       <DropdownMenu>
+      <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button type="button" variant="ghost" size="sm" className="w-24">
             <CaseSensitive className="h-4 w-4 mr-2" />
@@ -46,15 +49,15 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {FONT_SIZES.map(fs => (
-            <DropdownMenuItem 
-              key={fs} 
+            <DropdownMenuItem
+              key={fs}
               onClick={() => editor.chain().focus().setFontSize(fs).run()}
               className={currentFontSize === fs ? 'is-active' : ''}
             >
               {fs}
             </DropdownMenuItem>
           ))}
-           <DropdownMenuItem onClick={() => editor.chain().focus().unsetFontSize().run()}>
+          <DropdownMenuItem onClick={() => editor.chain().focus().unsetFontSize().run()}>
             Mặc định
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -70,8 +73,8 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {LINE_HEIGHTS.map(lh => (
-            <DropdownMenuItem 
-              key={lh} 
+            <DropdownMenuItem
+              key={lh}
               onClick={() => editor.chain().focus().setLineHeight(lh).run()}
               className={currentLineHeight === lh ? 'is-active' : ''}
             >
@@ -89,22 +92,22 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
 
 interface RichTextEditorProps {
   value?: Record<string, any>;
-  content?: Record<string, any>; 
+  content?: Record<string, any>;
   onChange?: (value: Record<string, any>) => void;
   placeholder?: string;
-  editable?: boolean; 
+  editable?: boolean;
   className?: string;
 }
 
-export default function RichTextEditor({ 
-  value, 
+export default function RichTextEditor({
+  value,
   content,
-  onChange, 
-  placeholder, 
-  editable = true, 
+  onChange,
+  placeholder,
+  editable = true,
   className = ""
 }: RichTextEditorProps) {
-  
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -113,30 +116,32 @@ export default function RichTextEditor({
         heading: { levels: [1, 2, 3] },
         paragraph: {
           HTMLAttributes: {
-            class: 'whitespace-pre-wrap', 
+            class: 'whitespace-pre-wrap',
           }
         },
       }),
       LineHeight,
-      TextStyle, 
-      FontSize, 
+      TextStyle,
+      FontSize,
       TextAlign.configure({
-        types: ['heading', 'paragraph'], 
-      }), 
+        types: ['heading', 'paragraph'],
+      }),
+      CommentMark,
+      BubbleMenuExtension,
     ],
     content: editable ? value : content,
-    editable: editable, 
-    immediatelyRender: false, 
+    editable: editable,
+    immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: editable 
+        class: editable
           ? 'prose dark:prose-invert min-h-[250px] w-full rounded-b-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 whitespace-pre-wrap' // 👈 Thêm whitespace-pre-wrap
           : `prose prose-lg dark:prose-invert max-w-none prose-headings:font-headline prose-headings:text-foreground prose-p:text-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-em:text-foreground prose-ul:space-y-1 prose-ol:space-y-1 prose-li:text-foreground break-words hyphens-auto whitespace-pre-wrap ${className}`, // 👈 Đã có whitespace-pre-wrap
       },
     },
     onUpdate: editable && onChange ? ({ editor }) => {
       onChange(editor.getJSON());
-    } : undefined, 
+    } : undefined,
   });
 
   if (!editor) {
@@ -146,6 +151,7 @@ export default function RichTextEditor({
   if (!editable) {
     return (
       <div className={`rich-text-content ${className}`}>
+        <MarginaliaBubbleMenu editor={editor} />
         <EditorContent editor={editor} />
       </div>
     );
@@ -153,6 +159,7 @@ export default function RichTextEditor({
 
   return (
     <div className="flex flex-col">
+      <MarginaliaBubbleMenu editor={editor} />
       <Toolbar editor={editor} />
       <EditorContent editor={editor} placeholder={placeholder} />
     </div>
