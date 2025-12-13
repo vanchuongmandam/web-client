@@ -23,12 +23,12 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Create .env file
-        run: echo "${{ secrets.WEB_ENV_FILE }}" > ./web-client/.env
+        run: echo "${{ secrets.WEB_ENV_FILE }}" > .env
 
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./web-client
+          context: .
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/vanchuongmandam-web-client:latest
 
@@ -46,7 +46,7 @@ jobs:
           port: 22
           script: |
             # Create .env file from secret
-            echo "${{ secrets.WEB_ENV_FILE }}" > ${{ secrets.VPS_WORKDIR }}/web-client/.env
+            echo "${{ secrets.WEB_ENV_FILE }}" > ${{ secrets.VPS_WORKDIR }}/.env
             
             # Pull the latest image
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/vanchuongmandam-web-client:latest
@@ -61,6 +61,6 @@ jobs:
             docker run -d \
               --name web-client \
               --restart unless-stopped \
-              --env-file ${{ secrets.VPS_WORKDIR }}/web-client/.env \
+              --env-file ${{ secrets.VPS_WORKDIR }}/.env \
               -p 3000:3000 \
               ${{ secrets.DOCKER_HUB_USERNAME }}/vanchuongmandam-web-client:latest
