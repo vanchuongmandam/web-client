@@ -1,4 +1,4 @@
-name: Test and Deploy Next.js App
+name: Build and Deploy Docker Image
 
 on:
   push:
@@ -6,38 +6,36 @@ on:
       - deploy
 
 jobs:
-  build-and-test:
-    name: Test Application
+  build-and-push:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          version: 10.14.0
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Create .env file
+        run: echo "${{ secrets.WEB_ENV_FILE }}" > ./web-client/.env
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
         with:
-          node-version: '20'
-          cache: 'pnpm' 
+          context: ./web-client
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/vanchuongmandam-web-client:latest
 
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run linter
-        run: pnpm run lint
-
-
-  # --- Job 2: Deploy to VPS ---
   deploy:
     name: Deploy to VPS
-    needs: build-and-test 
+    needs: build-and-push
     runs-on: ubuntu-latest
-
     steps:
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@master
@@ -45,18 +43,24 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          port: 22 
+          port: 22
           script: |
-            cd ${{ secrets.VPS_WORKDIR }}
+            # Create .env file from secret
+            echo "${{ secrets.WEB_ENV_FILE }}" > ${{ secrets.VPS_WORKDIR }}/web-client/.env
             
-            echo "--- 1. Pulling latest code from main branch ---"
-            git pull origin deploy
+            # Pull the latest image
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/vanchuongmandam-web-client:latest
             
-            echo "--- 2. Installing production dependencies with pnpm ---"
-            pnpm install 
-            
-            echo "--- 3. Building the Next.js application ---"
-            pnpm run build
-            
-            echo "--- 4. Restarting the app with PM2 ---"
-            pm2 restart web-client || pm2 start pnpm --name web-client -- start
+            # Stop and remove the old container if it exists
+            if [ "$(docker ps -a -q -f name=web-client)" ]; then
+                docker stop web-client
+                docker rm web-client
+            fi
+
+            # Run the new container with env file
+            docker run -d \
+              --name web-client \
+              --restart unless-stopped \
+              --env-file ${{ secrets.VPS_WORKDIR }}/web-client/.env \
+              -p 3000:3000 \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/vanchuongmandam-web-client:latest
