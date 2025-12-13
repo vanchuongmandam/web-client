@@ -70,22 +70,23 @@ jobs:
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           port: 22
           script: |
+            # Navigate to workdir
+            cd ${{ secrets.VPS_WORKDIR }}
+            
             # Create .env file from secret
-            echo "${{ secrets.WEB_ENV_FILE }}" > ${{ secrets.VPS_WORKDIR }}/.env
+            echo "${{ secrets.WEB_ENV_FILE }}" > .env
             
             # Pull the latest image
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/vanchuongmandam-web-client:latest
             
             # Stop and remove the old container if it exists
-            if [ "$(docker ps -a -q -f name=web-client)" ]; then
-                docker stop web-client
-                docker rm web-client
-            fi
+            docker stop web-client || true
+            docker rm web-client || true
 
             # Run the new container with env file
             docker run -d \
               --name web-client \
               --restart unless-stopped \
-              --env-file ${{ secrets.VPS_WORKDIR }}/.env \
+              --env-file .env \
               -p 3000:3000 \
               ${{ secrets.DOCKER_HUB_USERNAME }}/vanchuongmandam-web-client:latest
