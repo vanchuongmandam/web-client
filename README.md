@@ -1,4 +1,4 @@
-# **App Name**: Văn Chương Mạn Đàm
+# **App Name**: Văn Chương Mạn Đàm ()
 
 ## Core Features:
 
