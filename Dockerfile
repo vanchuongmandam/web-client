@@ -36,11 +36,19 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
-
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
+
+# Copy scripts and install dependencies for cron
+COPY --from=builder /app/scripts ./scripts
+RUN npm install node-cron dotenv
+
+# Rename search-cron.js to .mjs to support ES imports
+RUN mv scripts/search-cron.js scripts/search-cron.mjs
+
+# Ensure public folder is writable by nextjs user (for search-data.json)
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
@@ -55,4 +63,4 @@ ENV PORT=3000
 # set hostname to localhost
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "node scripts/search-cron.mjs & node server.js"]
