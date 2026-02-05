@@ -39,6 +39,14 @@ const nextConfig: NextConfig = {
     deviceSizes: [320, 640, 768, 1024, 1200, 1920, 2048, 3840],
   },
   trailingSlash: false,
+  generateBuildId: async () => {
+    // This fixes "Failed to find Server Action" error when multiple pods/containers are running
+    // or when client has old version cached.
+    if (process.env.BUILD_ID) {
+      return process.env.BUILD_ID;
+    }
+    return `${new Date().getTime()}`; // Fallback to timestamp if no env var
+  },
 };
 
 export default nextConfig;
