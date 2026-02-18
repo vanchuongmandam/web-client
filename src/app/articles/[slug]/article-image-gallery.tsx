@@ -8,15 +8,54 @@ import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
-import { X, PlayCircle } from 'lucide-react';
-import { CustomVideoPlayer } from '@/components/ui/custom-video-player'; 
+import { X, PlayCircle, Lock } from 'lucide-react';
+import { CustomVideoPlayer } from '@/components/ui/custom-video-player';
+import { RequestAccessModal } from '@/components/articles/RequestAccessModal';
 
 interface ArticleMediaGalleryProps {
   media: Media[];
+  articleId: string;
+  articleTitle: string;
 }
 
-const MediaItem = ({ media, onClick, isOverlay, remainingCount }: { media: Media, onClick: () => void, isOverlay?: boolean, remainingCount?: number }) => {
+const MediaItem = ({
+  media,
+  onClick,
+  isOverlay,
+  remainingCount,
+  articleId,
+  articleTitle
+}: {
+  media: Media,
+  onClick: () => void,
+  isOverlay?: boolean,
+  remainingCount?: number,
+  articleId: string,
+  articleTitle: string
+}) => {
   if (media.mediaType === 'pdf') return null;
+
+  // Restricted Logic
+  if (media.isRestricted && !media.accessGranted) {
+    return (
+      <div className="relative w-full h-full bg-slate-100 flex flex-col items-center justify-center p-4 text-center border">
+        <Lock className="h-10 w-10 text-amber-600 mb-2" />
+        <p className="text-sm text-slate-600 mb-3 font-medium">Nội dung bị hạn chế</p>
+        {media.requestStatus === "pending" ? (
+          <Button variant="secondary" disabled size="sm">Đang chờ duyệt</Button>
+        ) : media.requestStatus === "rejected" ? (
+          <Button variant="destructive" disabled size="sm">Yêu cầu bị từ chối</Button>
+        ) : (
+          <RequestAccessModal
+            articleId={articleId}
+            articleTitle={articleTitle}
+            token={typeof window !== 'undefined' ? localStorage.getItem('token') : null}
+          />
+        )}
+      </div>
+    );
+  }
+
   const isVideo = media.mediaType === 'video';
   return (
     <div
@@ -57,7 +96,7 @@ const MediaItem = ({ media, onClick, isOverlay, remainingCount }: { media: Media
 };
 
 
-export function ArticleImageGallery({ media }: ArticleMediaGalleryProps) {
+export function ArticleImageGallery({ media, articleId, articleTitle }: ArticleMediaGalleryProps) {
   // Chỉ lấy media là image hoặc video
   const filteredMedia = media.filter(m => m.mediaType === 'image' || m.mediaType === 'video');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -66,15 +105,18 @@ export function ArticleImageGallery({ media }: ArticleMediaGalleryProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const openLightbox = (index: number) => {
+    // Only open lightbox if access granted/not restricted
+    if (filteredMedia[index].isRestricted && !filteredMedia[index].accessGranted) return;
+
     setSelectedMediaIndex(index);
     setIsLightboxOpen(true);
   };
-  
+
   const handleCloseLightbox = (open: boolean) => {
     if (!open) {
       // When dialog closes, setting currentSlide to an invalid index
       // will cause all CustomVideoPlayer instances to become inactive.
-      setCurrentSlide(-1); 
+      setCurrentSlide(-1);
     }
     setIsLightboxOpen(open);
   }
@@ -85,7 +127,7 @@ export function ArticleImageGallery({ media }: ArticleMediaGalleryProps) {
     const handleSelect = (emblaApi: CarouselApi) => {
       if (emblaApi) setCurrentSlide(emblaApi.selectedScrollSnap());
     };
-    
+
     api.on('select', handleSelect);
     // Set initial slide correctly
     handleSelect(api);
@@ -102,27 +144,27 @@ export function ArticleImageGallery({ media }: ArticleMediaGalleryProps) {
       case 1:
         return (
           <div className="w-full" style={{ aspectRatio: '16/9' }}>
-            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} />
+            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} articleId={articleId} articleTitle={articleTitle} />
           </div>
         );
       case 2:
         return (
           <div className="grid grid-cols-2 gap-1" style={{ aspectRatio: '2/1' }}>
-            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} />
-            <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} />
+            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} articleId={articleId} articleTitle={articleTitle} />
+            <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} articleId={articleId} articleTitle={articleTitle} />
           </div>
         );
       case 3:
         return (
           <div className="grid grid-cols-3 grid-rows-2 gap-1 h-96 lg:h-[500px]">
             <div className="col-span-2 row-span-2">
-              <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} />
+              <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} articleId={articleId} articleTitle={articleTitle} />
             </div>
             <div className="col-span-1 row-span-1">
-              <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} />
+              <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} articleId={articleId} articleTitle={articleTitle} />
             </div>
             <div className="col-span-1 row-span-1">
-              <MediaItem media={filteredMedia[2]} onClick={() => openLightbox(2)} />
+              <MediaItem media={filteredMedia[2]} onClick={() => openLightbox(2)} articleId={articleId} articleTitle={articleTitle} />
             </div>
           </div>
         );
@@ -138,6 +180,8 @@ export function ArticleImageGallery({ media }: ArticleMediaGalleryProps) {
                   onClick={() => openLightbox(index)}
                   isOverlay={isLastVisible}
                   remainingCount={totalMedia - 4}
+                  articleId={articleId}
+                  articleTitle={articleTitle}
                 />
               );
             })}
@@ -190,7 +234,7 @@ export function ArticleImageGallery({ media }: ArticleMediaGalleryProps) {
                         className="w-full h-full object-contain"
                       />
                     )}
-                     {item.caption && <p className="absolute bottom-16 text-center text-white text-sm bg-black/50 p-2 rounded-md">{item.caption}</p>}
+                    {item.caption && <p className="absolute bottom-16 text-center text-white text-sm bg-black/50 p-2 rounded-md">{item.caption}</p>}
                   </div>
                 </CarouselItem>
               ))}

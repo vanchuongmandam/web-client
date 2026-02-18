@@ -107,7 +107,11 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         {/* --- New Image Gallery Section --- */}
         {article.media && article.media.length > 0 && article.media.some(m => m.mediaType === "image" || m.mediaType === "video") && (
           <div className="mb-8 w-full overflow-hidden">
-            <ArticleImageGallery media={article.media} />
+            <ArticleImageGallery
+              media={article.media}
+              articleId={article._id}
+              articleTitle={article.title}
+            />
           </div>
         )}
 

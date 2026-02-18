@@ -25,27 +25,28 @@ import { Loader2, Upload, X, Image as ImageIcon, FileText } from 'lucide-react';
 import Image from 'next/image';
 import { Switch } from '@/components/ui/switch';
 
-const RichTextEditor = dynamic(() => import('@/components/ui/rich-text-editor'), { 
-  ssr: false,
-  loading: () => <Skeleton className="h-[250px] w-full rounded-md" />,
+const RichTextEditor = dynamic(() => import('@/components/ui/rich-text-editor'), {
+    ssr: false,
+    loading: () => <Skeleton className="h-[250px] w-full rounded-md" />,
 });
 
 const articleFormSchema = z.object({
-  title: z.string().min(5, { message: "Tiêu đề phải có ít nhất 5 ký tự." }),
-  slug: z.string().min(3, { message: "Slug phải có ít nhất 3 ký tự." }).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug chỉ được chứa chữ thường, số và dấu gạch ngang." }),
-  author: z.string().min(2, { message: "Tên tác giả là bắt buộc." }),
-  excerpt: z.string().min(10, { message: "Tóm tắt phải có ít nhất 10 ký tự." }),
-  // Updated content to accept JSON object
-  content: z.record(z.string(), z.any()).refine(val => Object.keys(val).length > 0, {
-    message: "Nội dung là bắt buộc."
-  }),
-  category: z.string({ required_error: "Vui lòng chọn một danh mục con." }),
-  trending: z.boolean().default(false),
-  media: z.array(z.object({
-      url: z.string(),
-      mediaType: z.enum(['image', 'video', 'pdf']), // ĐÃ SỬA: Thêm 'pdf'
-      caption: z.string().optional(),
-  })),
+    title: z.string().min(5, { message: "Tiêu đề phải có ít nhất 5 ký tự." }),
+    slug: z.string().min(3, { message: "Slug phải có ít nhất 3 ký tự." }).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: "Slug chỉ được chứa chữ thường, số và dấu gạch ngang." }),
+    author: z.string().min(2, { message: "Tên tác giả là bắt buộc." }),
+    excerpt: z.string().min(10, { message: "Tóm tắt phải có ít nhất 10 ký tự." }),
+    // Updated content to accept JSON object
+    content: z.record(z.string(), z.any()).refine(val => Object.keys(val).length > 0, {
+        message: "Nội dung là bắt buộc."
+    }),
+    category: z.string({ required_error: "Vui lòng chọn một danh mục con." }),
+    trending: z.boolean().default(false),
+    media: z.array(z.object({
+        url: z.string(),
+        mediaType: z.enum(['image', 'video', 'pdf']),
+        caption: z.string().optional(),
+        isRestricted: z.boolean().default(false).optional(), // ĐÃ SỬA: Thêm field isRestricted
+    })),
 });
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
 
@@ -77,8 +78,8 @@ async function getCategories(): Promise<Category[]> {
 async function uploadFile(file: File, token: string, categoryPath: string): Promise<Media> {
     const formData = new FormData();
     formData.append('mediaFile', file);
-    formData.append('categoryPath', categoryPath); 
-    
+    formData.append('categoryPath', categoryPath);
+
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/upload/single`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -89,7 +90,7 @@ async function uploadFile(file: File, token: string, categoryPath: string): Prom
         throw new Error(errorData.message || "File upload failed");
     }
     const data = await res.json();
-    return data.media; 
+    return data.media;
 }
 
 async function createArticle(data: ArticleFormValues, token: string) {
@@ -118,20 +119,22 @@ export default function NewArticlePage() {
 
     const form = useForm<ArticleFormValues>({
         resolver: zodResolver(articleFormSchema),
-        defaultValues: { media: [], title: '', slug: '', author: '', excerpt: '', content: {
-          "type": "doc",
-          "content": [
-            {
-              "type": "paragraph",
-              "content": [
-                {
-                  "type": "text",
-                  "text": ""
-                }
-              ]
-            }
-          ]
-        }, trending: false },
+        defaultValues: {
+            media: [], title: '', slug: '', author: '', excerpt: '', content: {
+                "type": "doc",
+                "content": [
+                    {
+                        "type": "paragraph",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": ""
+                            }
+                        ]
+                    }
+                ]
+            }, trending: false
+        },
     });
     const mediaValue = form.watch('media');
     const titleValue = form.watch('title');
@@ -156,7 +159,7 @@ export default function NewArticlePage() {
         const parent = categories.find(c => c._id === parentId);
         setChildCategories(parent?.children || []);
     };
-    
+
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const originalFile = e.target.files?.[0];
         if (!originalFile || !token) return;
@@ -172,13 +175,13 @@ export default function NewArticlePage() {
 
         const parentSlug = parentCategories.find(p => p._id === parentId)?.slug;
         const childSlug = childCategories.find(c => c._id === childId)?.slug;
-        
-        if(!parentSlug || !childSlug) {
-             toast({ variant: "destructive", title: "Lỗi", description: "Không tìm thấy slug cho danh mục đã chọn." });
-             e.target.value = '';
-             return;
+
+        if (!parentSlug || !childSlug) {
+            toast({ variant: "destructive", title: "Lỗi", description: "Không tìm thấy slug cho danh mục đã chọn." });
+            e.target.value = '';
+            return;
         }
-        
+
         // --- FIX: Correct MIME type before upload ---
         const correctMimeType = getMimeTypeFromExtension(originalFile.name);
         if (!correctMimeType) {
@@ -186,10 +189,10 @@ export default function NewArticlePage() {
             e.target.value = '';
             return;
         }
-        
+
         const fileToUpload = new File([originalFile], originalFile.name, { type: correctMimeType });
         const categoryPath = `${parentSlug}/${childSlug}`;
-        
+
         setIsUploading(true);
         try {
             const newMedia = await uploadFile(fileToUpload, token, categoryPath);
@@ -201,7 +204,7 @@ export default function NewArticlePage() {
             e.target.value = '';
         }
     };
-    
+
     const removeMedia = (index: number) => form.setValue('media', form.getValues('media').filter((_, i) => i !== index));
 
     const onSubmit = async (data: ArticleFormValues) => {
@@ -216,7 +219,7 @@ export default function NewArticlePage() {
             }
         }
     };
-    
+
     return (
         <div className="container mx-auto px-4 py-8">
             <Form {...form}>
@@ -224,22 +227,22 @@ export default function NewArticlePage() {
                     <header className="flex items-center justify-between mb-8">
                         <div><h1 className="text-4xl font-headline font-bold text-primary">Tạo bài viết mới</h1><p className="text-muted-foreground mt-2">Điền thông tin chi tiết dưới đây.</p></div>
                         <div className="flex gap-2">
-                           <Button type="button" variant="outline" asChild><Link href="/admin/articles">Hủy</Link></Button>
-                           <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Đăng bài viết</Button>
+                            <Button type="button" variant="outline" asChild><Link href="/admin/articles">Hủy</Link></Button>
+                            <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Đăng bài viết</Button>
                         </div>
                     </header>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-2 space-y-6">
-                            <FormField control={form.control} name="title" render={({ field }) => ( <FormItem><FormLabel>Tiêu đề</FormLabel><FormControl><Input placeholder="Tiêu đề bài viết..." {...field} /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="content" render={({ field }) => ( <FormItem><FormLabel>Nội dung</FormLabel><FormControl><RichTextEditor placeholder="Soạn thảo..." value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem> )} />
+                            <FormField control={form.control} name="title" render={({ field }) => (<FormItem><FormLabel>Tiêu đề</FormLabel><FormControl><Input placeholder="Tiêu đề bài viết..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField control={form.control} name="content" render={({ field }) => (<FormItem><FormLabel>Nội dung</FormLabel><FormControl><RichTextEditor placeholder="Soạn thảo..." value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>)} />
                         </div>
                         <div className="space-y-6">
                             <Card>
                                 <CardHeader><CardTitle>Thông tin bài viết</CardTitle></CardHeader>
                                 <CardContent className="space-y-4">
-                                    <FormField control={form.control} name="slug" render={({ field }) => ( <FormItem><FormLabel>Slug (URL)</FormLabel><FormControl><Input placeholder="Tự động tạo..." readOnly {...field} /></FormControl><FormMessage /></FormItem> )} />
-                                    <FormField control={form.control} name="author" render={({ field }) => ( <FormItem><FormLabel>Tác giả</FormLabel><FormControl><Input placeholder="Tên tác giả" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                                    
+                                    <FormField control={form.control} name="slug" render={({ field }) => (<FormItem><FormLabel>Slug (URL)</FormLabel><FormControl><Input placeholder="Tự động tạo..." readOnly {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="author" render={({ field }) => (<FormItem><FormLabel>Tác giả</FormLabel><FormControl><Input placeholder="Tên tác giả" {...field} /></FormControl><FormMessage /></FormItem>)} />
+
                                     <FormItem>
                                         <FormLabel>Danh mục cha</FormLabel>
                                         <Select onValueChange={handleParentCategoryChange} value={selectedParent}>
@@ -270,8 +273,8 @@ export default function NewArticlePage() {
                                             <FormMessage />
                                         </FormItem>
                                     )} />
-                                     <FormField control={form.control} name="excerpt" render={({ field }) => ( <FormItem><FormLabel>Đoạn trích</FormLabel><FormControl><Textarea placeholder="Tóm tắt ngắn..." {...field} /></FormControl><FormMessage /></FormItem> )} />
-                                     <FormField control={form.control} name="trending" render={({ field }) => (
+                                    <FormField control={form.control} name="excerpt" render={({ field }) => (<FormItem><FormLabel>Đoạn trích</FormLabel><FormControl><Textarea placeholder="Tóm tắt ngắn..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="trending" render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                                             <div className="space-y-0.5"><FormLabel>Bài viết nổi bật</FormLabel></div>
                                             <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
@@ -282,15 +285,15 @@ export default function NewArticlePage() {
                             <Card>
                                 <CardHeader><CardTitle>Media</CardTitle></CardHeader>
                                 <CardContent>
-                                    <FormItem><FormLabel>Ảnh đại diện / Video / PDF</FormLabel><FormControl><div className="relative"><Button type="button" variant="outline" asChild><label htmlFor="file-upload" className="cursor-pointer w-full"><Upload className="mr-2 h-4 w-4" /> Upload File</label></Button><Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading} accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.pdf"/>{isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin"/>}</div></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Ảnh đại diện / Video / PDF</FormLabel><FormControl><div className="relative"><Button type="button" variant="outline" asChild><label htmlFor="file-upload" className="cursor-pointer w-full"><Upload className="mr-2 h-4 w-4" /> Upload File</label></Button><Input id="file-upload" type="file" className="sr-only" onChange={handleFileUpload} disabled={isUploading} accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.pdf" />{isUploading && <Loader2 className="absolute right-2 top-2 h-5 w-5 animate-spin" />}</div></FormControl><FormMessage /></FormItem>
                                     <div className="mt-4 space-y-2">
                                         {mediaValue.map((m, index) => (
                                             <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
-                                                {m.mediaType === 'image' && m.url && <Image src={m.url} alt="preview" width={40} height={40} className="rounded object-cover"/>}
-                                                {m.mediaType === 'pdf' && <FileText className="h-10 w-10 text-red-500"/>} {/* ĐÃ SỬA: Hiển thị icon PDF */}
-                                                {m.mediaType === 'video' && <ImageIcon className="h-10 w-10 text-muted-foreground"/>} {/* Giữ lại icon chung cho video hoặc có thể thêm icon video cụ thể */}
+                                                {m.mediaType === 'image' && m.url && <Image src={m.url} alt="preview" width={40} height={40} className="rounded object-cover" />}
+                                                {m.mediaType === 'pdf' && <FileText className="h-10 w-10 text-red-500" />} {/* ĐÃ SỬA: Hiển thị icon PDF */}
+                                                {m.mediaType === 'video' && <ImageIcon className="h-10 w-10 text-muted-foreground" />} {/* Giữ lại icon chung cho video hoặc có thể thêm icon video cụ thể */}
                                                 <p className="text-sm truncate flex-1">{m.url.split('/').pop()}</p>
-                                                <Button type="button" variant="ghost" size="icon" onClick={() => removeMedia(index)}><X className="h-4 w-4"/></Button>
+                                                <Button type="button" variant="ghost" size="icon" onClick={() => removeMedia(index)}><X className="h-4 w-4" /></Button>
                                             </div>
                                         ))}
                                     </div>

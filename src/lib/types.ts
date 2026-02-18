@@ -5,6 +5,9 @@ export interface Media {
   url: string;
   mediaType: 'image' | 'video' | 'pdf';
   caption?: string;
+  isRestricted?: boolean;
+  accessGranted?: boolean;
+  requestStatus?: "pending" | "approved" | "rejected" | null;
 }
 
 // Định nghĩa cho một bình luận

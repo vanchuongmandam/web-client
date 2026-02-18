@@ -20,7 +20,7 @@ import { AuthControls } from "@/components/auth-controls";
 import Logo from "@/assets/logo/vanchuongmandam-logo.svg";
 import LogoText from "@/assets/logo/vanchuongmandam-chu.svg";
 import BannerImage from "@/assets/logo/banner.webp";
-import { SearchButtonAndOverlay } from "@/components/search-button-and-overlay"; 
+import { SearchButtonAndOverlay } from "@/components/search-button-and-overlay";
 
 export async function Header() {
   const parentCategories: Category[] = await getCategories();
@@ -39,26 +39,26 @@ export async function Header() {
       >
         <div className="absolute inset-0 bg-card/50 backdrop-blur-sm z-0"></div>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between relative z-10">
-        <Link href="/" className="inline-flex flex-col">
-          <div className="flex items-center gap-3">
-            <Image src={Logo} alt="vanchuongmandam" height={120} />
-            <div className="relative">
-              <Image src={LogoText} alt="vanchuongmandam" height={150} />
+          <Link href="/" className="inline-flex flex-col">
+            <div className="flex items-center gap-3">
+              <Image src={Logo} alt="vanchuongmandam" height={120} />
+              <div className="relative">
+                <Image src={LogoText} alt="vanchuongmandam" height={150} />
 
-              <p className="hidden md:block absolute bottom-4 left-full ml-2 text-xs italic text-muted-foreground whitespace-nowrap">
-                Think deeper, feel kinder, read wider.
-              </p>
+                <p className="hidden md:block absolute bottom-4 left-full ml-2 text-xs italic text-muted-foreground whitespace-nowrap">
+                  Think deeper, feel kinder, read wider.
+                </p>
 
-              <p className="hidden md:block absolute bottom-0 left-full ml-2 text-xs italic text-muted-foreground whitespace-nowrap">
-                Suy nghĩ sâu hơn, cảm nhân ái hơn, đọc rộng hơn. 
-              </p>
+                <p className="hidden md:block absolute bottom-0 left-full ml-2 text-xs italic text-muted-foreground whitespace-nowrap">
+                  Suy nghĩ sâu hơn, cảm nhân ái hơn, đọc rộng hơn.
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="md:hidden text-xs italic text-muted-foreground mt-3 text-center">
-            <p>Think deeper, feel kinder, read wider.</p>
-            <p>Suy nghĩ sâu hơn, cảm nhân ái hơn, đọc rộng hơn.</p>
-          </div>
-        </Link>
+            <div className="md:hidden text-xs italic text-muted-foreground mt-3 text-center">
+              <p>Think deeper, feel kinder, read wider.</p>
+              <p>Suy nghĩ sâu hơn, cảm nhân ái hơn, đọc rộng hơn.</p>
+            </div>
+          </Link>
 
 
           <div className="flex items-center gap-4">
