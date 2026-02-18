@@ -11,9 +11,10 @@ interface RequestAccessModalProps {
     articleId: string;
     articleTitle: string;
     token?: string | null;
+    onSuccess?: () => void;
 }
 
-export function RequestAccessModal({ articleId, articleTitle, token }: RequestAccessModalProps) {
+export function RequestAccessModal({ articleId, articleTitle, token, onSuccess }: RequestAccessModalProps) {
     const [open, setOpen] = useState(false);
     const [reason, setReason] = useState("");
     const [loading, setLoading] = useState(false);
@@ -40,7 +41,7 @@ export function RequestAccessModal({ articleId, articleTitle, token }: RequestAc
 
         setLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/requests`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/requests`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -60,6 +61,7 @@ export function RequestAccessModal({ articleId, articleTitle, token }: RequestAc
                 description: data.message,
             });
             setOpen(false);
+            if (onSuccess) onSuccess();
         } catch (error: any) {
             toast({
                 title: "Lỗi",

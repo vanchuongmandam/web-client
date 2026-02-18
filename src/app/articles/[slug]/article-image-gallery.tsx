@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -24,14 +25,16 @@ const MediaItem = ({
   isOverlay,
   remainingCount,
   articleId,
-  articleTitle
+  articleTitle,
+  onRequestSuccess
 }: {
   media: Media,
   onClick: () => void,
   isOverlay?: boolean,
   remainingCount?: number,
   articleId: string,
-  articleTitle: string
+  articleTitle: string,
+  onRequestSuccess: () => void
 }) => {
   if (media.mediaType === 'pdf') return null;
 
@@ -50,6 +53,7 @@ const MediaItem = ({
             articleId={articleId}
             articleTitle={articleTitle}
             token={typeof window !== 'undefined' ? localStorage.getItem('token') : null}
+            onSuccess={onRequestSuccess}
           />
         )}
       </div>
@@ -103,6 +107,11 @@ export function ArticleImageGallery({ media, articleId, articleTitle }: ArticleM
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const router = useRouter();
+
+  const handleRequestSuccess = () => {
+    router.refresh();
+  };
 
   const openLightbox = (index: number) => {
     // Only open lightbox if access granted/not restricted
@@ -144,27 +153,27 @@ export function ArticleImageGallery({ media, articleId, articleTitle }: ArticleM
       case 1:
         return (
           <div className="w-full" style={{ aspectRatio: '16/9' }}>
-            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} articleId={articleId} articleTitle={articleTitle} />
+            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} articleId={articleId} articleTitle={articleTitle} onRequestSuccess={handleRequestSuccess} />
           </div>
         );
       case 2:
         return (
           <div className="grid grid-cols-2 gap-1" style={{ aspectRatio: '2/1' }}>
-            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} articleId={articleId} articleTitle={articleTitle} />
-            <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} articleId={articleId} articleTitle={articleTitle} />
+            <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} articleId={articleId} articleTitle={articleTitle} onRequestSuccess={handleRequestSuccess} />
+            <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} articleId={articleId} articleTitle={articleTitle} onRequestSuccess={handleRequestSuccess} />
           </div>
         );
       case 3:
         return (
           <div className="grid grid-cols-3 grid-rows-2 gap-1 h-96 lg:h-[500px]">
             <div className="col-span-2 row-span-2">
-              <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} articleId={articleId} articleTitle={articleTitle} />
+              <MediaItem media={filteredMedia[0]} onClick={() => openLightbox(0)} articleId={articleId} articleTitle={articleTitle} onRequestSuccess={handleRequestSuccess} />
             </div>
             <div className="col-span-1 row-span-1">
-              <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} articleId={articleId} articleTitle={articleTitle} />
+              <MediaItem media={filteredMedia[1]} onClick={() => openLightbox(1)} articleId={articleId} articleTitle={articleTitle} onRequestSuccess={handleRequestSuccess} />
             </div>
             <div className="col-span-1 row-span-1">
-              <MediaItem media={filteredMedia[2]} onClick={() => openLightbox(2)} articleId={articleId} articleTitle={articleTitle} />
+              <MediaItem media={filteredMedia[2]} onClick={() => openLightbox(2)} articleId={articleId} articleTitle={articleTitle} onRequestSuccess={handleRequestSuccess} />
             </div>
           </div>
         );
@@ -182,6 +191,7 @@ export function ArticleImageGallery({ media, articleId, articleTitle }: ArticleM
                   remainingCount={totalMedia - 4}
                   articleId={articleId}
                   articleTitle={articleTitle}
+                  onRequestSuccess={handleRequestSuccess}
                 />
               );
             })}
