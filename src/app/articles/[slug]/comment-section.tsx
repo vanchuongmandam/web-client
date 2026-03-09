@@ -24,7 +24,8 @@ async function getComments(articleId: string): Promise<Comment[]> {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     const response = await fetch(`${apiBaseUrl}/comments/article/${articleId}`);
     if (!response.ok) throw new Error('Failed to fetch comments');
-    return response.json();
+    const json = await response.json();
+    return json.data ?? json;
 }
 
 async function postComment(articleId: string, content: string, token: string): Promise<Comment> {

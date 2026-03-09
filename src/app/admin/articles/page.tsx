@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { Article } from '@/lib/types';
+import { formatVietnameseDate } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -28,10 +29,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -40,7 +41,8 @@ async function getArticles(): Promise<Article[]> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   const response = await fetch(`${apiBaseUrl}/articles`, { cache: 'no-store' }); // No cache for admin data
   if (!response.ok) throw new Error("Failed to fetch articles");
-  return response.json();
+  const json = await response.json();
+  return json.data ?? json;
 }
 
 async function deleteArticleBySlug(slug: string, token: string): Promise<void> {
@@ -88,14 +90,14 @@ export default function AdminArticlesPage() {
       setArticles(prev => prev.filter(article => article.slug !== slugToDelete));
       toast({ title: "Thành công!", description: "Bài viết đã được xóa." });
     } catch (error: unknown) {
-        if (error instanceof Error) {
-            toast({ variant: "destructive", title: "Lỗi", description: error.message });
-        } else {
-            toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
-        }
+      if (error instanceof Error) {
+        toast({ variant: "destructive", title: "Lỗi", description: error.message });
+      } else {
+        toast({ variant: "destructive", title: "Lỗi", description: "Đã có lỗi không xác định xảy ra" });
+      }
     }
   };
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="flex items-center justify-between mb-8">
@@ -113,10 +115,10 @@ export default function AdminArticlesPage() {
 
       {isLoading ? (
         <div className="space-y-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
         </div>
       ) : (
         <div className="border rounded-md">
@@ -136,26 +138,26 @@ export default function AdminArticlesPage() {
                   <TableCell className="font-medium">{article.title}</TableCell>
                   <TableCell>{article.author}</TableCell>
                   <TableCell>{article.category.name}</TableCell>
-                  <TableCell>{article.date}</TableCell>
+                  <TableCell>{formatVietnameseDate(article.date)}</TableCell>
                   <TableCell className="text-right">
                     <AlertDialog>
-                       <DropdownMenu>
-                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild><Link href={`/admin/articles/edit/${article.slug}`}>Sửa</Link></DropdownMenuItem>
-                            <AlertDialogTrigger asChild><DropdownMenuItem onSelect={e => e.preventDefault()} className="text-red-500">Xóa</DropdownMenuItem></AlertDialogTrigger>
-                          </DropdownMenuContent>
-                       </DropdownMenu>
-                       <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
-                            <AlertDialogDescription>Hành động này sẽ xóa vĩnh viễn bài viết &quot;{article.title}&quot;. Bạn không thể hoàn tác.</AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(article.slug)}>Tiếp tục Xóa</AlertDialogAction>
-                          </AlertDialogFooter>
-                       </AlertDialogContent>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild><Link href={`/admin/articles/edit/${article.slug}`}>Sửa</Link></DropdownMenuItem>
+                          <AlertDialogTrigger asChild><DropdownMenuItem onSelect={e => e.preventDefault()} className="text-red-500">Xóa</DropdownMenuItem></AlertDialogTrigger>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+                          <AlertDialogDescription>Hành động này sẽ xóa vĩnh viễn bài viết &quot;{article.title}&quot;. Bạn không thể hoàn tác.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Hủy</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(article.slug)}>Tiếp tục Xóa</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
                     </AlertDialog>
                   </TableCell>
                 </TableRow>

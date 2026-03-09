@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 interface ZenModeContextType {
     isZenMode: boolean;
@@ -12,14 +12,7 @@ const ZenModeContext = createContext<ZenModeContextType | undefined>(undefined);
 export function ZenModeProvider({ children }: { children: React.ReactNode }) {
     const [isZenMode, setIsZenMode] = useState(false);
 
-    // Optional: Persist to localStorage
     useEffect(() => {
-        const saved = localStorage.getItem("zen-mode");
-        if (saved === "true") setIsZenMode(true);
-    }, []);
-
-    useEffect(() => {
-        localStorage.setItem("zen-mode", String(isZenMode));
         if (isZenMode) {
             document.body.classList.add("zen-mode-active");
         } else {
@@ -27,10 +20,12 @@ export function ZenModeProvider({ children }: { children: React.ReactNode }) {
         }
     }, [isZenMode]);
 
-    const toggleZenMode = () => setIsZenMode((prev) => !prev);
+    const toggleZenMode = useCallback(() => setIsZenMode((prev) => !prev), []);
+
+    const value = useMemo(() => ({ isZenMode, toggleZenMode }), [isZenMode, toggleZenMode]);
 
     return (
-        <ZenModeContext.Provider value={{ isZenMode, toggleZenMode }}>
+        <ZenModeContext.Provider value={value}>
             {children}
         </ZenModeContext.Provider>
     );

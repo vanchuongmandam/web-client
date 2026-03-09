@@ -11,12 +11,14 @@ import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { findCategoryBySlug, findCategoryWithParent, getDescendantCategorySlugs, formatVietnameseDate } from '@/lib/utils';
 
 // --- API Functions (Throw error on failure) ---
 async function getArticles(): Promise<Article[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles`, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error("Không thể tải danh sách bài viết.");
-    return await res.json();
+    const json = await res.json();
+    return json.data ?? json;
 }
 async function getCategories(): Promise<Category[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`, { next: { revalidate: 3600 } });
@@ -30,10 +32,10 @@ const ArticleCard = ({ article }: { article: Article }) => (
         <CardHeader className="p-0">
             <div className="relative aspect-video w-full bg-muted">
                 {article.media?.[0]?.url ? (
-                    <Image 
-                        src={article.media[0].url} 
-                        alt={article.title} 
-                        fill 
+                    <Image
+                        src={article.media[0].url}
+                        alt={article.title}
+                        fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
@@ -48,7 +50,7 @@ const ArticleCard = ({ article }: { article: Article }) => (
             <p className="text-sm text-muted-foreground line-clamp-3">{article.excerpt}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0">
-            <p className="text-xs text-muted-foreground">{article.author} &bull; {article.date}</p>
+            <p className="text-xs text-muted-foreground">{article.author} &bull; {formatVietnameseDate(article.date)}</p>
         </CardFooter>
     </Card>
 );
@@ -75,30 +77,12 @@ const CategoryOptions = ({ categories }: { categories: Category[] }) => (
     </>
 );
 
-// Helper function to find a category and its parent
-const findCategoryWithParent = (
-    slug: string, 
-    categories: Category[], 
-    parent: Category | null = null
-): { found: Category; parent: Category | null } | null => {
-    for (const category of categories) {
-        if (category.slug === slug) {
-            return { found: category, parent };
-        }
-        if (category.children && category.children.length > 0) {
-            const result = findCategoryWithParent(slug, category.children, category);
-            if (result) return result;
-        }
-    }
-    return null;
-};
-
 const ArticlesView = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
     const { toast } = useToast();
-    
+
     const categorySlug = searchParams.get('category');
 
     const [articles, setArticles] = useState<Article[]>([]);
@@ -135,35 +119,14 @@ const ArticlesView = () => {
         }
         router.push(`${pathname}?${params.toString()}`);
     };
-    
+
     const displayedArticles = useMemo(() => {
         // 1. Filtering
         let filtered = articles;
         if (categorySlug) {
-            const getAllChildSlugs = (category: Category): string[] => {
-                let slugs = [category.slug];
-                if (category.children && category.children.length > 0) {
-                    category.children.forEach(child => {
-                        slugs = slugs.concat(getAllChildSlugs(child));
-                    });
-                }
-                return slugs;
-            };
-
-            const findCategoryBySlug = (cats: Category[], slug: string): Category | null => {
-                for (const cat of cats) {
-                    if (cat.slug === slug) return cat;
-                    if (cat.children) {
-                        const found = findCategoryBySlug(cat.children, slug);
-                        if (found) return found;
-                    }
-                }
-                return null;
-            }
-
             const selectedCategory = findCategoryBySlug(categories, categorySlug);
             if (selectedCategory) {
-                const validSlugs = getAllChildSlugs(selectedCategory);
+                const validSlugs = getDescendantCategorySlugs(selectedCategory);
                 filtered = articles.filter(article => validSlugs.includes(article.category.slug));
             } else {
                 filtered = [];
@@ -188,17 +151,7 @@ const ArticlesView = () => {
 
     const currentCategoryName = useMemo(() => {
         if (!categorySlug) return "Tất cả bài viết";
-        const findCategory = (cats: Category[], slug:string): Category | null => {
-             for (const cat of cats) {
-                if (cat.slug === slug) return cat;
-                if (cat.children) {
-                    const found = findCategory(cat.children, slug);
-                    if (found) return found;
-                }
-            }
-            return null;
-        }
-        return findCategory(categories, categorySlug)?.name || "Bài viết";
+        return findCategoryBySlug(categories, categorySlug)?.name || "Bài viết";
     }, [categories, categorySlug]);
 
     const categoryOptionsToDisplay = useMemo(() => {
@@ -214,7 +167,7 @@ const ArticlesView = () => {
         }
         return categories; // Fallback
     }, [categorySlug, categories]);
-    
+
     return (
         <div className="container mx-auto px-4 py-8">
             <header className="mb-8">
@@ -223,7 +176,7 @@ const ArticlesView = () => {
             </header>
 
             <div className="mb-8 flex flex-col sm:flex-row justify-end gap-4">
-                 <Select onValueChange={setSortOrder} defaultValue={sortOrder} disabled={isLoading}>
+                <Select onValueChange={setSortOrder} defaultValue={sortOrder} disabled={isLoading}>
                     <SelectTrigger className="w-full sm:w-[200px]">
                         <SelectValue placeholder="Sắp xếp theo..." />
                     </SelectTrigger>
@@ -244,13 +197,13 @@ const ArticlesView = () => {
             </div>
 
             {isLoading ? (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {Array.from({ length: 6 }).map((_, index) => (<Card key={index}><Skeleton className="h-[200px] w-full" /><CardContent className="p-4"><Skeleton className="h-4 w-1/4 mb-2" /><Skeleton className="h-6 w-full mb-2" /><Skeleton className="h-4 w-full" /></CardContent><CardFooter><Skeleton className="h-4 w-1/2" /></CardFooter></Card>))}
                 </div>
             ) : (
                 displayedArticles.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {displayedArticles.map(article => ( <ArticleCard key={article._id} article={article} /> ))}
+                        {displayedArticles.map(article => (<ArticleCard key={article._id} article={article} />))}
                     </div>
                 ) : (
                     <div className="text-center py-16"><p className="text-base text-muted-foreground">Không tìm thấy bài viết nào trong danh mục này.</p></div>

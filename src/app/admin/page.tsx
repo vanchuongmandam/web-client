@@ -1,6 +1,4 @@
 // src/app/admin/page.tsx
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FilePlus2, LayoutList, Tag } from "lucide-react";

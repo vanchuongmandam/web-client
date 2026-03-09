@@ -1,4 +1,3 @@
-"use client";
 import type { Media } from "@/lib/types";
 
 interface ArticlePdfSectionProps {

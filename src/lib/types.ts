@@ -1,6 +1,5 @@
 // src/lib/types.ts
 
-// Định nghĩa cho một file media (ảnh hoặc video)
 export interface Media {
   url: string;
   mediaType: 'image' | 'video' | 'pdf';
@@ -10,7 +9,6 @@ export interface Media {
   requestStatus?: "pending" | "approved" | "rejected" | null;
 }
 
-// Định nghĩa cho một bình luận
 export interface Comment {
   _id: string;
   articleId: string;
@@ -23,26 +21,41 @@ export interface Comment {
   updatedAt: string;
 }
 
-// Định nghĩa cho một danh mục (ĐÃ SỬA: Thêm 'children')
 export interface Category {
   _id: string;
   name: string;
   slug: string;
-  parent?: string; // ID của danh mục cha
-  children: Category[]; // Mảng chứa các danh mục con
+  parent?: string;
+  children: Category[];
 }
 
-// Định nghĩa cho một bài viết
+export interface TiptapMark {
+  type: string;
+  attrs?: Record<string, unknown>;
+}
+
+export interface TiptapNode {
+  type: string;
+  attrs?: Record<string, unknown>;
+  content?: TiptapNode[];
+  marks?: TiptapMark[];
+  text?: string;
+}
+
+export interface TiptapContent {
+  type: 'doc';
+  content: TiptapNode[];
+}
+
 export interface Article {
   _id: string;
   slug: string;
   title: string;
   author: string;
   date: string;
-  category: Category; // Vẫn là một object Category
+  category: Category;
   excerpt: string;
-  // Updated content to be a JSON object
-  content: Record<string, any>;
+  content: TiptapContent;
   media: Media[];
   trending: boolean;
   createdAt: string;

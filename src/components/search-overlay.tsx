@@ -51,11 +51,12 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       return;
     }
 
+    const MAX_RESULTS = 20;
     const filtered = allArticles.filter(article =>
       article.title.toLowerCase().includes(lowercasedQuery) ||
       article.content_snippet.toLowerCase().includes(lowercasedQuery) ||
       article.category_slug?.toLowerCase().includes(lowercasedQuery)
-    );
+    ).slice(0, MAX_RESULTS);
     setSearchResults(filtered);
   }, [allArticles]);
 

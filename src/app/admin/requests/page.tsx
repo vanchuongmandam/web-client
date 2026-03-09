@@ -57,7 +57,7 @@ export default function RequestsPage() {
             });
             if (!res.ok) throw new Error("Không thể tải danh sách yêu cầu");
             const data = await res.json();
-            setRequests(data);
+            setRequests(data.data ?? data);
         } catch (error) {
             console.error(error);
             toast({

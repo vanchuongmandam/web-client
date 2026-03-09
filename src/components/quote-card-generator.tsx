@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useState } from 'react';
-import html2canvas from 'html2canvas';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Quote, Download, Image as ImageIcon, Copy } from "lucide-react";
@@ -20,6 +19,7 @@ export function QuoteCardGenerator({ initialText = "", author = "Văn Chương M
 
     const handleDownload = async () => {
         if (cardRef.current) {
+            const { default: html2canvas } = await import('html2canvas');
             const canvas = await html2canvas(cardRef.current, {
                 scale: 2, // High resolution
                 useCORS: true,

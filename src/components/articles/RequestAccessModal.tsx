@@ -62,10 +62,10 @@ export function RequestAccessModal({ articleId, articleTitle, token, onSuccess }
             });
             setOpen(false);
             if (onSuccess) onSuccess();
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast({
                 title: "Lỗi",
-                description: error.message,
+                description: error instanceof Error ? error.message : "Đã có lỗi không xác định xảy ra",
                 variant: "destructive",
             });
         } finally {

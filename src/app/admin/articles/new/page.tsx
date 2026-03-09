@@ -94,7 +94,7 @@ async function uploadFile(file: File, token: string, categoryPath: string): Prom
 }
 
 async function createArticle(data: ArticleFormValues, token: string) {
-    const dataToSend = { ...data, date: new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: 'long', year: 'numeric' }) };
+    const dataToSend = { ...data, date: new Date().toISOString() };
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

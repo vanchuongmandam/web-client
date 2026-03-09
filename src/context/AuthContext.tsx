@@ -4,8 +4,8 @@
 import { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
+import { login as apiLogin, register as apiRegister } from '@/lib/api';
 
-// --- Định nghĩa kiểu dữ liệu ---
 interface User {
   _id: string;
   username: string;
@@ -13,12 +13,13 @@ interface User {
 }
 
 interface DecodedToken {
-  id: string;
-  username: string;
+  user: {
+    id: string;
+    role: string;
+  };
   iat: number;
   exp: number;
 }
-
 
 interface AuthContextType {
   user: User | null;
@@ -27,18 +28,18 @@ interface AuthContextType {
   register: (username: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
+  isHydrated: boolean;
   error: string | null;
   clearError: () => void;
 }
 
-// --- Tạo Context ---
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// --- Tạo Provider Component ---
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -54,8 +55,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
       try {
-        const decodedToken: DecodedToken = jwtDecode(storedToken);
-        if (decodedToken.exp * 1000 < Date.now()) {
+        const decoded: DecodedToken = jwtDecode(storedToken);
+        if (decoded.exp * 1000 < Date.now()) {
           logout();
         } else {
           setToken(storedToken);
@@ -70,57 +71,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     setIsLoading(false);
+    setIsHydrated(true);
   }, [logout]);
 
-  const clearError = () => setError(null);
+  const clearError = useCallback(() => setError(null), []);
 
   const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-      const response = await fetch(`${apiBaseUrl}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Đăng nhập thất bại.');
-      
+      const data = await apiLogin(username, password);
       setToken(data.token);
       setUser(data.user);
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('authUser', JSON.stringify(data.user));
       router.push('/');
     } catch (err: unknown) {
-        if (err instanceof Error) { setError(err.message); } 
-        else { setError("Đã có lỗi không xác định xảy ra"); }
-        throw err;
+      if (err instanceof Error) { setError(err.message); }
+      else { setError("Đã có lỗi không xác định xảy ra"); }
+      throw err;
     } finally {
       setIsLoading(false);
     }
   }, [router]);
-  
+
   const register = useCallback(async (username: string, password: string) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-          const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-          const response = await fetch(`${apiBaseUrl}/auth/register`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password, role: 'user' }),
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.message || 'Đăng ký thất bại.');
-          await login(username, password);
-      } catch (err: unknown) {
-        if (err instanceof Error) { setError(err.message); } 
-        else { setError("Đã có lỗi không xác định xảy ra"); }
-        throw err;
-      } finally {
-          setIsLoading(false);
-      }
+    setIsLoading(true);
+    setError(null);
+    try {
+      await apiRegister(username, password);
+      await login(username, password);
+    } catch (err: unknown) {
+      if (err instanceof Error) { setError(err.message); }
+      else { setError("Đã có lỗi không xác định xảy ra"); }
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   }, [login]);
 
   const value = useMemo(() => ({
@@ -130,9 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     isLoading,
+    isHydrated,
     error,
     clearError
-  }), [user, token, isLoading, error, logout, login, register]);
+  }), [user, token, isLoading, isHydrated, error, logout, login, register, clearError]);
 
   return (
     <AuthContext.Provider value={value}>
@@ -141,7 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// --- Tạo Custom Hook để sử dụng Context dễ dàng hơn ---
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

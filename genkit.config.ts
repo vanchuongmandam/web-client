@@ -1,3 +1,4 @@
+/*
 import { googleAI } from '@genkit-ai/googleai';
 import { configureGenkit } from '@genkit-ai/core';
 
@@ -8,3 +9,4 @@ export default configureGenkit({
   logLevel: 'debug',
   enableTracingAndMetrics: true,
 });
+*/

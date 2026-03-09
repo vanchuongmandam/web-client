@@ -1,18 +1,26 @@
 
-export const runtime = 'edge';
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Article } from "@/lib/types";
+import { formatVietnameseDate } from "@/lib/utils";
 import type { Metadata } from "next";
 
 // Import the new image gallery component
 import { ArticleImageGallery } from "./article-image-gallery";
 import { ZenModeToggle } from "@/components/zen-mode-toggle";
-import { QuoteCardGenerator } from "@/components/quote-card-generator";
 
-import RichTextEditor from "@/components/ui/rich-text-editor";
+const QuoteCardGenerator = dynamic(
+  () => import("@/components/quote-card-generator").then(mod => ({ default: mod.QuoteCardGenerator })),
+  { loading: () => <div className="animate-pulse bg-muted h-8 w-24 rounded" /> }
+);
+
+const RichTextEditor = dynamic(() => import("@/components/ui/rich-text-editor"), {
+  loading: () => <div className="animate-pulse bg-muted h-40 rounded" />
+});
+
 import ArticlePdfSection from "./article-pdf-section";
 import RelatedArticles from "./related-articles";
 import ReadingSuggestions from "./reading-suggestions";
@@ -36,7 +44,7 @@ async function getArticle(slug: string): Promise<Article | null> {
 }
 
 // --- generateMetadata for dynamic SEO / OG tags ---
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const article = await getArticle(slug);
   if (!article) {
@@ -51,10 +59,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
   return {
     title: article.title,
-    description: article.excerpt || article.content.slice(0, 150) + "...",
+    description: article.excerpt || JSON.stringify(article.content).slice(0, 150) + "...",
     openGraph: {
       title: article.title,
-      description: article.excerpt || article.content.slice(0, 150) + "...",
+      description: article.excerpt || JSON.stringify(article.content).slice(0, 150) + "...",
       url,
       type: "article",
       images: [
@@ -69,14 +77,14 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     twitter: {
       card: "summary_large_image",
       title: article.title,
-      description: article.excerpt || article.content.slice(0, 150) + "...",
+      description: article.excerpt || JSON.stringify(article.content).slice(0, 150) + "...",
       images: [image],
     },
   };
 }
 
 // --- Article Detail Page Component (FIXED) ---
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const article = await getArticle(slug);
 
@@ -90,7 +98,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         <header className="mb-8 w-full">
           <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-muted-foreground">
             <Badge variant="secondary">{article.category.name}</Badge>
-            <span>{article.date}</span>
+            <span>{formatVietnameseDate(article.date)}</span>
             <div className="ml-auto flex items-center gap-2">
               <QuoteCardGenerator initialText={article.title} author={article.author} />
               <ZenModeToggle />
