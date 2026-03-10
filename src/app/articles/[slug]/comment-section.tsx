@@ -39,7 +39,8 @@ async function postComment(articleId: string, content: string, token: string): P
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to post comment');
     }
-    return response.json();
+    const json = await response.json();
+    return json.data ?? json;
 }
 
 async function updateComment(commentId: string, content: string, token: string): Promise<Comment> {
@@ -53,7 +54,8 @@ async function updateComment(commentId: string, content: string, token: string):
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to update comment');
     }
-    return response.json();
+    const json = await response.json();
+    return json.data ?? json;
 }
 
 async function deleteComment(commentId: string, token: string): Promise<void> {

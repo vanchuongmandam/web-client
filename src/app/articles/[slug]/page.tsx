@@ -36,7 +36,8 @@ async function getArticle(slug: string): Promise<Article | null> {
       if (response.status === 404) return null;
       throw new Error(`Failed to fetch article: ${response.statusText}`);
     }
-    return await response.json();
+    const json = await response.json();
+    return json.data ?? json;
   } catch (error) {
     console.error(`An error occurred while fetching article ${slug}:`, error);
     return null;

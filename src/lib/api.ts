@@ -10,6 +10,20 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ||
   '';
 
+interface ApiEnvelope<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;
   let res: Response;
@@ -49,25 +63,27 @@ function authHeaders(token: string): HeadersInit {
 export async function getCategories(
   fetchOptions?: RequestInit,
 ): Promise<Category[]> {
-  return apiFetch<Category[]>('/categories', { next: { revalidate: 3600 }, ...fetchOptions });
+  const res = await apiFetch<ApiEnvelope<Category[]>>('/categories', { next: { revalidate: 3600 }, ...fetchOptions });
+  return res.data;
 }
 
 export async function createCategory(
   data: { name: string; slug: string; parentId?: string },
   token: string,
 ): Promise<Category> {
-  return apiFetch<Category>('/categories', {
+  const res = await apiFetch<ApiEnvelope<Category>>('/categories', {
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify(data),
   });
+  return res.data;
 }
 
 export async function deleteCategory(
   id: string,
   token: string,
 ): Promise<void> {
-  await apiFetch<void>(`/categories/${id}`, {
+  await apiFetch<ApiEnvelope<unknown>>(`/categories/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -80,7 +96,7 @@ export async function deleteCategory(
 export async function getArticles(
   fetchOptions?: RequestInit,
 ): Promise<Article[]> {
-  const res = await apiFetch<{ success: boolean; data: Article[] }>('/articles', { next: { revalidate: 3600 }, ...fetchOptions });
+  const res = await apiFetch<ApiEnvelope<Article[]>>('/articles', { next: { revalidate: 3600 }, ...fetchOptions });
   return res.data;
 }
 
@@ -88,10 +104,11 @@ export async function getArticlesByCategory(
   categorySlug: string,
   fetchOptions?: RequestInit,
 ): Promise<Article[]> {
-  return apiFetch<Article[]>(
+  const res = await apiFetch<ApiEnvelope<Article[]>>(
     `/categories/${categorySlug}/articles`,
     { next: { revalidate: 3600 }, ...fetchOptions },
   );
+  return res.data;
 }
 
 export async function getArticleBySlug(
@@ -99,7 +116,8 @@ export async function getArticleBySlug(
   fetchOptions?: RequestInit,
 ): Promise<Article | null> {
   try {
-    return await apiFetch<Article>(`/articles/${slug}`, fetchOptions);
+    const res = await apiFetch<ApiEnvelope<Article>>(`/articles/${slug}`, fetchOptions);
+    return res.data;
   } catch {
     return null;
   }
@@ -109,11 +127,12 @@ export async function createArticle(
   data: Record<string, unknown>,
   token: string,
 ): Promise<Article> {
-  return apiFetch<Article>('/articles', {
+  const res = await apiFetch<ApiEnvelope<Article>>('/articles', {
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify(data),
   });
+  return res.data;
 }
 
 export async function updateArticle(
@@ -121,18 +140,19 @@ export async function updateArticle(
   data: Record<string, unknown>,
   token: string,
 ): Promise<Article> {
-  return apiFetch<Article>(`/articles/${slug}`, {
+  const res = await apiFetch<ApiEnvelope<Article>>(`/articles/${slug}`, {
     method: 'PUT',
     headers: authHeaders(token),
     body: JSON.stringify(data),
   });
+  return res.data;
 }
 
 export async function deleteArticle(
   slug: string,
   token: string,
 ): Promise<void> {
-  await apiFetch<void>(`/articles/${slug}`, {
+  await apiFetch<ApiEnvelope<unknown>>(`/articles/${slug}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -151,22 +171,24 @@ export async function login(
   username: string,
   password: string,
 ): Promise<LoginResponse> {
-  return apiFetch<LoginResponse>('/auth/login', {
+  const res = await apiFetch<ApiEnvelope<LoginResponse>>('/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
   });
+  return res.data;
 }
 
 export async function register(
   username: string,
   password: string,
 ): Promise<{ message: string }> {
-  return apiFetch<{ message: string }>('/auth/register', {
+  const res = await apiFetch<ApiEnvelope<{ message: string }>>('/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password, role: 'user' }),
+    body: JSON.stringify({ username, password }),
   });
+  return res.data;
 }
 
 // ---------------------------------------------------------------------------
@@ -174,7 +196,7 @@ export async function register(
 // ---------------------------------------------------------------------------
 
 export async function getComments(articleId: string): Promise<Comment[]> {
-  const res = await apiFetch<{ success: boolean; data: Comment[] }>(`/comments/article/${articleId}`);
+  const res = await apiFetch<ApiEnvelope<Comment[]>>(`/comments/article/${articleId}`);
   return res.data;
 }
 
@@ -183,11 +205,12 @@ export async function createComment(
   content: string,
   token: string,
 ): Promise<Comment> {
-  return apiFetch<Comment>('/comments', {
+  const res = await apiFetch<ApiEnvelope<Comment>>('/comments', {
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify({ articleId, content }),
   });
+  return res.data;
 }
 
 export async function updateComment(
@@ -195,18 +218,19 @@ export async function updateComment(
   content: string,
   token: string,
 ): Promise<Comment> {
-  return apiFetch<Comment>(`/comments/${commentId}`, {
+  const res = await apiFetch<ApiEnvelope<Comment>>(`/comments/${commentId}`, {
     method: 'PUT',
     headers: authHeaders(token),
     body: JSON.stringify({ content }),
   });
+  return res.data;
 }
 
 export async function deleteComment(
   commentId: string,
   token: string,
 ): Promise<void> {
-  await apiFetch<void>(`/comments/${commentId}`, {
+  await apiFetch<ApiEnvelope<unknown>>(`/comments/${commentId}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -230,19 +254,21 @@ export async function requestAccess(
   reason: string,
   token: string,
 ): Promise<{ message: string }> {
-  return apiFetch<{ message: string }>('/requests', {
+  const res = await apiFetch<ApiEnvelope<{ message: string; request: unknown }>>('/requests', {
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify({ articleId, reason }),
   });
+  return { message: res.data.message };
 }
 
 export async function getAccessRequests(
   token: string,
 ): Promise<AccessRequest[]> {
-  return apiFetch<AccessRequest[]>('/requests', {
+  const res = await apiFetch<ApiEnvelope<AccessRequest[]>>('/requests', {
     headers: { Authorization: `Bearer ${token}` },
   });
+  return res.data;
 }
 
 export async function reviewAccessRequest(
@@ -250,7 +276,7 @@ export async function reviewAccessRequest(
   status: 'approved' | 'rejected',
   token: string,
 ): Promise<void> {
-  await apiFetch<void>(`/requests/${id}/status`, {
+  await apiFetch<ApiEnvelope<unknown>>(`/requests/${id}/status`, {
     method: 'PATCH',
     headers: authHeaders(token),
     body: JSON.stringify({ status }),
@@ -280,5 +306,5 @@ export async function uploadFile(
     throw new Error(errorData.message || 'File upload failed');
   }
   const data = await res.json();
-  return data.media;
+  return data.data.media;
 }

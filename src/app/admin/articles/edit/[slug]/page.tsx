@@ -70,7 +70,8 @@ const getMimeTypeFromExtension = (filename: string): string | undefined => {
 async function getCategories(): Promise<Category[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`);
     if (!res.ok) throw new Error("Failed to fetch categories");
-    return res.json();
+    const json = await res.json();
+    return json.data ?? json;
 }
 
 async function uploadFile(file: File, token: string, categoryPath: string): Promise<Media> {
@@ -88,13 +89,14 @@ async function uploadFile(file: File, token: string, categoryPath: string): Prom
         throw new Error(errorData.message || "File upload failed");
     }
     const data = await res.json();
-    return data.media;
+    return data.data?.media ?? data.media;
 }
 
 async function getArticleBySlug(slug: string): Promise<Article | null> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/${slug}`);
     if (!res.ok) return null;
-    return res.json();
+    const json = await res.json();
+    return json.data ?? json;
 }
 
 async function updateArticle(slug: string, data: ArticleFormValues, token: string) {
@@ -107,7 +109,8 @@ async function updateArticle(slug: string, data: ArticleFormValues, token: strin
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to update article");
     }
-    return res.json();
+    const json = await res.json();
+    return json.data ?? json;
 }
 
 const findParentCategory = (categories: Category[], childId: string): Category | null => {

@@ -30,7 +30,8 @@ import { generateSlug } from '@/lib/utils';
 async function getCategories(): Promise<Category[]> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`, { cache: 'no-store' });
   if (!res.ok) throw new Error("Failed to fetch categories");
-  return res.json();
+  const json = await res.json();
+  return json.data ?? json;
 }
 
 async function createCategory(data: { name: string, slug: string, parentId?: string }, token: string): Promise<Category> {
@@ -43,7 +44,8 @@ async function createCategory(data: { name: string, slug: string, parentId?: str
     const errorData = await res.json();
     throw new Error(errorData.message || "Failed to create category");
   }
-  return res.json();
+  const json = await res.json();
+  return json.data ?? json;
 }
 
 async function deleteCategoryById(id: string, token: string): Promise<void> {

@@ -23,7 +23,8 @@ async function getArticles(): Promise<Article[]> {
 async function getCategories(): Promise<Category[]> {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error("Không thể tải danh sách danh mục.");
-    return await res.json();
+    const json = await res.json();
+    return json.data ?? json;
 }
 
 // --- Sub-components ---

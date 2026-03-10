@@ -17,7 +17,8 @@ async function getCategoryArticles(categorySlug: string, currentArticleSlug: str
             return [];
         }
         const articles = await response.json();
-        return articles
+        const articleList = articles.data ?? articles;
+        return articleList
             .filter((article: Article) => article.slug !== currentArticleSlug)
             .slice(0, 3);
     } catch (error) {
