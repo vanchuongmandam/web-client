@@ -23,7 +23,7 @@ import BannerImage from "@/assets/logo/banner.webp";
 import { SearchButtonAndOverlay } from "@/components/search-button-and-overlay";
 
 export async function Header() {
-  const parentCategories: Category[] = await getCategories();
+  const parentCategories: Category[] = await getCategories().catch(() => []);
 
   const navItems = [{ name: "Trang chủ", href: "/" }];
 
