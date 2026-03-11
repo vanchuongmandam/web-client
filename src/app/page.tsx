@@ -125,7 +125,7 @@ async function CategorySections({
 
 export default async function Home() {
   const [allArticles, categories] = await Promise.all([
-    fetchAllArticles().catch(() => [] as Article[]),
+    fetchAllArticles({ limit: 100 }).catch(() => [] as Article[]),
     getCategories().catch(() => [] as Category[]),
   ]);
 

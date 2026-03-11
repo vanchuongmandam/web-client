@@ -1,181 +1,164 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-
-interface AccessRequest {
-    _id: string;
-    user: {
-        _id: string;
-        username: string;
-    };
-    article: {
-        _id: string;
-        title: string;
-        slug: string;
-    };
-    status: "pending" | "approved" | "rejected";
-    reason: string;
-    createdAt: string;
-}
+import { useAuth } from "@/context/AuthContext";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import { getAccessRequestsPaginated, reviewAccessRequest, type AccessRequest } from "@/lib/api";
+import type { PaginationMeta } from "@/lib/types";
 
 export default function RequestsPage() {
     const [requests, setRequests] = useState<AccessRequest[]>([]);
+    const [pagination, setPagination] = useState<PaginationMeta | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [statusFilter, setStatusFilter] = useState<string>("all");
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
-    // Note: In a real app, you'd get the token from a context/hook
-    const [token, setToken] = useState<string | null>(null);
+    const { token } = useAuth();
 
-    useEffect(() => {
-        // Basic implementation to get token from localStorage if available
-        const storedToken = localStorage.getItem("token");
-        setToken(storedToken);
-        if (storedToken) {
-            fetchRequests(storedToken);
-        } else {
-            setLoading(false);
-        }
-    }, []);
-
-    const fetchRequests = async (authToken: string) => {
+    const fetchRequests = useCallback(async () => {
+        if (!token) { setLoading(false); return; }
+        setLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/requests`, {
-                headers: {
-                    "Authorization": `Bearer ${authToken}`
-                }
-            });
-            if (!res.ok) throw new Error("Không thể tải danh sách yêu cầu");
-            const data = await res.json();
-            setRequests(data.data ?? data);
-        } catch (error) {
-            console.error(error);
-            toast({
-                title: "Lỗi loading",
-                description: "Không thể tải danh sách yêu cầu.",
-                variant: "destructive"
-            });
+            const params: { page: number; limit: number; status?: string } = { page: currentPage, limit: 20 };
+            if (statusFilter !== "all") params.status = statusFilter;
+            const result = await getAccessRequestsPaginated(token, params);
+            setRequests(result.data);
+            setPagination(result.pagination);
+        } catch {
+            toast({ title: "Lỗi", description: "Không thể tải danh sách yêu cầu.", variant: "destructive" });
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, currentPage, statusFilter, toast]);
+
+    useEffect(() => { fetchRequests(); }, [fetchRequests]);
 
     const handleUpdateStatus = async (id: string, newStatus: "approved" | "rejected") => {
         if (!token) return;
-
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/api/requests/${id}/status`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ status: newStatus })
-            });
-
-            if (!res.ok) throw new Error("Cập nhật thất bại");
-
-            toast({
-                title: "Thành công",
-                description: `Đã cập nhật trạng thái thành ${newStatus}`,
-            });
-
-            // Refresh list locally
-            setRequests(prev => prev.map(req =>
-                req._id === id ? { ...req, status: newStatus } : req
-            ));
-        } catch (error) {
-            toast({
-                title: "Lỗi",
-                description: "Có lỗi khi cập nhật trạng thái.",
-                variant: "destructive"
-            });
+            await reviewAccessRequest(id, newStatus, token);
+            toast({ title: "Thành công", description: `Đã cập nhật trạng thái thành ${newStatus}` });
+            fetchRequests();
+        } catch {
+            toast({ title: "Lỗi", description: "Có lỗi khi cập nhật trạng thái.", variant: "destructive" });
         }
     };
 
-    if (loading) return <div className="p-8 text-center">Đang tải...</div>;
-    if (!token) return <div className="p-8 text-center">Vui lòng đăng nhập quyền Admin.</div>;
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleStatusFilterChange = (value: string) => {
+        setStatusFilter(value);
+        setCurrentPage(1);
+    };
+
+    if (!token && !loading) return <div className="p-8 text-center">Vui lòng đăng nhập quyền Admin.</div>;
 
     return (
         <div className="container mx-auto py-10">
-            <h1 className="text-3xl font-bold mb-6">Quản lý Yêu cầu Xem Tài liệu</h1>
-            <div className="bg-white rounded-md border shadow-sm mt-4">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Người dùng</TableHead>
-                            <TableHead>Bài viết</TableHead>
-                            <TableHead className="w-[300px]">Lý do / Trả lời câu hỏi</TableHead>
-                            <TableHead>Ngày tạo</TableHead>
-                            <TableHead>Trạng thái</TableHead>
-                            <TableHead className="text-right">Thao tác</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {requests.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center h-24">
-                                    Không có yêu cầu nào.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            requests.map((request) => (
-                                <TableRow key={request._id}>
-                                    <TableCell className="font-medium">{request.user?.username || "Unknown"}</TableCell>
-                                    <TableCell>
-                                        <a href={`/articles/${request.article?.slug}`} target="_blank" className="hover:underline text-blue-600">
-                                            {request.article?.title || "Unknown Article"}
-                                        </a>
-                                    </TableCell>
-                                    <TableCell className="break-words">{request.reason}</TableCell>
-                                    <TableCell>{format(new Date(request.createdAt), "dd/MM/yyyy HH:mm")}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={
-                                            request.status === "approved" ? "default" :
-                                                request.status === "rejected" ? "destructive" : "secondary"
-                                        }>
-                                            {request.status === "approved" ? "Đã duyệt" :
-                                                request.status === "rejected" ? "Từ chối" : "Chờ duyệt"}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right space-x-2">
-                                        {request.status === "pending" && (
-                                            <>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-green-600 border-green-600 hover:bg-green-50"
-                                                    onClick={() => handleUpdateStatus(request._id, "approved")}
-                                                >
-                                                    Duyệt
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    className="text-red-600 border-red-600 hover:bg-red-50"
-                                                    onClick={() => handleUpdateStatus(request._id, "rejected")}
-                                                >
-                                                    Từ chối
-                                                </Button>
-                                            </>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-3xl font-bold">Quản lý Yêu cầu Xem Tài liệu</h1>
+                <Select onValueChange={handleStatusFilterChange} value={statusFilter}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Lọc trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="pending">Chờ duyệt</SelectItem>
+                        <SelectItem value="approved">Đã duyệt</SelectItem>
+                        <SelectItem value="rejected">Từ chối</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
+
+            {loading ? (
+                <div className="p-8 text-center">Đang tải...</div>
+            ) : (
+                <>
+                    <div className="bg-white rounded-md border shadow-sm">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Người dùng</TableHead>
+                                    <TableHead>Bài viết</TableHead>
+                                    <TableHead className="w-[300px]">Lý do / Trả lời câu hỏi</TableHead>
+                                    <TableHead>Ngày tạo</TableHead>
+                                    <TableHead>Trạng thái</TableHead>
+                                    <TableHead className="text-right">Thao tác</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {requests.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center h-24">
+                                            Không có yêu cầu nào.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    requests.map((request) => (
+                                        <TableRow key={request._id}>
+                                            <TableCell className="font-medium">{request.user?.username || "Unknown"}</TableCell>
+                                            <TableCell>
+                                                <a href={`/articles/${request.article?.slug}`} target="_blank" className="hover:underline text-blue-600">
+                                                    {request.article?.title || "Unknown Article"}
+                                                </a>
+                                            </TableCell>
+                                            <TableCell className="break-words">{request.reason}</TableCell>
+                                            <TableCell>{format(new Date(request.createdAt), "dd/MM/yyyy HH:mm")}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={
+                                                    request.status === "approved" ? "default" :
+                                                        request.status === "rejected" ? "destructive" : "secondary"
+                                                }>
+                                                    {request.status === "approved" ? "Đã duyệt" :
+                                                        request.status === "rejected" ? "Từ chối" : "Chờ duyệt"}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right space-x-2">
+                                                {request.status === "pending" && (
+                                                    <>
+                                                        <Button
+                                                            size="sm" variant="outline"
+                                                            className="text-green-600 border-green-600 hover:bg-green-50"
+                                                            onClick={() => handleUpdateStatus(request._id, "approved")}
+                                                        >
+                                                            Duyệt
+                                                        </Button>
+                                                        <Button
+                                                            size="sm" variant="outline"
+                                                            className="text-red-600 border-red-600 hover:bg-red-50"
+                                                            onClick={() => handleUpdateStatus(request._id, "rejected")}
+                                                        >
+                                                            Từ chối
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                    {pagination && (
+                        <PaginationControls
+                            pagination={pagination}
+                            onPageChange={handlePageChange}
+                            isLoading={loading}
+                        />
+                    )}
+                </>
+            )}
         </div>
     );
 }

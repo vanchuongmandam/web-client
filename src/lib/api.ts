@@ -1,5 +1,4 @@
-// src/lib/api.ts
-import type { Article, Category, Comment, Media } from '@/lib/types';
+import type { Article, Category, Comment, Media, PaginationMeta, PaginatedResponse } from '@/lib/types';
 
 // ---------------------------------------------------------------------------
 // Base URL & fetch helper
@@ -14,14 +13,7 @@ interface ApiEnvelope<T> {
   success: boolean;
   data: T;
   message?: string;
-  pagination?: {
-    total: number;
-    page: number;
-    limit: number;
-    pages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
+  pagination?: PaginationMeta;
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
@@ -54,6 +46,13 @@ function authHeaders(token: string): HeadersInit {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   };
+}
+
+/** Build query string from key-value params, ignoring undefined values. */
+function buildQuery(params: Record<string, string | number | undefined>): string {
+  const entries = Object.entries(params).filter(([, v]) => v !== undefined);
+  if (entries.length === 0) return '';
+  return '?' + entries.map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join('&');
 }
 
 // ---------------------------------------------------------------------------
@@ -93,22 +92,58 @@ export async function deleteCategory(
 // Articles
 // ---------------------------------------------------------------------------
 
+export interface ArticlePaginationParams {
+  page?: number;
+  limit?: number;
+  sort?: string;
+}
+
+/** Get articles (returns only the data array, for simple use cases like homepage). */
 export async function getArticles(
+  params?: ArticlePaginationParams,
   fetchOptions?: RequestInit,
 ): Promise<Article[]> {
-  const res = await apiFetch<ApiEnvelope<Article[]>>('/articles', { next: { revalidate: 3600 }, ...fetchOptions });
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<Article[]>>(`/articles${query}`, { next: { revalidate: 3600 }, ...fetchOptions });
   return res.data;
 }
 
+/** Get articles with full pagination metadata. */
+export async function getArticlesPaginated(
+  params?: ArticlePaginationParams,
+  fetchOptions?: RequestInit,
+): Promise<PaginatedResponse<Article>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<Article[]>>(`/articles${query}`, { next: { revalidate: 3600 }, ...fetchOptions });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+/** Get articles by category slug (returns only data). */
 export async function getArticlesByCategory(
   categorySlug: string,
+  params?: ArticlePaginationParams,
   fetchOptions?: RequestInit,
 ): Promise<Article[]> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
   const res = await apiFetch<ApiEnvelope<Article[]>>(
-    `/categories/${categorySlug}/articles`,
+    `/categories/${categorySlug}/articles${query}`,
     { next: { revalidate: 3600 }, ...fetchOptions },
   );
   return res.data;
+}
+
+/** Get articles by category slug with full pagination metadata. */
+export async function getArticlesByCategoryPaginated(
+  categorySlug: string,
+  params?: ArticlePaginationParams,
+  fetchOptions?: RequestInit,
+): Promise<PaginatedResponse<Article>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<Article[]>>(
+    `/categories/${categorySlug}/articles${query}`,
+    { next: { revalidate: 3600 }, ...fetchOptions },
+  );
+  return { data: res.data, pagination: res.pagination! };
 }
 
 export async function getArticleBySlug(
@@ -262,6 +297,7 @@ export async function requestAccess(
   return { message: res.data.message };
 }
 
+/** Get access requests (returns only data, for backward compatibility). */
 export async function getAccessRequests(
   token: string,
 ): Promise<AccessRequest[]> {
@@ -269,6 +305,18 @@ export async function getAccessRequests(
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
+}
+
+/** Get access requests with pagination and optional status filter. */
+export async function getAccessRequestsPaginated(
+  token: string,
+  params?: { page?: number; limit?: number; status?: string },
+): Promise<PaginatedResponse<AccessRequest>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<AccessRequest[]>>(`/requests${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return { data: res.data, pagination: res.pagination! };
 }
 
 export async function reviewAccessRequest(

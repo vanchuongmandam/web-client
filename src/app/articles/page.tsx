@@ -1,36 +1,39 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, Suspense, Fragment } from 'react';
+import { useState, useEffect, useMemo, Suspense, Fragment, useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import type { Article, Category } from '@/lib/types';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Article, Category, PaginationMeta } from '@/lib/types';
+import { getArticlesPaginated, getArticlesByCategoryPaginated } from '@/lib/api';
+import { Card, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { findCategoryBySlug, findCategoryWithParent, getDescendantCategorySlugs, formatVietnameseDate } from '@/lib/utils';
+import { findCategoryBySlug, findCategoryWithParent, formatVietnameseDate } from '@/lib/utils';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
-// --- API Functions (Throw error on failure) ---
-async function getArticles(): Promise<Article[]> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/articles`, { next: { revalidate: 3600 } });
-    if (!res.ok) throw new Error("Không thể tải danh sách bài viết.");
-    const json = await res.json();
-    return json.data ?? json;
-}
-async function getCategories(): Promise<Category[]> {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`, { next: { revalidate: 3600 } });
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || '';
+
+async function fetchCategories(): Promise<Category[]> {
+    const res = await fetch(`${API_BASE}/categories`, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error("Không thể tải danh sách danh mục.");
     const json = await res.json();
     return json.data ?? json;
 }
 
+const SORT_MAP: Record<string, string> = {
+    newest: '-createdAt',
+    oldest: 'createdAt',
+    'a-z': 'title',
+};
+
 // --- Sub-components ---
 const ArticleCard = ({ article }: { article: Article }) => (
     <Card className="h-full flex flex-col overflow-hidden group transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
-        <CardHeader className="p-0">
+        <div className="p-0">
             <div className="relative aspect-video w-full bg-muted">
                 {article.media?.[0]?.url ? (
                     <Image
@@ -42,9 +45,9 @@ const ArticleCard = ({ article }: { article: Article }) => (
                     />
                 ) : <div className="h-full w-full bg-secondary"></div>}
             </div>
-        </CardHeader>
+        </div>
         <CardContent className="p-4 flex-grow">
-            <Badge variant="outline" className="mb-2">{article.category.name}</Badge>
+            <Badge variant="outline" className="mb-2">{article.category?.name}</Badge>
             <CardTitle className="font-headline text-xl leading-tight mb-2">
                 <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">{article.title}</Link>
             </CardTitle>
@@ -78,6 +81,8 @@ const CategoryOptions = ({ categories }: { categories: Category[] }) => (
     </>
 );
 
+const ITEMS_PER_PAGE = 12;
+
 const ArticlesView = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -85,70 +90,72 @@ const ArticlesView = () => {
     const { toast } = useToast();
 
     const categorySlug = searchParams.get('category');
+    const currentPage = parseInt(searchParams.get('page') || '1', 10);
+    const sortOrder = searchParams.get('sort') || 'newest';
 
     const [articles, setArticles] = useState<Article[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [pagination, setPagination] = useState<PaginationMeta | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [sortOrder, setSortOrder] = useState('newest');
+
+    const updateParams = useCallback((updates: Record<string, string | null>) => {
+        const params = new URLSearchParams(searchParams.toString());
+        for (const [key, value] of Object.entries(updates)) {
+            if (value === null || value === undefined) params.delete(key);
+            else params.set(key, value);
+        }
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    }, [searchParams, router, pathname]);
+
+    const fetchData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const apiSort = SORT_MAP[sortOrder] || '-createdAt';
+            const paginationParams = { page: currentPage, limit: ITEMS_PER_PAGE, sort: apiSort };
+
+            let result;
+            if (categorySlug) {
+                result = await getArticlesByCategoryPaginated(categorySlug, paginationParams, { cache: 'no-store' });
+            } else {
+                result = await getArticlesPaginated(paginationParams, { cache: 'no-store' });
+            }
+            setArticles(result.data);
+            setPagination(result.pagination);
+
+            // Fetch categories for sidebar (only once basically, but needed for display)
+            const cats = await fetchCategories();
+            setCategories(cats);
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Lỗi",
+                description: (error as Error).message,
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }, [categorySlug, currentPage, sortOrder, toast]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            try {
-                const [articleData, categoryData] = await Promise.all([getArticles(), getCategories()]);
-                setArticles(articleData);
-                setCategories(categoryData);
-            } catch (error) {
-                toast({
-                    variant: "destructive",
-                    title: "Lỗi",
-                    description: (error as Error).message,
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchData();
-    }, [toast]);
+    }, [fetchData]);
 
     const handleCategoryChange = (slug: string) => {
-        const params = new URLSearchParams(searchParams.toString());
         if (!slug || slug === 'all') {
-            params.delete('category');
+            updateParams({ category: null, page: null });
         } else {
-            params.set('category', slug);
+            updateParams({ category: slug, page: null });
         }
-        router.push(`${pathname}?${params.toString()}`);
     };
 
-    const displayedArticles = useMemo(() => {
-        // 1. Filtering
-        let filtered = articles;
-        if (categorySlug) {
-            const selectedCategory = findCategoryBySlug(categories, categorySlug);
-            if (selectedCategory) {
-                const validSlugs = getDescendantCategorySlugs(selectedCategory);
-                filtered = articles.filter(article => validSlugs.includes(article.category.slug));
-            } else {
-                filtered = [];
-            }
-        }
+    const handleSortChange = (newSort: string) => {
+        updateParams({ sort: newSort, page: null });
+    };
 
-        // 2. Sorting
-        return [...filtered].sort((a, b) => {
-            switch (sortOrder) {
-                case 'newest':
-                    // Assuming createdAt is available from timestamps: true
-                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                case 'oldest':
-                    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-                case 'a-z':
-                    return a.title.localeCompare(b.title);
-                default:
-                    return 0;
-            }
-        });
-    }, [articles, categories, categorySlug, sortOrder]);
+    const handlePageChange = (page: number) => {
+        updateParams({ page: String(page) });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const currentCategoryName = useMemo(() => {
         if (!categorySlug) return "Tất cả bài viết";
@@ -156,17 +163,12 @@ const ArticlesView = () => {
     }, [categories, categorySlug]);
 
     const categoryOptionsToDisplay = useMemo(() => {
-        if (!categorySlug) {
-            return categories; // Show all categories if none is selected
-        }
+        if (!categorySlug) return categories;
         const result = findCategoryWithParent(categorySlug, categories);
         if (result) {
-            if (result.parent) {
-                return [result.parent];
-            }
-            return [result.found];
+            return result.parent ? [result.parent] : [result.found];
         }
-        return categories; // Fallback
+        return categories;
     }, [categorySlug, categories]);
 
     return (
@@ -177,7 +179,7 @@ const ArticlesView = () => {
             </header>
 
             <div className="mb-8 flex flex-col sm:flex-row justify-end gap-4">
-                <Select onValueChange={setSortOrder} defaultValue={sortOrder} disabled={isLoading}>
+                <Select onValueChange={handleSortChange} value={sortOrder} disabled={isLoading}>
                     <SelectTrigger className="w-full sm:w-[200px]">
                         <SelectValue placeholder="Sắp xếp theo..." />
                     </SelectTrigger>
@@ -192,6 +194,7 @@ const ArticlesView = () => {
                         <SelectValue placeholder="Lọc theo danh mục..." />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="all">Tất cả danh mục</SelectItem>
                         <CategoryOptions categories={categoryOptionsToDisplay} />
                     </SelectContent>
                 </Select>
@@ -199,13 +202,32 @@ const ArticlesView = () => {
 
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {Array.from({ length: 6 }).map((_, index) => (<Card key={index}><Skeleton className="h-[200px] w-full" /><CardContent className="p-4"><Skeleton className="h-4 w-1/4 mb-2" /><Skeleton className="h-6 w-full mb-2" /><Skeleton className="h-4 w-full" /></CardContent><CardFooter><Skeleton className="h-4 w-1/2" /></CardFooter></Card>))}
+                    {Array.from({ length: 6 }).map((_, index) => (
+                        <Card key={index}>
+                            <Skeleton className="h-[200px] w-full" />
+                            <CardContent className="p-4">
+                                <Skeleton className="h-4 w-1/4 mb-2" />
+                                <Skeleton className="h-6 w-full mb-2" />
+                                <Skeleton className="h-4 w-full" />
+                            </CardContent>
+                            <CardFooter><Skeleton className="h-4 w-1/2" /></CardFooter>
+                        </Card>
+                    ))}
                 </div>
             ) : (
-                displayedArticles.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {displayedArticles.map(article => (<ArticleCard key={article._id} article={article} />))}
-                    </div>
+                articles.length > 0 ? (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {articles.map(article => (<ArticleCard key={article._id} article={article} />))}
+                        </div>
+                        {pagination && (
+                            <PaginationControls
+                                pagination={pagination}
+                                onPageChange={handlePageChange}
+                                isLoading={isLoading}
+                            />
+                        )}
+                    </>
                 ) : (
                     <div className="text-center py-16"><p className="text-base text-muted-foreground">Không tìm thấy bài viết nào trong danh mục này.</p></div>
                 )
