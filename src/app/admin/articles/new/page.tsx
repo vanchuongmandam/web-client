@@ -45,7 +45,6 @@ const articleFormSchema = z.object({
         url: z.string(),
         mediaType: z.enum(['image', 'video', 'pdf']),
         caption: z.string().optional(),
-        isRestricted: z.boolean().default(false).optional(), // ĐÃ SỬA: Thêm field isRestricted
     })),
 });
 type ArticleFormValues = z.infer<typeof articleFormSchema>;

@@ -45,7 +45,6 @@ const articleFormSchema = z.object({
         url: z.string(),
         mediaType: z.enum(['image', 'video', 'pdf']),
         caption: z.string().optional(),
-        isRestricted: z.boolean().default(false).optional(),
     })),
 });
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
@@ -324,25 +323,7 @@ export default function EditArticlePage() {
                                                 {m.mediaType === 'image' && m.url && <Image src={m.url} alt="preview" width={40} height={40} className="rounded object-cover" />}
                                                 {m.mediaType === 'pdf' && <FileText className="h-10 w-10 text-red-500" />}
                                                 {m.mediaType === 'video' && <ImageIcon className="h-10 w-10 text-muted-foreground" />}
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm truncate font-medium">{m.url.split('/').pop()}</p>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <input
-                                                            type="checkbox"
-                                                            id={`restricted-${index}`}
-                                                            checked={m.isRestricted || false}
-                                                            onChange={(e) => {
-                                                                const newMedia = [...mediaValue];
-                                                                newMedia[index].isRestricted = e.target.checked;
-                                                                form.setValue('media', newMedia);
-                                                            }}
-                                                            className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-                                                        />
-                                                        <label htmlFor={`restricted-${index}`} className="text-xs text-muted-foreground cursor-pointer select-none">
-                                                            Hạn chế truy cập (Yêu cầu duyệt)
-                                                        </label>
-                                                    </div>
-                                                </div>
+                                                <p className="text-sm truncate flex-1">{m.url.split('/').pop()}</p>
                                                 <Button type="button" variant="ghost" size="icon" onClick={() => removeMedia(index)}><X className="h-4 w-4" /></Button>
                                             </div>
                                         ))}

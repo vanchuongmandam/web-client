@@ -132,7 +132,6 @@ export async function getArticlesByCategory(
   return res.data;
 }
 
-/** Get articles by category slug with full pagination metadata. */
 export async function getArticlesByCategoryPaginated(
   categorySlug: string,
   params?: ArticlePaginationParams,
@@ -145,6 +144,27 @@ export async function getArticlesByCategoryPaginated(
   );
   return { data: res.data, pagination: res.pagination! };
 }
+
+/** Search articles with text query and pagination metadata. */
+export async function searchArticlesPaginated(
+  searchQuery: string,
+  params?: ArticlePaginationParams,
+  fetchOptions?: RequestInit,
+): Promise<PaginatedResponse<Article>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  // Use manual fetch because we want to format query nicely and avoid double encoding `?q=` vs `&q=`
+  const baseUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/articles/search?q=${encodeURIComponent(searchQuery)}`;
+  const finalUrl = query ? `${baseUrl}&${query}` : baseUrl;
+  
+  const res = await fetch(finalUrl, fetchOptions);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Failed to search articles');
+  }
+  const json = await res.json();
+  return { data: json.data, pagination: json.pagination! };
+}
+
 
 export async function getArticleBySlug(
   slug: string,

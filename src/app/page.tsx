@@ -1,13 +1,6 @@
 // src/app/page.tsx
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -17,6 +10,7 @@ import type { Article, Category } from "@/lib/types";
 import { getCategories, getArticles as fetchAllArticles } from "@/lib/api";
 import ArticleCard from "@/components/articles/ArticleCard";
 import NewspaperArticleCard from "@/components/articles/NewspaperArticleCard";
+import TrendingCarousel from "@/components/articles/TrendingCarousel";
 
 function CategorySectionsSkeleton() {
   return (
@@ -161,17 +155,7 @@ export default async function Home() {
       {trendingArticles.length > 0 && (
         <section className="mb-12">
           <h2 className="font-headline text-3xl font-bold mb-6">Xu hướng</h2>
-          <Carousel opts={{ loop: trendingArticles.length > 1 }} className="w-full">
-            <CarouselContent className="-ml-4">
-              {trendingArticles.map((article) => (
-                <CarouselItem key={article.slug} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                  <ArticleCard article={article} />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="hidden sm:flex" />
-            <CarouselNext className="hidden sm:flex" />
-          </Carousel>
+          <TrendingCarousel articles={trendingArticles} />
         </section>
       )}
 
