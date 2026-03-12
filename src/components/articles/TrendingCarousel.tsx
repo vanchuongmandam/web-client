@@ -19,7 +19,7 @@ export default function TrendingCarousel({ articles }: { articles: Article[] }) 
       playOnInit: true,
       stopOnInteraction: false,
       stopOnMouseEnter: true,
-      speed: 5
+      speed: 3
     })
   );
 
