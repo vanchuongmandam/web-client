@@ -11,6 +11,7 @@ import { getCategories, getArticles as fetchAllArticles } from "@/lib/api";
 import ArticleCard from "@/components/articles/ArticleCard";
 import NewspaperArticleCard from "@/components/articles/NewspaperArticleCard";
 import TrendingCarousel from "@/components/articles/TrendingCarousel";
+import { FeaturedImageFallback } from "@/components/articles/FeaturedImageFallback";
 
 function CategorySectionsSkeleton() {
   return (
@@ -147,7 +148,13 @@ export default async function Home() {
       {/* === HERO SECTION === */}
       {featuredArticle && (
         <section className="mb-12">
-          <Card className="grid md:grid-cols-2 overflow-hidden border-2 border-primary/20 shadow-xl"><div className="relative h-64 md:h-auto bg-muted">{featuredImage && (<Image src={featuredImage} alt={featuredArticle.title} fill className="object-cover" priority />)}</div><div className="p-8 flex flex-col justify-center"><Badge variant="secondary" className="mb-2 w-fit">{featuredArticle.category.name}</Badge><h1 className="font-headline text-4xl md:text-5xl font-bold mb-4 text-primary"><Link href={`/articles/${featuredArticle.slug}`} className="hover:underline">{featuredArticle.title}</Link></h1><p className="text-muted-foreground mb-4">{featuredArticle.author}</p><p className="mb-6">{featuredArticle.excerpt}</p><Button asChild className="w-fit" variant="accent"><Link href={`/articles/${featuredArticle.slug}`}>Đọc tiếp <ArrowRight className="ml-2 h-4 w-4" /></Link></Button></div></Card>
+          <Card className="grid md:grid-cols-2 overflow-hidden border-2 border-primary/20 shadow-xl">
+            <FeaturedImageFallback 
+              initialImageUrl={featuredImage} 
+              title={featuredArticle.title} 
+              priority 
+            />
+            <div className="p-8 flex flex-col justify-center"><Badge variant="secondary" className="mb-2 w-fit">{featuredArticle.category.name}</Badge><h1 className="font-headline text-4xl md:text-5xl font-bold mb-4 text-primary"><Link href={`/articles/${featuredArticle.slug}`} className="hover:underline">{featuredArticle.title}</Link></h1><p className="text-muted-foreground mb-4">{featuredArticle.author}</p><p className="mb-6">{featuredArticle.excerpt}</p><Button asChild className="w-fit" variant="accent"><Link href={`/articles/${featuredArticle.slug}`}>Đọc tiếp <ArrowRight className="ml-2 h-4 w-4" /></Link></Button></div></Card>
         </section>
       )}
 

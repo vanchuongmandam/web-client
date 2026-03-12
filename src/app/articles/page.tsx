@@ -6,14 +6,11 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import type { Article, Category, PaginationMeta } from '@/lib/types';
 import { getArticlesPaginated, getArticlesByCategoryPaginated } from '@/lib/api';
-import { Card, CardContent, CardFooter, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { findCategoryBySlug, findCategoryWithParent, formatVietnameseDate } from '@/lib/utils';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import ArticleCard from '@/components/articles/ArticleCard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -31,34 +28,6 @@ const SORT_MAP: Record<string, string> = {
 };
 
 // --- Sub-components ---
-const ArticleCard = ({ article }: { article: Article }) => (
-    <Card className="h-full flex flex-col overflow-hidden group transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
-        <div className="p-0">
-            <div className="relative aspect-video w-full bg-muted">
-                {article.media?.[0]?.url ? (
-                    <Image
-                        src={article.media[0].url}
-                        alt={article.title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                ) : <div className="h-full w-full bg-secondary"></div>}
-            </div>
-        </div>
-        <CardContent className="p-4 flex-grow">
-            <Badge variant="outline" className="mb-2">{article.category?.name}</Badge>
-            <CardTitle className="font-headline text-xl leading-tight mb-2">
-                <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">{article.title}</Link>
-            </CardTitle>
-            <p className="text-sm text-muted-foreground line-clamp-3">{article.excerpt}</p>
-        </CardContent>
-        <CardFooter className="p-4 pt-0">
-            <p className="text-xs text-muted-foreground">{article.author} &bull; {formatVietnameseDate(article.date)}</p>
-        </CardFooter>
-    </Card>
-);
-
 const CategoryOptions = ({ categories }: { categories: Category[] }) => (
     <>
         {categories.map(category => (
@@ -203,15 +172,17 @@ const ArticlesView = () => {
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {Array.from({ length: 6 }).map((_, index) => (
-                        <Card key={index}>
-                            <Skeleton className="h-[200px] w-full" />
-                            <CardContent className="p-4">
-                                <Skeleton className="h-4 w-1/4 mb-2" />
-                                <Skeleton className="h-6 w-full mb-2" />
-                                <Skeleton className="h-4 w-full" />
-                            </CardContent>
-                            <CardFooter><Skeleton className="h-4 w-1/2" /></CardFooter>
-                        </Card>
+                        <div key={index} className="h-full flex flex-col border rounded-lg overflow-hidden animate-pulse">
+                            <div className="h-[200px] w-full bg-muted" />
+                            <div className="p-4 flex-grow space-y-2">
+                                <div className="h-4 w-1/4 bg-muted rounded" />
+                                <div className="h-6 w-full bg-muted rounded" />
+                                <div className="h-4 w-full bg-muted rounded" />
+                            </div>
+                            <div className="p-4 pt-0">
+                                <div className="h-4 w-1/2 bg-muted rounded" />
+                            </div>
+                        </div>
                     ))}
                 </div>
             ) : (
