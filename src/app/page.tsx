@@ -7,11 +7,16 @@ import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Suspense } from "react";
 import type { Article, Category } from "@/lib/types";
-import { getCategories, getArticles as fetchAllArticles } from "@/lib/api";
+import { getCategories, getArticles as fetchAllArticles, getArticlesByCategory } from "@/lib/api";
 import ArticleCard from "@/components/articles/ArticleCard";
 import NewspaperArticleCard from "@/components/articles/NewspaperArticleCard";
 import TrendingCarousel from "@/components/articles/TrendingCarousel";
 import { FeaturedImageFallback } from "@/components/articles/FeaturedImageFallback";
+import {
+  HOMEPAGE_LEFT_COLUMN_SLUGS,
+  HOMEPAGE_RIGHT_COLUMN_SLUGS,
+  HOMEPAGE_ARTICLES_PER_CATEGORY,
+} from "@/lib/constants";
 
 function CategorySectionsSkeleton() {
   return (
@@ -40,53 +45,30 @@ function CategorySectionsSkeleton() {
   );
 }
 
-function groupArticlesByCategory(
-  articles: Article[],
-  slugs: string[],
-  categories: Category[],
-): { slug: string; name: string; articles: Article[] }[] {
-  return slugs.map((slug) => {
-    const category = categories.find((cat) => cat.slug === slug);
-    if (!category) return { slug, name: slug, articles: [] };
-
-    // Collect this category's ID + all descendant IDs
-    const categoryIds = new Set<string>();
-    const collectIds = (cat: Category) => {
-      categoryIds.add(cat._id);
-      cat.children?.forEach(collectIds);
-    };
-    collectIds(category);
-
-    const filtered = articles.filter((a) =>
-      categoryIds.has(typeof a.category === 'object' ? a.category._id : a.category as unknown as string)
-    );
-
-    // Sort by newest first
-    filtered.sort((a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-
-    return { slug, name: category.name, articles: filtered };
-  });
-}
 
 async function CategorySections({
   categories,
-  allArticles,
 }: {
   categories: Category[];
-  allArticles: Article[];
 }) {
-  const leftColumnSlugs = [
-    'danh-cho-chuyen-van',
-    'van-chuong-hoc-va-thi',
-    'van-chuong-thu-vi',
-    'dien-dan-van-chuong',
-  ];
-  const rightColumnSlugs = ['goc-sang-tac'];
+  const allSlugs = [...HOMEPAGE_LEFT_COLUMN_SLUGS, ...HOMEPAGE_RIGHT_COLUMN_SLUGS];
 
-  const leftColumnSections = groupArticlesByCategory(allArticles, leftColumnSlugs, categories);
-  const rightColumnSections = groupArticlesByCategory(allArticles, rightColumnSlugs, categories);
+  // Fetch articles per category with a limit instead of fetching all articles
+  const sectionResults = await Promise.all(
+    allSlugs.map(async (slug) => {
+      const category = categories.find((cat) => cat.slug === slug);
+      if (!category) return { slug, name: slug, articles: [] as Article[] };
+      const articles = await getArticlesByCategory(slug, { limit: HOMEPAGE_ARTICLES_PER_CATEGORY }).catch(() => [] as Article[]);
+      return { slug, name: category.name, articles };
+    })
+  );
+
+  const leftColumnSections = sectionResults.filter((s) =>
+    (HOMEPAGE_LEFT_COLUMN_SLUGS as readonly string[]).includes(s.slug)
+  );
+  const rightColumnSections = sectionResults.filter((s) =>
+    (HOMEPAGE_RIGHT_COLUMN_SLUGS as readonly string[]).includes(s.slug)
+  );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -95,7 +77,7 @@ async function CategorySections({
           <section key={section.slug}>
             <h2 className="font-headline text-3xl font-bold mb-6">{section.name}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {section.articles.slice(0, 4).map((article) => (
+              {section.articles.map((article) => (
                 <ArticleCard key={article.slug} article={article} />
               ))}
             </div>
@@ -107,7 +89,7 @@ async function CategorySections({
           <section key={section.slug} className="sticky top-8">
             <h2 className="font-headline text-3xl font-bold mb-6">{section.name}</h2>
             <div className="grid grid-cols-2 gap-4">
-              {section.articles.slice(0, 4).map((article) => (
+              {section.articles.map((article) => (
                 <NewspaperArticleCard key={article.slug} article={article} />
               ))}
             </div>
@@ -120,7 +102,7 @@ async function CategorySections({
 
 export default async function Home() {
   const [allArticles, categories] = await Promise.all([
-    fetchAllArticles({ limit: 100 }).catch(() => [] as Article[]),
+    fetchAllArticles({ limit: 10, sort: '-createdAt' }).catch(() => [] as Article[]),
     getCategories().catch(() => [] as Category[]),
   ]);
 
@@ -168,7 +150,7 @@ export default async function Home() {
 
       {/* === MAIN TWO-COLUMN LAYOUT === */}
       <Suspense fallback={<CategorySectionsSkeleton />}>
-        <CategorySections categories={categories} allArticles={sortedArticles} />
+        <CategorySections categories={categories} />
       </Suspense>
     </div>
   );

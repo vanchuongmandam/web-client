@@ -115,7 +115,10 @@ export async function getArticlesPaginated(
 ): Promise<PaginatedResponse<Article>> {
   const query = buildQuery(params as Record<string, string | number | undefined> || {});
   const res = await apiFetch<ApiEnvelope<Article[]>>(`/articles${query}`, { next: { revalidate: 3600 }, ...fetchOptions });
-  return { data: res.data, pagination: res.pagination! };
+  if (!res.pagination) {
+    throw new Error('API response missing pagination metadata for getArticlesPaginated');
+  }
+  return { data: res.data, pagination: res.pagination };
 }
 
 /** Get articles by category slug (returns only data). */
@@ -142,7 +145,10 @@ export async function getArticlesByCategoryPaginated(
     `/categories/${categorySlug}/articles${query}`,
     { next: { revalidate: 3600 }, ...fetchOptions },
   );
-  return { data: res.data, pagination: res.pagination! };
+  if (!res.pagination) {
+    throw new Error('API response missing pagination metadata for getArticlesByCategoryPaginated');
+  }
+  return { data: res.data, pagination: res.pagination };
 }
 
 /** Search articles with text query and pagination metadata. */
@@ -162,7 +168,10 @@ export async function searchArticlesPaginated(
     throw new Error(errorData.message || 'Failed to search articles');
   }
   const json = await res.json();
-  return { data: json.data, pagination: json.pagination! };
+  if (!json.pagination) {
+    throw new Error('API response missing pagination metadata for searchArticlesPaginated');
+  }
+  return { data: json.data, pagination: json.pagination };
 }
 
 
@@ -336,7 +345,10 @@ export async function getAccessRequestsPaginated(
   const res = await apiFetch<ApiEnvelope<AccessRequest[]>>(`/requests${query}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  return { data: res.data, pagination: res.pagination! };
+  if (!res.pagination) {
+    throw new Error('API response missing pagination metadata for getAccessRequestsPaginated');
+  }
+  return { data: res.data, pagination: res.pagination };
 }
 
 export async function reviewAccessRequest(
