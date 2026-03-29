@@ -1,4 +1,4 @@
-import type { Article, Category, Comment, Media, PaginationMeta, PaginatedResponse } from '@/lib/types';
+import type { Article, Category, Comment, Media, PaginationMeta, PaginatedResponse, MarketDocument, Order, Purchase, UserProfile, BillingAddress } from '@/lib/types';
 
 // ---------------------------------------------------------------------------
 // Base URL & fetch helper
@@ -375,4 +375,222 @@ export async function uploadFile(
   }
   const data = await res.json();
   return data.data.media;
+}
+
+// ---------------------------------------------------------------------------
+// User Profile
+// ---------------------------------------------------------------------------
+
+export async function getProfile(token: string): Promise<UserProfile> {
+  const res = await apiFetch<ApiEnvelope<UserProfile>>('/auth/profile', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+}
+
+export async function updateProfile(
+  data: Partial<Pick<UserProfile, 'displayName' | 'email' | 'bio' | 'phone' | 'billingAddress' | 'preferences'>>,
+  token: string,
+): Promise<UserProfile> {
+  const res = await apiFetch<ApiEnvelope<UserProfile>>('/auth/profile', {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+// ---------------------------------------------------------------------------
+// Documents (Marketplace)
+// ---------------------------------------------------------------------------
+
+export interface DocumentListParams {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  category?: string;
+  featured?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  isFree?: string;
+  search?: string;
+  status?: string;
+}
+
+export async function getDocuments(
+  params?: DocumentListParams,
+  fetchOptions?: RequestInit,
+): Promise<PaginatedResponse<MarketDocument>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<MarketDocument[]>>(`/documents${query}`, {
+    next: { revalidate: 60 },
+    ...fetchOptions,
+  });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+export async function getDocumentBySlug(
+  slug: string,
+  fetchOptions?: RequestInit,
+): Promise<MarketDocument | null> {
+  try {
+    const res = await apiFetch<ApiEnvelope<MarketDocument>>(`/documents/${slug}`, fetchOptions);
+    return res.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function createDocument(
+  data: Record<string, unknown>,
+  token: string,
+): Promise<MarketDocument> {
+  const res = await apiFetch<ApiEnvelope<MarketDocument>>('/documents', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function updateDocument(
+  slug: string,
+  data: Record<string, unknown>,
+  token: string,
+): Promise<MarketDocument> {
+  const res = await apiFetch<ApiEnvelope<MarketDocument>>(`/documents/${slug}`, {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function deleteDocument(
+  slug: string,
+  token: string,
+): Promise<void> {
+  await apiFetch<ApiEnvelope<unknown>>(`/documents/${slug}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function getDocumentDownload(
+  documentId: string,
+  token: string,
+): Promise<{ downloadUrl: string; title: string; fileFormat: string }> {
+  const res = await apiFetch<ApiEnvelope<{ downloadUrl: string; title: string; fileFormat: string }>>(
+    `/documents/${documentId}/download`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return res.data;
+}
+
+export async function getAdminDocuments(
+  params?: DocumentListParams,
+  token?: string,
+): Promise<PaginatedResponse<MarketDocument>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<MarketDocument[]>>(`/admin/documents${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+// ---------------------------------------------------------------------------
+// Orders
+// ---------------------------------------------------------------------------
+
+export async function createOrder(
+  documentIds: string[],
+  token: string,
+): Promise<Order> {
+  const res = await apiFetch<ApiEnvelope<Order>>('/orders', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ documentIds }),
+  });
+  return res.data;
+}
+
+export async function getUserOrders(
+  params?: { page?: number; limit?: number; status?: string },
+  token?: string,
+): Promise<PaginatedResponse<Order>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<Order[]>>(`/orders${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+export async function getOrderByCode(
+  orderCode: string,
+  token: string,
+): Promise<Order> {
+  const res = await apiFetch<ApiEnvelope<Order>>(`/orders/${orderCode}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+}
+
+export async function cancelOrder(
+  orderCode: string,
+  token: string,
+): Promise<Order> {
+  const res = await apiFetch<ApiEnvelope<Order>>(`/orders/${orderCode}/cancel`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+}
+
+export async function getAdminOrders(
+  params?: { page?: number; limit?: number; status?: string },
+  token?: string,
+): Promise<PaginatedResponse<Order>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<Order[]>>(`/admin/orders${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+// ---------------------------------------------------------------------------
+// Purchases
+// ---------------------------------------------------------------------------
+
+export async function getUserPurchases(
+  params?: { page?: number; limit?: number },
+  token?: string,
+): Promise<PaginatedResponse<Purchase>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<Purchase[]>>(`/purchases${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+export async function checkDocumentOwnership(
+  documentId: string,
+  token: string,
+): Promise<{ owned: boolean }> {
+  const res = await apiFetch<ApiEnvelope<{ owned: boolean }>>(`/purchases/check/${documentId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+}
+
+export async function addReview(
+  purchaseId: string,
+  data: { rating: number; review?: string },
+  token: string,
+): Promise<Purchase> {
+  const res = await apiFetch<ApiEnvelope<Purchase>>(`/purchases/${purchaseId}/review`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
 }
