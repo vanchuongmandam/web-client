@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn, UserPlus, User, BookOpen, ShoppingBag, LayoutDashboard, LogOut } from "lucide-react";
 
 export function AuthControls() {
   const { user, logout, isLoading } = useAuth();
@@ -31,15 +31,38 @@ export function AuthControls() {
             <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-52">
           <DropdownMenuLabel>Chào, {user.username}</DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/profile" className="flex items-center">
+              <User className="mr-2 h-4 w-4" /> Hồ sơ cá nhân
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/profile/purchases" className="flex items-center">
+              <BookOpen className="mr-2 h-4 w-4" /> Tài liệu đã mua
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/profile/orders" className="flex items-center">
+              <ShoppingBag className="mr-2 h-4 w-4" /> Lịch sử đơn hàng
+            </Link>
+          </DropdownMenuItem>
           {user.role === "admin" && (
-            <DropdownMenuItem asChild>
-              <Link href="/admin">Trang quản trị</Link>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/admin" className="flex items-center">
+                  <LayoutDashboard className="mr-2 h-4 w-4" /> Trang quản trị
+                </Link>
+              </DropdownMenuItem>
+            </>
           )}
-          <DropdownMenuItem onClick={logout}>Đăng xuất</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={logout} className="flex items-center text-destructive focus:text-destructive">
+            <LogOut className="mr-2 h-4 w-4" /> Đăng xuất
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     );

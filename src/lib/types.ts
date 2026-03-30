@@ -123,6 +123,7 @@ export interface MarketDocument {
   originalPrice?: number;
   isFree: boolean;
   previewImages: string[];
+  fullFile?: string;
   previewFile?: string;
   fileFormat: 'pdf' | 'docx' | 'zip';
   fileSize?: number;

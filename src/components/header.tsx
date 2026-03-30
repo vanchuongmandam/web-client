@@ -25,7 +25,10 @@ import { SearchButtonAndOverlay } from "@/components/search-button-and-overlay";
 export async function Header() {
   const parentCategories: Category[] = await getCategories().catch(() => []);
 
-  const navItems = [{ name: "Trang chủ", href: "/" }];
+  const navItems = [
+    { name: "Trang chủ", href: "/" },
+    { name: "Tài liệu", href: "/documents" },
+  ];
 
   return (
     <>
@@ -151,6 +154,12 @@ export async function Header() {
               className="transition-colors hover:text-primary px-2 py-2 rounded-md"
             >
               Trang chủ
+            </Link>
+            <Link
+              href="/documents"
+              className="transition-colors hover:text-primary px-2 py-2 rounded-md"
+            >
+              Tài liệu
             </Link>
             {parentCategories.map((category) => (
               <Link
