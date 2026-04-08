@@ -1,11 +1,10 @@
 
-import Image from "next/image";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import type { Article } from "@/lib/types";
 import { formatVietnameseDate } from "@/lib/utils";
+import { getArticleBySlug } from "@/lib/api";
 import type { Metadata } from "next";
 
 // Import the new image gallery component
@@ -25,29 +24,22 @@ import ArticlePdfSection from "./article-pdf-section";
 import RelatedArticles from "./related-articles";
 import ReadingSuggestions from "./reading-suggestions";
 import CommentSection from "./comment-section";
+import { getArticles } from "@/lib/api";
 
-// --- API Function to get a specific article ---
-async function getArticle(slug: string): Promise<Article | null> {
+/** Pre-render known article slugs at build time for improved SEO and performance. */
+export async function generateStaticParams() {
   try {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    // OPTIMIZED: Changed cache strategy to revalidate every hour
-    const response = await fetch(`${apiBaseUrl}/articles/${slug}`, { next: { revalidate: 3600 } });
-    if (!response.ok) {
-      if (response.status === 404) return null;
-      throw new Error(`Failed to fetch article: ${response.statusText}`);
-    }
-    const json = await response.json();
-    return json.data ?? json;
-  } catch (error) {
-    console.error(`An error occurred while fetching article ${slug}:`, error);
-    return null;
+    const articles = await getArticles({ limit: 100 });
+    return articles.map((article) => ({ slug: article.slug }));
+  } catch {
+    return [];
   }
 }
 
 // --- generateMetadata for dynamic SEO / OG tags ---
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getArticle(slug);
+  const article = await getArticleBySlug(slug, { next: { revalidate: 3600 } });
   if (!article) {
     return {
       title: "Bài viết không tồn tại",
@@ -87,7 +79,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 // --- Article Detail Page Component (FIXED) ---
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = await getArticle(slug);
+  const article = await getArticleBySlug(slug, { next: { revalidate: 3600 } });
 
   if (!article) {
     notFound();
