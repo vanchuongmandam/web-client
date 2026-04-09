@@ -3,38 +3,31 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { getAdminOrders } from '@/lib/api';
+import { getAdminOrders, confirmAdminOrder, refundAdminOrder } from '@/lib/api';
 import type { Order, PaginationMeta } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Package, DollarSign } from 'lucide-react';
+import { Loader2, Package, TimerReset, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 }
 
 const statusLabels: Record<string, string> = {
-  pending: 'Cho thanh toan',
-  paid: 'Da thanh toan',
-  confirmed: 'Da xac nhan',
-  cancelled: 'Da huy',
-  expired: 'Het han',
-  refunded: 'Da hoan tien',
-};
-
-const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  paid: 'bg-green-100 text-green-800',
-  confirmed: 'bg-blue-100 text-blue-800',
-  cancelled: 'bg-red-100 text-red-800',
-  expired: 'bg-gray-100 text-gray-800',
-  refunded: 'bg-purple-100 text-purple-800',
+  pending: 'Chờ thanh toán',
+  paid: 'Đã thanh toán',
+  confirmed: 'Đã xác nhận',
+  cancelled: 'Đã hủy',
+  expired: 'Hết hạn',
+  refunded: 'Đã hoàn tiền',
 };
 
 export default function AdminOrdersPage() {
@@ -57,7 +50,7 @@ export default function AdminOrdersPage() {
       setOrders(res.data);
       setPagination(res.pagination);
     } catch {
-      toast({ title: 'Loi', description: 'Khong the tai danh sach don hang', variant: 'destructive' });
+      toast({ title: 'Lỗi', description: 'Không thể tải danh sách đơn hàng', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -65,9 +58,49 @@ export default function AdminOrdersPage() {
 
   useEffect(() => { loadOrders(); }, [loadOrders]);
 
+  const handleAdminConfirm = async (orderCode: string) => {
+    if (!token) return;
+    const note = window.prompt('Ghi chú xác nhận thủ công (có thể bỏ trống):', '');
+    if (note === null) return;
+
+    try {
+      await confirmAdminOrder(orderCode, token, note || undefined);
+      toast({ title: 'Đã xác nhận', description: 'Đơn hàng đã được xác nhận thủ công.' });
+      loadOrders();
+    } catch (err: unknown) {
+      toast({
+        title: 'Lỗi',
+        description: err instanceof Error ? err.message : 'Không thể xác nhận đơn hàng',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAdminRefund = async (orderCode: string) => {
+    if (!token) return;
+    const shouldRefund = window.confirm('Bạn có chắc muốn hoàn tiền và thu hồi quyền truy cập của đơn hàng này?');
+    if (!shouldRefund) return;
+
+    const note = window.prompt('Ghi chú hoàn tiền (không bắt buộc):', '');
+    if (note === null) return;
+
+    try {
+      await refundAdminOrder(orderCode, token, note || undefined);
+      toast({ title: 'Đã hoàn tiền', description: 'Đơn hàng đã được hoàn tiền.' });
+      loadOrders();
+    } catch (err: unknown) {
+      toast({
+        title: 'Lỗi',
+        description: err instanceof Error ? err.message : 'Không thể hoàn tiền',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Calculate revenue stats from current page (simplified)
   const paidOrders = orders.filter((o) => o.status === 'paid' || o.status === 'confirmed');
   const totalRevenue = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const pendingCount = orders.filter((o) => o.status === 'pending').length;
 
   if (loading) {
     return (
@@ -78,69 +111,74 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold flex items-center gap-2">
-        <Package className="h-8 w-8" /> Quan ly don hang
-      </h1>
+    <div className="mx-auto w-full max-w-7xl space-y-6">
+      <header className="rounded-xl border bg-card p-5">
+        <h1 className="mb-1 flex items-center gap-2 text-2xl font-bold">
+          <Package />
+          Quản lý đơn hàng
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Giám sát giao dịch marketplace và trạng thái thanh toán theo thời gian thực.
+        </p>
+      </header>
 
-      {/* Stats Cards */}
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <Package className="h-10 w-10 text-primary" />
-            <div>
-              <div className="text-sm text-muted-foreground">Tong don hang</div>
-              <div className="text-2xl font-bold">{pagination?.total || 0}</div>
-            </div>
-          </CardContent>
+          <CardHeader className="pb-2">
+            <CardDescription>Tổng đơn hàng</CardDescription>
+            <CardTitle className="text-2xl">{pagination?.total || 0}</CardTitle>
+          </CardHeader>
         </Card>
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <DollarSign className="h-10 w-10 text-green-500" />
-            <div>
-              <div className="text-sm text-muted-foreground">Doanh thu (trang nay)</div>
-              <div className="text-2xl font-bold">{formatPrice(totalRevenue)}</div>
-            </div>
-          </CardContent>
+          <CardHeader className="pb-2">
+            <CardDescription>Doanh thu trên trang hiện tại</CardDescription>
+            <CardTitle className="text-2xl">{formatPrice(totalRevenue)}</CardTitle>
+          </CardHeader>
         </Card>
         <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <Loader2 className="h-10 w-10 text-yellow-500" />
-            <div>
-              <div className="text-sm text-muted-foreground">Don cho xu ly</div>
-              <div className="text-2xl font-bold">{orders.filter((o) => o.status === 'pending').length}</div>
-            </div>
-          </CardContent>
+          <CardHeader className="pb-2">
+            <CardDescription>Đơn đang chờ xử lý</CardDescription>
+            <CardTitle className="text-2xl">{pendingCount}</CardTitle>
+          </CardHeader>
         </Card>
       </div>
 
-      {/* Filter */}
-      <div className="mb-4">
-        <Select value={statusFilter || 'all'} onValueChange={(v) => { setStatusFilter(v === 'all' ? '' : v); setPage(1); }}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Loc trang thai" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tat ca</SelectItem>
-            {Object.entries(statusLabels).map(([key, label]) => (
-              <SelectItem key={key} value={key}>{label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Orders Table */}
       <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Danh sách đơn hàng</CardTitle>
+          <CardDescription>Lọc theo trạng thái để ưu tiên xử lý nhanh.</CardDescription>
+          <Separator />
+          <Select
+            value={statusFilter || 'all'}
+            onValueChange={(v) => {
+              setStatusFilter(v === 'all' ? '' : v);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full md:w-56">
+              <SelectValue placeholder="Lọc trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              {Object.entries(statusLabels).map(([key, label]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Ma don</TableHead>
-                <TableHead>Khach hang</TableHead>
-                <TableHead>San pham</TableHead>
-                <TableHead>Tong tien</TableHead>
-                <TableHead>Trang thai</TableHead>
-                <TableHead>Ngay tao</TableHead>
+                <TableHead>Mã đơn</TableHead>
+                <TableHead>Khách hàng</TableHead>
+                <TableHead>Sản phẩm</TableHead>
+                <TableHead>Tổng tiền</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>Ngày tạo</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -157,19 +195,47 @@ export default function AdminOrdersPage() {
                   </TableCell>
                   <TableCell>{formatPrice(order.totalAmount)}</TableCell>
                   <TableCell>
-                    <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusColors[order.status] || ''}`}>
+                    <Badge variant={order.status === 'cancelled' || order.status === 'expired' ? 'destructive' : 'secondary'}>
                       {statusLabels[order.status] || order.status}
-                    </span>
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {new Date(order.createdAt).toLocaleString('vi-VN')}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-2">
+                      {(order.status === 'pending' || order.status === 'paid') && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleAdminConfirm(order.orderCode)}
+                        >
+                          <CheckCircle2 className="mr-1 h-4 w-4" />
+                          Xác nhận
+                        </Button>
+                      )}
+
+                      {(order.status === 'paid' || order.status === 'confirmed') && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleAdminRefund(order.orderCode)}
+                        >
+                          <RotateCcw className="mr-1 h-4 w-4" />
+                          Hoàn tiền
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
               {orders.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                    Khong co don hang nao
+                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2 py-3">
+                      <TimerReset className="text-muted-foreground" />
+                      <p>Không có đơn hàng nào trong bộ lọc hiện tại.</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
@@ -179,15 +245,7 @@ export default function AdminOrdersPage() {
       </Card>
 
       {pagination && pagination.totalPages > 1 && (
-        <div className="mt-4 flex justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={!pagination.hasPrevPage} onClick={() => setPage((p) => p - 1)}>
-            Trang truoc
-          </Button>
-          <span className="flex items-center text-sm">{pagination.page} / {pagination.totalPages}</span>
-          <Button variant="outline" size="sm" disabled={!pagination.hasNextPage} onClick={() => setPage((p) => p + 1)}>
-            Trang sau
-          </Button>
-        </div>
+        <PaginationControls pagination={pagination} onPageChange={setPage} isLoading={loading} />
       )}
     </div>
   );

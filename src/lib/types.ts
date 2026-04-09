@@ -183,3 +183,36 @@ export interface Purchase {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface AdminTopDocument {
+  documentId: string;
+  title: string;
+  slug: string;
+  purchaseCount: number;
+  revenue: number;
+}
+
+export interface AdminDashboardStats {
+  summary: {
+    totalRevenue: number;
+    totalOrders: number;
+    paidOrders: number;
+    pendingOrders: number;
+    totalDocuments: number;
+    totalDownloads: number;
+  };
+  deltas: {
+    revenueMoM: number;
+    ordersMoM: number;
+  };
+  revenueByMonth: Array<{
+    month: string;
+    revenue: number;
+  }>;
+  activityByMonth: Array<{
+    month: string;
+    orders: number;
+    purchases: number;
+  }>;
+  topDocuments: AdminTopDocument[];
+}

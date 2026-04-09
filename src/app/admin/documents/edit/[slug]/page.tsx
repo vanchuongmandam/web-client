@@ -24,10 +24,51 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft, Pencil } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
+import { uploadFileWithProgress } from "@/lib/api";
+
+const RichTextEditor = dynamic(() => import("@/components/ui/rich-text-editor"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[250px] w-full rounded-md" />,
+});
+
+function detectFileFormat(file: File): "pdf" | "docx" | "zip" {
+  const name = file.name.toLowerCase();
+  const mime = file.type.toLowerCase();
+
+  if (name.endsWith(".pdf") || mime === "application/pdf") return "pdf";
+  if (
+    name.endsWith(".doc") ||
+    name.endsWith(".docx") ||
+    mime === "application/msword" ||
+    mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
+    return "docx";
+  }
+  return "zip";
+}
+
+async function detectPdfPageCount(file: File): Promise<number | null> {
+  const isPdf = file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf";
+  if (!isPdf) return null;
+
+  try {
+    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const data = new Uint8Array(await file.arrayBuffer());
+    const loadingTask = pdfjs.getDocument({ data });
+    const pdf = await loadingTask.promise;
+    return pdf.numPages;
+  } catch {
+    return null;
+  }
+}
 
 export default function EditDocumentPage() {
   const router = useRouter();
@@ -39,11 +80,15 @@ export default function EditDocumentPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [isFullUploading, setIsFullUploading] = useState(false);
+  const [isPreviewUploading, setIsPreviewUploading] = useState(false);
+  const [fullUploadProgress, setFullUploadProgress] = useState(0);
+  const [previewUploadProgress, setPreviewUploadProgress] = useState(0);
 
   const [form, setForm] = useState({
     title: "",
     slug: "",
-    description: "",
+    description: null as Record<string, unknown> | null,
     author: "",
     category: "",
     price: "",
@@ -79,7 +124,10 @@ export default function EditDocumentPage() {
       setForm({
         title: doc.title,
         slug: doc.slug,
-        description: doc.description,
+        description:
+          typeof doc.description === "object" && doc.description !== null
+            ? (doc.description as Record<string, unknown>)
+            : null,
         author: doc.author,
         category: typeof doc.category === "object" ? doc.category._id : (doc.category as string),
         price: String(doc.price),
@@ -105,8 +153,26 @@ export default function EditDocumentPage() {
     loadData();
   }, [loadData]);
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (
+    field: string,
+    value: string | boolean | Record<string, unknown> | null,
+  ) => {
     setForm((f) => ({ ...f, [field]: value }));
+  };
+
+  const applyDetectedMetadata = async (file: File) => {
+    const detectedFormat = detectFileFormat(file);
+    handleChange("fileFormat", detectedFormat);
+    handleChange("fileSize", String(Math.max(1, Math.round(file.size / 1024))));
+
+    if (detectedFormat === "pdf") {
+      const pageCount = await detectPdfPageCount(file);
+      if (pageCount !== null) {
+        handleChange("pageCount", String(pageCount));
+      }
+    } else {
+      handleChange("pageCount", "");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,7 +184,7 @@ export default function EditDocumentPage() {
       const payload: Record<string, unknown> = {
         title: form.title.trim(),
         slug: form.slug.trim(),
-        description: form.description.trim(),
+        description: form.description,
         author: form.author.trim(),
         category: form.category,
         price: form.isFree ? 0 : Number(form.price),
@@ -191,6 +257,7 @@ export default function EditDocumentPage() {
                 id="title"
                 value={form.title}
                 onChange={(e) => handleChange("title", e.target.value)}
+                placeholder="Ví dụ: Tuyển tập đề thi môn Văn..."
                 required
               />
             </div>
@@ -201,18 +268,16 @@ export default function EditDocumentPage() {
                 id="slug"
                 value={form.slug}
                 onChange={(e) => handleChange("slug", e.target.value)}
+                placeholder="tuyen-tap-de-thi-mon-van"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="description">Mô tả *</Label>
-              <Textarea
-                id="description"
-                value={form.description}
-                onChange={(e) => handleChange("description", e.target.value)}
-                rows={4}
-                required
+              <Label htmlFor="description">Mô tả tài liệu *</Label>
+              <RichTextEditor
+                content={form.description ?? undefined}
+                onChange={(html) => handleChange("description", html)}
               />
             </div>
 
@@ -223,12 +288,16 @@ export default function EditDocumentPage() {
                   id="author"
                   value={form.author}
                   onChange={(e) => handleChange("author", e.target.value)}
+                  placeholder="Họ tên tác giả hoặc nguồn..."
                   required
                 />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="category">Danh mục *</Label>
-                <Select value={form.category} onValueChange={(v) => handleChange("category", v)}>
+                <Select
+                  value={form.category}
+                  onValueChange={(v) => handleChange("category", v)}
+                >
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Chọn danh mục" />
                   </SelectTrigger>
@@ -244,23 +313,24 @@ export default function EditDocumentPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="tags">Tags (cách nhau bằng dấu phẩy)</Label>
+              <Label htmlFor="tags">Tags (phân cách bằng dấu phẩy)</Label>
               <Input
                 id="tags"
                 value={form.tags}
                 onChange={(e) => handleChange("tags", e.target.value)}
+                placeholder="văn học, lớp 12, đề thi..."
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* Pricing */}
+        {/* Pricing & Files */}
         <Card>
           <CardHeader>
-            <CardTitle>Giá bán</CardTitle>
+            <CardTitle>Giá & File tài liệu</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-2">
               <Switch
                 id="isFree"
                 checked={form.isFree}
@@ -280,87 +350,132 @@ export default function EditDocumentPage() {
                     step={1000}
                     value={form.price}
                     onChange={(e) => handleChange("price", e.target.value)}
-                    required={!form.isFree}
+                    placeholder="50000"
+                    required
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="originalPrice">Giá gốc</Label>
+                  <Label htmlFor="originalPrice">Giá gốc (nếu có giảm giá)</Label>
                   <Input
                     id="originalPrice"
                     type="number"
                     min={0}
-                    step={1000}
                     value={form.originalPrice}
                     onChange={(e) => handleChange("originalPrice", e.target.value)}
+                    placeholder="75000"
                   />
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Files */}
-        <Card>
-          <CardHeader>
-            <CardTitle>File tài liệu</CardTitle>
-            <CardDescription>Đường dẫn file trên server</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="fullFile">File đầy đủ *</Label>
-              <Input
-                id="fullFile"
-                value={form.fullFile}
-                onChange={(e) => handleChange("fullFile", e.target.value)}
-                required
-              />
+              <Label htmlFor="fullFile">File tài liệu (File gốc) *</Label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  id="fullFile"
+                  value={form.fullFile}
+                  onChange={(e) => handleChange("fullFile", e.target.value)}
+                  placeholder="URL file hoặc chọn file tải lên..."
+                  required
+                />
+                <Input 
+                  type="file" 
+                  className="sm:w-[220px] cursor-pointer"
+                  disabled={isFullUploading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !token) return;
+                    setIsFullUploading(true);
+                    setFullUploadProgress(0);
+                    try {
+                      const media = await uploadFileWithProgress(
+                        file,
+                        token,
+                        "documents",
+                        setFullUploadProgress,
+                      );
+                      handleChange("fullFile", media.url);
+                      await applyDetectedMetadata(file);
+                      toast({ title: "Tải lên thành công" });
+                    } catch(err: any) {
+                      toast({ title: "Tải lên thất bại", description: err.message, variant: "destructive" });
+                    } finally {
+                      setIsFullUploading(false);
+                      e.target.value = "";
+                    }
+                  }} 
+                />
+              </div>
+
+              {isFullUploading && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Đang tải file gốc...</span>
+                    <span>{fullUploadProgress}%</span>
+                  </div>
+                  <Progress value={fullUploadProgress} className="h-2" />
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="previewFile">File xem trước (tùy chọn)</Label>
-              <Input
-                id="previewFile"
-                value={form.previewFile}
-                onChange={(e) => handleChange("previewFile", e.target.value)}
-              />
+              <Label htmlFor="previewFile">File xem trước (PDF rút gọn hoặc mẫu)</Label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  id="previewFile"
+                  value={form.previewFile || ""}
+                  onChange={(e) => handleChange("previewFile", e.target.value)}
+                  placeholder="URL file hoặc chọn file tải lên..."
+                />
+                <Input 
+                  type="file" 
+                  className="sm:w-[220px] cursor-pointer"
+                  disabled={isPreviewUploading}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file || !token) return;
+                    setIsPreviewUploading(true);
+                    setPreviewUploadProgress(0);
+                    try {
+                      const media = await uploadFileWithProgress(
+                        file,
+                        token,
+                        "documents",
+                        setPreviewUploadProgress,
+                      );
+                      handleChange("previewFile", media.url);
+                      toast({ title: "Tải lên thành công" });
+                    } catch(err: any) {
+                      toast({ title: "Tải lên thất bại", description: err.message, variant: "destructive" });
+                    } finally {
+                      setIsPreviewUploading(false);
+                      e.target.value = "";
+                    }
+                  }} 
+                />
+              </div>
+
+              {isPreviewUploading && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Đang tải file xem trước...</span>
+                    <span>{previewUploadProgress}%</span>
+                  </div>
+                  <Progress value={previewUploadProgress} className="h-2" />
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="fileFormat">Định dạng</Label>
-                <Select
-                  value={form.fileFormat}
-                  onValueChange={(v) => handleChange("fileFormat", v)}
-                >
-                  <SelectTrigger id="fileFormat">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="docx">DOCX</SelectItem>
-                    <SelectItem value="zip">ZIP</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="fileSize">Kích thước (KB)</Label>
-                <Input
-                  id="fileSize"
-                  type="number"
-                  min={0}
-                  value={form.fileSize}
-                  onChange={(e) => handleChange("fileSize", e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="pageCount">Số trang</Label>
-                <Input
-                  id="pageCount"
-                  type="number"
-                  min={0}
-                  value={form.pageCount}
-                  onChange={(e) => handleChange("pageCount", e.target.value)}
-                />
+            <div className="rounded-xl border border-dashed bg-muted/20 p-4">
+              <p className="text-sm font-semibold">Metadata</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Badge variant="secondary">Định dạng: {form.fileFormat.toUpperCase()}</Badge>
+                <Badge variant="secondary">
+                  Kích thước: {form.fileSize ? `${form.fileSize} KB` : "--"}
+                </Badge>
+                <Badge variant="secondary">
+                  Số trang: {form.pageCount ? form.pageCount : "--"}
+                </Badge>
               </div>
             </div>
           </CardContent>

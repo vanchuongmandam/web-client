@@ -1,4 +1,17 @@
-import type { Article, Category, Comment, Media, PaginationMeta, PaginatedResponse, MarketDocument, Order, Purchase, UserProfile, BillingAddress } from '@/lib/types';
+import type {
+  Article,
+  Category,
+  Comment,
+  Media,
+  PaginationMeta,
+  PaginatedResponse,
+  MarketDocument,
+  Order,
+  Purchase,
+  UserProfile,
+  BillingAddress,
+  AdminDashboardStats,
+} from '@/lib/types';
 
 // ---------------------------------------------------------------------------
 // Base URL & fetch helper
@@ -360,9 +373,53 @@ export async function uploadFile(
   token: string,
   categoryPath: string,
 ): Promise<Media> {
+  return uploadFileWithProgress(file, token, categoryPath);
+}
+
+export async function uploadFileWithProgress(
+  file: File,
+  token: string,
+  categoryPath: string,
+  onProgress?: (percent: number) => void,
+): Promise<Media> {
   const formData = new FormData();
   formData.append('mediaFile', file);
   formData.append('categoryPath', categoryPath);
+
+  if (typeof XMLHttpRequest !== 'undefined') {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE}/upload/single`);
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+      xhr.upload.onprogress = (event) => {
+        if (!onProgress || !event.lengthComputable) return;
+        const percent = Math.round((event.loaded / event.total) * 100);
+        onProgress(percent);
+      };
+
+      xhr.onerror = () => reject(new Error('Upload failed due to a network error'));
+
+      xhr.onload = () => {
+        let payload: { message?: string; data?: { media?: Media } } | null = null;
+        try {
+          payload = JSON.parse(xhr.responseText || '{}');
+        } catch {
+          payload = null;
+        }
+
+        if (xhr.status >= 200 && xhr.status < 300 && payload?.data?.media) {
+          onProgress?.(100);
+          resolve(payload.data.media);
+          return;
+        }
+
+        reject(new Error(payload?.message || 'File upload failed'));
+      };
+
+      xhr.send(formData);
+    });
+  }
 
   const res = await fetch(`${API_BASE}/upload/single`, {
     method: 'POST',
@@ -374,6 +431,7 @@ export async function uploadFile(
     throw new Error(errorData.message || 'File upload failed');
   }
   const data = await res.json();
+  onProgress?.(100);
   return data.data.media;
 }
 
@@ -555,6 +613,39 @@ export async function getAdminOrders(
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   return { data: res.data, pagination: res.pagination! };
+}
+
+export async function confirmAdminOrder(
+  orderCode: string,
+  token: string,
+  note?: string,
+): Promise<Order> {
+  const res = await apiFetch<ApiEnvelope<Order>>(`/admin/orders/${orderCode}/confirm`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify(note ? { note } : {}),
+  });
+  return res.data;
+}
+
+export async function refundAdminOrder(
+  orderCode: string,
+  token: string,
+  note?: string,
+): Promise<Order> {
+  const res = await apiFetch<ApiEnvelope<Order>>(`/admin/orders/${orderCode}/refund`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify(note ? { note } : {}),
+  });
+  return res.data;
+}
+
+export async function getAdminStats(token: string): Promise<AdminDashboardStats> {
+  const res = await apiFetch<ApiEnvelope<AdminDashboardStats>>('/admin/stats', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
 }
 
 // ---------------------------------------------------------------------------

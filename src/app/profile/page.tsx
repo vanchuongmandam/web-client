@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { getProfile, updateProfile } from '@/lib/api';
 import type { UserProfile, BillingAddress } from '@/lib/types';
@@ -53,7 +54,7 @@ export default function ProfilePage() {
           setBillingForm(p.billingAddress);
         }
       })
-      .catch(() => toast({ title: 'Loi', description: 'Khong the tai thong tin', variant: 'destructive' }))
+      .catch(() => toast({ title: 'Lỗi', description: 'Không thể tải thông tin', variant: 'destructive' }))
       .finally(() => setLoading(false));
   }, [authLoading, token, router, toast]);
 
@@ -66,9 +67,9 @@ export default function ProfilePage() {
         billingAddress: billingForm,
       }, token);
       setProfile(updated);
-      toast({ title: 'Da luu', description: 'Cap nhat thong tin thanh cong' });
+      toast({ title: 'Đã lưu', description: 'Cập nhật thông tin thành công' });
     } catch (err: unknown) {
-      toast({ title: 'Loi', description: err instanceof Error ? err.message : 'Khong the luu', variant: 'destructive' });
+      toast({ title: 'Lỗi', description: err instanceof Error ? err.message : 'Không thể lưu', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -84,23 +85,32 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold">Ho so ca nhan</h1>
+      <h1 className="mb-4 text-3xl font-bold">Hồ sơ cá nhân</h1>
+
+      <div className="mb-6 flex flex-wrap gap-2">
+        <Button asChild variant="outline">
+          <Link href="/profile/orders">Đơn hàng của tôi</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/profile/purchases">Thư viện đã mua</Link>
+        </Button>
+      </div>
 
       {/* Profile Info */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" /> Thong tin ca nhan
+            <User className="h-5 w-5" /> Thông tin cá nhân
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label>Ten nguoi dung</Label>
+              <Label>Tên người dùng</Label>
               <Input value={profile?.username || ''} disabled />
             </div>
             <div>
-              <Label>Ten hien thi</Label>
+              <Label>Tên hiển thị</Label>
               <Input value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} />
             </div>
           </div>
@@ -110,12 +120,12 @@ export default function ProfilePage() {
               <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
             <div>
-              <Label>So dien thoai</Label>
+              <Label>Số điện thoại</Label>
               <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </div>
           </div>
           <div>
-            <Label>Gioi thieu</Label>
+            <Label>Giới thiệu</Label>
             <Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} maxLength={500} rows={3} />
           </div>
         </CardContent>
@@ -125,35 +135,35 @@ export default function ProfilePage() {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" /> Dia chi thanh toan
+            <MapPin className="h-5 w-5" /> Địa chỉ thanh toán
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label>Ho va ten</Label>
+              <Label>Họ và tên</Label>
               <Input value={billingForm.fullName || ''} onChange={(e) => setBillingForm({ ...billingForm, fullName: e.target.value })} />
             </div>
             <div>
-              <Label>So dien thoai</Label>
+              <Label>Số điện thoại</Label>
               <Input value={billingForm.phone || ''} onChange={(e) => setBillingForm({ ...billingForm, phone: e.target.value })} />
             </div>
           </div>
           <div>
-            <Label>Dia chi (So nha, duong)</Label>
+            <Label>Địa chỉ (Số nhà, đường)</Label>
             <Input value={billingForm.addressLine1 || ''} onChange={(e) => setBillingForm({ ...billingForm, addressLine1: e.target.value })} />
           </div>
           <div>
-            <Label>Phuong/Xa</Label>
+            <Label>Phường/Xã</Label>
             <Input value={billingForm.addressLine2 || ''} onChange={(e) => setBillingForm({ ...billingForm, addressLine2: e.target.value })} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label>Quan/Huyen</Label>
+              <Label>Quận/Huyện</Label>
               <Input value={billingForm.city || ''} onChange={(e) => setBillingForm({ ...billingForm, city: e.target.value })} />
             </div>
             <div>
-              <Label>Tinh/Thanh pho</Label>
+              <Label>Tỉnh/Thành phố</Label>
               <Input value={billingForm.province || ''} onChange={(e) => setBillingForm({ ...billingForm, province: e.target.value })} />
             </div>
           </div>
@@ -162,7 +172,7 @@ export default function ProfilePage() {
 
       <Button className="w-full" size="lg" onClick={handleSave} disabled={saving}>
         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-        Luu thay doi
+        Lưu thay đổi
       </Button>
     </div>
   );

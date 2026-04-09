@@ -4,9 +4,13 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Loader2, ShieldAlert } from "lucide-react";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/admin/app-sidebar";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
-// Đây là "Người Gác Cổng" cho toàn bộ khu vực /admin
 export default function AdminLayout({
   children,
 }: {
@@ -16,47 +20,58 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    // Nếu chưa kiểm tra xong và chưa có user, không làm gì cả, chờ đợi...
     if (isLoading) return;
-
-    // Nếu đã kiểm tra xong mà không có user, đá về trang đăng nhập
     if (!user) {
-      router.push('/login');
+      router.push("/login");
       return;
     }
-
   }, [isLoading, user, router]);
 
-
-  // --- Giao diện trong khi chờ xác thực ---
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <Loader2 className="size-12 animate-spin text-primary" />
         <p className="ml-4 text-lg">Đang kiểm tra quyền truy cập...</p>
       </div>
     );
   }
 
-  // --- Giao diện khi user không phải là admin ---
-  if (user && user.role !== 'admin') {
+  if (user && user.role !== "admin") {
     return (
-       <div className="flex h-[calc(100vh-10rem)] w-full flex-col items-center justify-center text-center">
-          <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
-          <h1 className="text-3xl font-bold text-destructive">Truy cập bị từ chối</h1>
-          <p className="mt-2 text-muted-foreground">Bạn không có quyền truy cập vào trang này.</p>
-          <button onClick={() => router.push('/')} className="mt-6 rounded-md bg-primary px-4 py-2 text-primary-foreground">
-            Quay về Trang chủ
-          </button>
+      <div className="flex min-h-screen w-full items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-xl border bg-card p-8 text-center">
+          <ShieldAlert className="mx-auto mb-4 size-12 text-destructive" />
+          <h1 className="text-2xl font-bold text-destructive">Truy cập bị từ chối</h1>
+          <p className="mt-2 text-muted-foreground">Bạn không có quyền truy cập vào khu vực admin.</p>
+          <Button onClick={() => router.push("/")} className="mt-6 w-full">
+            <ArrowLeft data-icon="inline-start" />
+            Quay về trang chủ
+          </Button>
+        </div>
       </div>
     );
   }
 
-  // --- Nếu mọi thứ đều ổn (là admin), hiển thị nội dung trang ---
-  if (user && user.role === 'admin') {
-    return <>{children}</>;
+  if (user && user.role === "admin") {
+    return (
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="sticky top-0 z-10 bg-background/95 backdrop-blur">
+            <div className="flex h-14 items-center gap-3 border-b px-4 lg:px-6">
+              <SidebarTrigger />
+              <Separator orientation="vertical" className="h-6" />
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Bảng điều khiển admin</span>
+                <Badge variant="outline">Marketplace</Badge>
+              </div>
+            </div>
+          </header>
+          <main className="min-h-[calc(100vh-56px)] bg-muted/20 p-4 lg:p-6">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    );
   }
 
-  // Trường hợp dự phòng, không bao giờ nên xảy ra
   return null;
 }

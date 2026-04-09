@@ -6,23 +6,27 @@ import { useAuth } from '@/context/AuthContext';
 import { getAdminDocuments, deleteDocument as apiDeleteDocument } from '@/lib/api';
 import type { MarketDocument, PaginationMeta } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Plus, Pencil, Trash2, FileText, Eye } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, FileText, Eye, Search, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 }
 
-const statusColors: Record<string, string> = {
-  draft: 'bg-yellow-100 text-yellow-800',
-  active: 'bg-green-100 text-green-800',
-  archived: 'bg-gray-100 text-gray-800',
+const statusLabel: Record<string, string> = {
+  draft: 'Bản nháp',
+  active: 'Đang bán',
+  archived: 'Đã ẩn',
 };
 
 export default function AdminDocumentsPage() {
@@ -33,33 +37,52 @@ export default function AdminDocumentsPage() {
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const loadDocuments = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await getAdminDocuments({ page, limit: 20 }, token);
+      const params: { page: number; limit: number; status?: string; search?: string } = {
+        page,
+        limit: 20,
+      };
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+      if (searchTerm.trim()) {
+        params.search = searchTerm.trim();
+      }
+
+      const res = await getAdminDocuments(params, token);
       setDocuments(res.data);
       setPagination(res.pagination);
     } catch {
-      toast({ title: 'Loi', description: 'Khong the tai danh sach tai lieu', variant: 'destructive' });
+      toast({ title: 'Lỗi', description: 'Không thể tải danh sách tài liệu', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
-  }, [token, page, toast]);
+  }, [token, page, statusFilter, searchTerm, toast]);
 
   useEffect(() => { loadDocuments(); }, [loadDocuments]);
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, searchTerm]);
 
   const handleDelete = async (slug: string) => {
-    if (!token || !confirm('Ban co chac muon xoa tai lieu nay?')) return;
+    if (!token || !confirm('Bạn có chắc muốn xóa tài liệu này?')) return;
     try {
       await apiDeleteDocument(slug, token);
-      toast({ title: 'Da xoa', description: 'Tai lieu da duoc xoa' });
+      toast({ title: 'Đã xóa', description: 'Tài liệu đã được xóa' });
       loadDocuments();
     } catch (err: unknown) {
-      toast({ title: 'Loi', description: err instanceof Error ? err.message : 'Khong the xoa', variant: 'destructive' });
+      toast({ title: 'Lỗi', description: err instanceof Error ? err.message : 'Không thể xóa', variant: 'destructive' });
     }
   };
+
+  const totalOnPage = documents.length;
+  const activeOnPage = documents.filter((doc) => doc.status === 'active').length;
 
   if (loading) {
     return (
@@ -70,29 +93,86 @@ export default function AdminDocumentsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <FileText className="h-8 w-8" /> Quan ly tai lieu
-        </h1>
-        <Link href="/admin/documents/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Them tai lieu
-          </Button>
-        </Link>
+    <div className="mx-auto w-full max-w-7xl space-y-6">
+      <header className="rounded-xl border bg-card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold">
+              <FileText />
+              Quản lý tài liệu
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Theo dõi danh mục tài liệu marketplace, trạng thái và hiệu suất bán.
+            </p>
+          </div>
+          <Link href="/admin/documents/new">
+            <Button>
+              <Plus data-icon="inline-start" />
+              Thêm tài liệu
+            </Button>
+          </Link>
+        </div>
+      </header>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Tài liệu trang hiện tại</CardDescription>
+            <CardTitle className="text-2xl">{totalOnPage}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Tài liệu đang bán</CardDescription>
+            <CardTitle className="text-2xl">{activeOnPage}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Tổng bản ghi API</CardDescription>
+            <CardTitle className="text-2xl">{pagination?.total ?? 0}</CardTitle>
+          </CardHeader>
+        </Card>
       </div>
 
       <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Danh sách tài liệu</CardTitle>
+          <CardDescription>Lọc nhanh theo trạng thái và tên tài liệu/tác giả.</CardDescription>
+          <Separator />
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="relative w-full md:max-w-sm">
+              <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Tìm theo tên tài liệu hoặc tác giả..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-44">
+                <SelectValue placeholder="Lọc trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="draft">Bản nháp</SelectItem>
+                <SelectItem value="active">Đang bán</SelectItem>
+                <SelectItem value="archived">Đã ẩn</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tai lieu</TableHead>
-                <TableHead>Danh muc</TableHead>
-                <TableHead>Gia</TableHead>
-                <TableHead>Trang thai</TableHead>
-                <TableHead className="text-right">Luot mua</TableHead>
-                <TableHead className="text-right">Luot xem</TableHead>
+                <TableHead>Tiêu đề</TableHead>
+                <TableHead>Danh mục</TableHead>
+                <TableHead>Giá</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead className="text-right">Lượt mua</TableHead>
+                <TableHead className="text-right">Lượt xem</TableHead>
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -108,9 +188,9 @@ export default function AdminDocumentsPage() {
                   <TableCell>{doc.category?.name || '-'}</TableCell>
                   <TableCell>{formatPrice(doc.price)}</TableCell>
                   <TableCell>
-                    <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusColors[doc.status] || ''}`}>
-                      {doc.status}
-                    </span>
+                    <Badge variant={doc.status === 'active' ? 'default' : 'secondary'}>
+                      {statusLabel[doc.status] || doc.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">{doc.purchaseCount}</TableCell>
                   <TableCell className="text-right">{doc.viewCount}</TableCell>
@@ -132,7 +212,10 @@ export default function AdminDocumentsPage() {
               {documents.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
-                    Chua co tai lieu nao
+                    <div className="flex flex-col items-center gap-2 py-4">
+                      <LayoutGrid className="text-muted-foreground" />
+                      <p>Không có tài liệu phù hợp với bộ lọc hiện tại.</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
@@ -142,15 +225,11 @@ export default function AdminDocumentsPage() {
       </Card>
 
       {pagination && pagination.totalPages > 1 && (
-        <div className="mt-4 flex justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={!pagination.hasPrevPage} onClick={() => setPage((p) => p - 1)}>
-            Trang truoc
-          </Button>
-          <span className="flex items-center text-sm">{pagination.page} / {pagination.totalPages}</span>
-          <Button variant="outline" size="sm" disabled={!pagination.hasNextPage} onClick={() => setPage((p) => p + 1)}>
-            Trang sau
-          </Button>
-        </div>
+        <PaginationControls
+          pagination={pagination}
+          onPageChange={setPage}
+          isLoading={loading}
+        />
       )}
     </div>
   );
