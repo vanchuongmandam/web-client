@@ -141,11 +141,13 @@ export default function CheckoutPage() {
       if (updated.status === 'paid' || updated.status === 'confirmed') {
         setOrder(updated);
         setStep('success');
+      } else if (updated.status === 'expired' || updated.status === 'cancelled') {
+        setOrder(updated);
+        toast({ title: 'Don hang het han', description: 'Don hang da het han hoac bi huy. Vui long tao don moi.', variant: 'destructive' });
+        router.push(`/documents/${slug}`);
       }
-    } catch {
-      // Keep polling until timeout/expiry
-    }
-  }, [order, token]);
+    } catch { /* ignore */ }
+  }, [order, token, toast, router, slug]);
 
   useEffect(() => {
     if (step !== 'payment' || !order) return;
