@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Pencil } from "lucide-react";
+import { Loader2, ArrowLeft, Pencil, FileText, UploadCloud, X } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -120,14 +120,22 @@ export default function EditDocumentPage() {
         router.push("/admin/documents");
         return;
       }
+
+      const normalizedDescription =
+        typeof doc.description === "object" && doc.description !== null
+          ? (doc.description as Record<string, unknown>)
+          : typeof doc.description === "string" && doc.description.trim()
+            ? {
+                type: "doc",
+                content: [{ type: "paragraph", content: [{ type: "text", text: doc.description }] }],
+              }
+            : null;
+
       setCategories(cats);
       setForm({
         title: doc.title,
         slug: doc.slug,
-        description:
-          typeof doc.description === "object" && doc.description !== null
-            ? (doc.description as Record<string, unknown>)
-            : null,
+        description: normalizedDescription,
         author: doc.author,
         category: typeof doc.category === "object" ? doc.category._id : (doc.category as string),
         price: String(doc.price),
@@ -229,297 +237,360 @@ export default function EditDocumentPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-6 flex items-center gap-3">
-        <Link href="/admin/documents">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-5 w-5" />
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link href="/admin/documents">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Pencil className="h-6 w-6" /> Chỉnh sửa tài liệu
+            </h1>
+            <p className="text-sm text-muted-foreground">Slug: {slug}</p>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            Hủy
           </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Pencil className="h-6 w-6" /> Chỉnh sửa tài liệu
-          </h1>
-          <p className="text-sm text-muted-foreground">Slug: {slug}</p>
+          <Button type="submit" form="document-form" disabled={submitting}>
+            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Lưu thay đổi
+          </Button>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Thông tin cơ bản</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="title">Tiêu đề *</Label>
-              <Input
-                id="title"
-                value={form.title}
-                onChange={(e) => handleChange("title", e.target.value)}
-                placeholder="Ví dụ: Tuyển tập đề thi môn Văn..."
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="slug">Slug *</Label>
-              <Input
-                id="slug"
-                value={form.slug}
-                onChange={(e) => handleChange("slug", e.target.value)}
-                placeholder="tuyen-tap-de-thi-mon-van"
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="description">Mô tả tài liệu *</Label>
-              <RichTextEditor
-                content={form.description ?? undefined}
-                onChange={(html) => handleChange("description", html)}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="author">Tác giả *</Label>
+      <form id="document-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Nội dung tài liệu</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="font-semibold">Tiêu đề *</Label>
                 <Input
-                  id="author"
-                  value={form.author}
-                  onChange={(e) => handleChange("author", e.target.value)}
-                  placeholder="Họ tên tác giả hoặc nguồn..."
+                  id="title"
+                  className="text-lg py-6"
+                  value={form.title}
+                  onChange={(e) => handleChange("title", e.target.value)}
+                  placeholder="Ví dụ: Tuyển tập đề thi môn Văn..."
                   required
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="slug" className="font-semibold">Slug *</Label>
+                <Input
+                  id="slug"
+                  value={form.slug}
+                  onChange={(e) => handleChange("slug", e.target.value)}
+                  placeholder="tuyen-tap-de-thi-mon-van"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="font-semibold">Mô tả chi tiết *</Label>
+                <div className="min-h-[300px]">
+                  <RichTextEditor
+                    content={form.description ?? undefined}
+                    onChange={(html) => handleChange("description", html)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Files & Upload</CardTitle>
+              <CardDescription>Tải lên bản gốc để bán và bản xem trước (nếu có)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="fullFile" className="font-semibold text-base">File tài liệu gốc *</Label>
+                {!form.fullFile ? (
+                  <div className="relative border-2 border-dashed border-muted-foreground/25 rounded-xl text-center hover:bg-muted/30 transition-colors h-[160px] flex items-center justify-center">
+                    <Input
+                      type="file"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={isFullUploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !token) return;
+                        setIsFullUploading(true);
+                        setFullUploadProgress(0);
+                        try {
+                          const media = await uploadFileWithProgress(
+                            file,
+                            token,
+                            "documents",
+                            setFullUploadProgress,
+                          );
+                          handleChange("fullFile", media.url);
+                          await applyDetectedMetadata(file);
+                          toast({ title: "Tải lên thành công" });
+                        } catch (err: any) {
+                          toast({
+                            title: "Cảnh báo",
+                            description: err.message,
+                            variant: "destructive",
+                          });
+                        } finally {
+                          setIsFullUploading(false);
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                    <div className="flex flex-col items-center gap-2 pointer-events-none mt-2">
+                      <div className="p-3 bg-primary/10 text-primary rounded-full group-hover:scale-110 transition-transform">
+                        <UploadCloud className="w-6 h-6" />
+                      </div>
+                      <p className="font-medium text-sm">Nhấn hoặc kéo thả file gốc vào đây</p>
+                      <p className="text-xs text-muted-foreground">Hỗ trợ các định dạng tập tin. Max 100MB</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-4 border rounded-xl bg-muted/10">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg shrink-0">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div className="min-w-0 pr-4">
+                        <p
+                          className="text-sm font-semibold truncate text-foreground"
+                          title={form.fullFile.split("/").pop() || "Document file"}
+                        >
+                          {form.fullFile.split("/").pop() || "Đã tải lên file gốc"}
+                        </p>
+                        <p className="text-xs text-emerald-600 font-medium">Tải lên hoàn tất</p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => {
+                        handleChange("fullFile", "");
+                        handleChange("fileSize", "");
+                        handleChange("pageCount", "");
+                      }}
+                    >
+                      <X className="w-4 h-4 mr-2" /> Gỡ bỏ file
+                    </Button>
+                  </div>
+                )}
+
+                {isFullUploading && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Đang tải file gốc...</span>
+                      <span>{fullUploadProgress}%</span>
+                    </div>
+                    <Progress value={fullUploadProgress} className="h-2" />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="previewFile" className="font-semibold text-base">File bản xem trước (Mẫu rút gọn)</Label>
+                {!form.previewFile ? (
+                  <div className="relative border-2 border-dashed border-muted-foreground/25 rounded-xl text-center hover:bg-muted/30 transition-colors h-[120px] flex items-center justify-center">
+                    <Input
+                      type="file"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={isPreviewUploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !token) return;
+                        setIsPreviewUploading(true);
+                        setPreviewUploadProgress(0);
+                        try {
+                          const media = await uploadFileWithProgress(
+                            file,
+                            token,
+                            "documents",
+                            setPreviewUploadProgress,
+                          );
+                          handleChange("previewFile", media.url);
+                          toast({ title: "Tải lên thành công" });
+                        } catch (err: any) {
+                          toast({ title: "Lỗi", description: err.message, variant: "destructive" });
+                        } finally {
+                          setIsPreviewUploading(false);
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                    <div className="flex flex-col items-center gap-1 pointer-events-none mt-2">
+                      <UploadCloud className="w-5 h-5 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground font-medium">Đăng tải bản xem trước (nếu có)</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-4 border rounded-xl bg-muted/10">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="p-3 bg-blue-100 text-blue-600 rounded-lg shrink-0">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div className="min-w-0 pr-4">
+                        <p
+                          className="text-sm font-semibold truncate text-foreground"
+                          title={form.previewFile.split("/").pop() || "Preview file"}
+                        >
+                          {form.previewFile.split("/").pop() || "Đã tải file xem trước"}
+                        </p>
+                        <p className="text-xs text-blue-600 font-medium">Tải lên hoàn tất</p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => handleChange("previewFile", "")}
+                    >
+                      Xóa
+                    </Button>
+                  </div>
+                )}
+
+                {isPreviewUploading && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Đang tải file xem trước...</span>
+                      <span>{previewUploadProgress}%</span>
+                    </div>
+                    <Progress value={previewUploadProgress} className="h-2" />
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-dashed bg-muted/20 p-4">
+                <p className="text-sm font-semibold">Metadata tự động từ file gốc</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant="secondary">Định dạng: {form.fileFormat.toUpperCase()}</Badge>
+                  <Badge variant="secondary">
+                    Kích thước: {form.fileSize ? `${form.fileSize} KB` : "--"}
+                  </Badge>
+                  <Badge variant="secondary">
+                    Số trang: {form.pageCount ? form.pageCount : "--"}
+                  </Badge>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Hệ thống tự detect sau khi upload. Bạn không cần nhập tay.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="bg-muted/30">
+              <CardTitle className="text-base">Trạng thái xuất bản</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="category">Danh mục *</Label>
-                <Select
-                  value={form.category}
-                  onValueChange={(v) => handleChange("category", v)}
-                >
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Chọn danh mục" />
+                <Select value={form.status} onValueChange={(v) => handleChange("status", v)}>
+                  <SelectTrigger id="status" className="font-medium">
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="draft">Bản nháp (Đang ẩn)</SelectItem>
+                    <SelectItem value="active">Đang bán (Công khai)</SelectItem>
+                    <SelectItem value="archived">Đã lưu trữ</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between border-t pt-4">
+                <Label htmlFor="featured" className="cursor-pointer">Tài liệu nổi bật (Ghim)</Label>
+                <Switch id="featured" checked={form.featured} onCheckedChange={(v) => handleChange("featured", v)} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="bg-muted/30">
+              <CardTitle className="text-base">Mức giá</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-4">
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="isFree" className="cursor-pointer font-medium text-emerald-600">Miễn phí hoàn toàn</Label>
+                <Switch id="isFree" checked={form.isFree} onCheckedChange={(v) => handleChange("isFree", v)} />
+              </div>
+
+              {!form.isFree && (
+                <div className="space-y-4 border-t pt-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="price">Giá bán / Ưu đãi (VNĐ) *</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      min={0}
+                      step={1000}
+                      value={form.price}
+                      onChange={(e) => handleChange("price", e.target.value)}
+                      required
+                      className="font-semibold text-lg"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="originalPrice">Giá gốc (VNĐ)</Label>
+                    <Input
+                      id="originalPrice"
+                      type="number"
+                      min={0}
+                      value={form.originalPrice}
+                      onChange={(e) => handleChange("originalPrice", e.target.value)}
+                      className="text-muted-foreground line-through"
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="bg-muted/30">
+              <CardTitle className="text-base">Phân loại</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="category">Danh mục *</Label>
+                <Select value={form.category} onValueChange={(v) => handleChange("category", v)}>
+                  <SelectTrigger id="category"><SelectValue placeholder="Chọn danh mục" /></SelectTrigger>
+                  <SelectContent>
                     {flatCategories.map((c) => (
-                      <SelectItem key={c._id} value={c._id}>
-                        {c.name}
-                      </SelectItem>
+                      <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="tags">Tags (phân cách bằng dấu phẩy)</Label>
-              <Input
-                id="tags"
-                value={form.tags}
-                onChange={(e) => handleChange("tags", e.target.value)}
-                placeholder="văn học, lớp 12, đề thi..."
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pricing & Files */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Giá & File tài liệu</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3 mb-2">
-              <Switch
-                id="isFree"
-                checked={form.isFree}
-                onCheckedChange={(v) => handleChange("isFree", v)}
-              />
-              <Label htmlFor="isFree">Tài liệu miễn phí</Label>
-            </div>
-
-            {!form.isFree && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="price">Giá bán (VNĐ) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    min={0}
-                    step={1000}
-                    value={form.price}
-                    onChange={(e) => handleChange("price", e.target.value)}
-                    placeholder="50000"
-                    required
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="originalPrice">Giá gốc (nếu có giảm giá)</Label>
-                  <Input
-                    id="originalPrice"
-                    type="number"
-                    min={0}
-                    value={form.originalPrice}
-                    onChange={(e) => handleChange("originalPrice", e.target.value)}
-                    placeholder="75000"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <Label htmlFor="fullFile">File tài liệu (File gốc) *</Label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  id="fullFile"
-                  value={form.fullFile}
-                  onChange={(e) => handleChange("fullFile", e.target.value)}
-                  placeholder="URL file hoặc chọn file tải lên..."
-                  required
-                />
-                <Input 
-                  type="file" 
-                  className="sm:w-[220px] cursor-pointer"
-                  disabled={isFullUploading}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file || !token) return;
-                    setIsFullUploading(true);
-                    setFullUploadProgress(0);
-                    try {
-                      const media = await uploadFileWithProgress(
-                        file,
-                        token,
-                        "documents",
-                        setFullUploadProgress,
-                      );
-                      handleChange("fullFile", media.url);
-                      await applyDetectedMetadata(file);
-                      toast({ title: "Tải lên thành công" });
-                    } catch(err: any) {
-                      toast({ title: "Tải lên thất bại", description: err.message, variant: "destructive" });
-                    } finally {
-                      setIsFullUploading(false);
-                      e.target.value = "";
-                    }
-                  }} 
-                />
+              <div className="space-y-1.5">
+                <Label htmlFor="author">Tác giả *</Label>
+                <Input id="author" value={form.author} onChange={(e) => handleChange("author", e.target.value)} required />
               </div>
 
-              {isFullUploading && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Đang tải file gốc...</span>
-                    <span>{fullUploadProgress}%</span>
-                  </div>
-                  <Progress value={fullUploadProgress} className="h-2" />
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="previewFile">File xem trước (PDF rút gọn hoặc mẫu)</Label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  id="previewFile"
-                  value={form.previewFile || ""}
-                  onChange={(e) => handleChange("previewFile", e.target.value)}
-                  placeholder="URL file hoặc chọn file tải lên..."
-                />
-                <Input 
-                  type="file" 
-                  className="sm:w-[220px] cursor-pointer"
-                  disabled={isPreviewUploading}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file || !token) return;
-                    setIsPreviewUploading(true);
-                    setPreviewUploadProgress(0);
-                    try {
-                      const media = await uploadFileWithProgress(
-                        file,
-                        token,
-                        "documents",
-                        setPreviewUploadProgress,
-                      );
-                      handleChange("previewFile", media.url);
-                      toast({ title: "Tải lên thành công" });
-                    } catch(err: any) {
-                      toast({ title: "Tải lên thất bại", description: err.message, variant: "destructive" });
-                    } finally {
-                      setIsPreviewUploading(false);
-                      e.target.value = "";
-                    }
-                  }} 
+              <div className="space-y-1.5">
+                <Label htmlFor="tags">Tags (cách nhau bởi dấu phẩy)</Label>
+                <Textarea
+                  id="tags"
+                  value={form.tags}
+                  onChange={(e) => handleChange("tags", e.target.value)}
+                  placeholder="văn học, lớp 12..."
+                  rows={3}
+                  className="resize-none"
                 />
               </div>
-
-              {isPreviewUploading && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Đang tải file xem trước...</span>
-                    <span>{previewUploadProgress}%</span>
-                  </div>
-                  <Progress value={previewUploadProgress} className="h-2" />
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-xl border border-dashed bg-muted/20 p-4">
-              <p className="text-sm font-semibold">Metadata</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Badge variant="secondary">Định dạng: {form.fileFormat.toUpperCase()}</Badge>
-                <Badge variant="secondary">
-                  Kích thước: {form.fileSize ? `${form.fileSize} KB` : "--"}
-                </Badge>
-                <Badge variant="secondary">
-                  Số trang: {form.pageCount ? form.pageCount : "--"}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Trạng thái xuất bản</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="status">Trạng thái</Label>
-              <Select value={form.status} onValueChange={(v) => handleChange("status", v)}>
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Bản nháp (ẩn với người dùng)</SelectItem>
-                  <SelectItem value="active">Đang bán</SelectItem>
-                  <SelectItem value="archived">Đã lưu trữ</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Switch
-                id="featured"
-                checked={form.featured}
-                onCheckedChange={(v) => handleChange("featured", v)}
-              />
-              <Label htmlFor="featured">Tài liệu nổi bật</Label>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex gap-3 justify-end">
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            Hủy
-          </Button>
-          <Button type="submit" disabled={submitting}>
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Lưu thay đổi
-          </Button>
+            </CardContent>
+          </Card>
         </div>
       </form>
     </div>
