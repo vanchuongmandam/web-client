@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogClose, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogClose, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { cn } from '@/lib/utils';
@@ -12,6 +12,9 @@ import type { Media } from '@/lib/types';
 import { X, PlayCircle, Lock } from 'lucide-react';
 import { CustomVideoPlayer } from '@/components/ui/custom-video-player';
 import { RequestAccessModal } from '@/components/articles/RequestAccessModal';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { instantUnlock } from '@/lib/api';
 
 interface ArticleMediaGalleryProps {
   media: Media[];
@@ -36,12 +39,22 @@ const MediaItem = ({
   articleTitle: string,
   onRequestSuccess: () => void
 }) => {
+  const { token, user } = useAuth();
+  const { toast } = useToast();
+  const [isUnlockConfirmOpen, setIsUnlockConfirmOpen] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  };
+
   if (media.mediaType === 'pdf') return null;
 
   // Restricted Logic
   if (media.isRestricted && !media.accessGranted) {
+    const hasPrice = media.unlockPrice && media.unlockPrice > 0;
     return (
-      <div className="relative w-full h-full bg-slate-100 flex flex-col items-center justify-center p-4 text-center border">
+      <div className="relative w-full h-full bg-slate-100 flex flex-col items-center justify-center p-4 text-center border rounded-md">
         <Lock className="h-10 w-10 text-amber-600 mb-2" />
         <p className="text-sm text-slate-600 mb-3 font-medium">Nội dung bị hạn chế</p>
         {media.requestStatus === "pending" ? (
@@ -49,12 +62,87 @@ const MediaItem = ({
         ) : media.requestStatus === "rejected" ? (
           <Button variant="destructive" disabled size="sm">Yêu cầu bị từ chối</Button>
         ) : (
-          <RequestAccessModal
-            articleId={articleId}
-            articleTitle={articleTitle}
-            token={typeof window !== 'undefined' ? localStorage.getItem('token') : null}
-            onSuccess={onRequestSuccess}
-          />
+          <div className="flex flex-col gap-2 w-full max-w-[200px]">
+            {hasPrice && (
+              <>
+                <Button 
+                  onClick={() => {
+                    if (!token) {
+                      toast({
+                        title: "Yêu cầu đăng nhập",
+                        description: "Bạn cần đăng nhập để mở khóa nội dung.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    setIsUnlockConfirmOpen(true);
+                  }}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs" 
+                  size="sm"
+                >
+                  Mở khóa ({formatPrice(media.unlockPrice!)})
+                </Button>
+                
+                <Dialog open={isUnlockConfirmOpen} onOpenChange={setIsUnlockConfirmOpen}>
+                  <DialogContent className="sm:max-w-[420px]">
+                    <DialogTitle>Xác nhận mở khóa nội dung</DialogTitle>
+                    <div className="py-4 space-y-2">
+                      <p className="text-sm text-slate-600">
+                        Bạn có chắc chắn muốn mở khóa nội dung này không?
+                      </p>
+                      <div className="bg-slate-50 border p-3 rounded-md text-xs space-y-1.5">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Giá mở khóa:</span>
+                          <span className="font-bold text-amber-700">{formatPrice(media.unlockPrice!)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Số dư hiện tại:</span>
+                          <span className="font-semibold text-slate-700">{formatPrice(user?.balance || 0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsUnlockConfirmOpen(false)} disabled={isUnlocking}>
+                        Hủy
+                      </Button>
+                      <Button 
+                        onClick={async () => {
+                          setIsUnlocking(true);
+                          try {
+                            await instantUnlock(articleId, media.url, token!);
+                            toast({
+                              title: "Mở khóa thành công",
+                              description: "Nội dung đã được mở khóa bằng số dư ví.",
+                            });
+                            setIsUnlockConfirmOpen(false);
+                            onRequestSuccess();
+                          } catch (err: any) {
+                            toast({
+                              title: "Lỗi mở khóa",
+                              description: err.message || "Không thể mở khóa nội dung này.",
+                              variant: "destructive",
+                            });
+                          } finally {
+                            setIsUnlocking(false);
+                          }
+                        }} 
+                        disabled={isUnlocking}
+                        className="bg-amber-600 hover:bg-amber-700"
+                      >
+                        {isUnlocking ? "Đang xử lý..." : "Mở khóa ngay"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
+            <RequestAccessModal
+              articleId={articleId}
+              articleTitle={articleTitle}
+              token={token}
+              onSuccess={onRequestSuccess}
+            />
+          </div>
         )}
       </div>
     );

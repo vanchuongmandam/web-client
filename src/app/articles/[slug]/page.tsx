@@ -25,6 +25,7 @@ import ArticlePdfSection from "./article-pdf-section";
 import RelatedArticles from "./related-articles";
 import ReadingSuggestions from "./reading-suggestions";
 import CommentSection from "./comment-section";
+import { RelatedDocumentsCTA } from "./related-documents-cta";
 
 // --- API Function to get a specific article ---
 async function getArticle(slug: string): Promise<Article | null> {
@@ -126,7 +127,11 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
         {/* --- PDF Section --- */}
         {article.media && article.media.some(m => m.mediaType === "pdf") && (
-          <ArticlePdfSection pdfs={article.media.filter(m => m.mediaType === "pdf")} />
+          <ArticlePdfSection 
+            pdfs={article.media.filter(m => m.mediaType === "pdf")} 
+            articleId={article._id}
+            articleTitle={article.title}
+          />
         )}
 
         <RichTextEditor
@@ -134,6 +139,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           editable={false}
           className="w-full overflow-hidden"
         />
+
+        {article.relatedDocuments && article.relatedDocuments.length > 0 && (
+          <RelatedDocumentsCTA documents={article.relatedDocuments} />
+        )}
 
       </article>
 

@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { changePassword } from "@/lib/api";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   KeyRound, 
@@ -17,9 +19,11 @@ import {
   Loader2, 
   Trash2, 
   Plus, 
-  CheckCircle2, 
   Copy,
-  QrCode
+  QrCode,
+  Chrome,
+  Link as LinkIcon,
+  CheckCircle2
 } from "lucide-react";
 
 interface PasskeyItem {
@@ -31,6 +35,7 @@ interface PasskeyItem {
 
 export default function SecurityPage() {
   const { toast } = useToast();
+  const { user, isOAuth, token } = useAuth();
 
   // Password States
   const [currentPassword, setCurrentPassword] = useState("");
@@ -59,7 +64,7 @@ export default function SecurityPage() {
   // Password validation & save simulation
   const handleSavePassword = async () => {
     const errors: Record<string, string> = {};
-    if (!currentPassword) errors.currentPassword = "Mật khẩu hiện tại không được để trống.";
+    if (!isOAuth && !currentPassword) errors.currentPassword = "Mật khẩu hiện tại không được để trống.";
     if (!newPassword) {
       errors.newPassword = "Mật khẩu mới không được để trống.";
     } else if (newPassword.length < 6) {
@@ -82,17 +87,29 @@ export default function SecurityPage() {
     setPasswordErrors({});
     setSavingPassword(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setSavingPassword(false);
+    try {
+      if (!token) throw new Error("Chưa đăng nhập");
+      await changePassword({ 
+        currentPassword: isOAuth ? undefined : currentPassword, 
+        newPassword 
+      }, token);
+
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       toast({
         title: "Đã đổi mật khẩu",
-        description: "Mật khẩu tài khoản của bạn đã được cập nhật thành công (Giao diện Mockup)."
+        description: "Mật khẩu tài khoản của bạn đã được cập nhật thành công."
       });
-    }, 1500);
+    } catch (err: any) {
+      toast({
+        title: "Lỗi đổi mật khẩu",
+        description: err.message || "Vui lòng thử lại sau",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingPassword(false);
+    }
   };
 
   // Passkey mock simulation
@@ -203,25 +220,27 @@ export default function SecurityPage() {
           <Card className="lg:col-span-2 bg-card border border-border/80 shadow-sm rounded-md">
             <CardContent className="p-5">
               <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-muted-foreground/80">Mật khẩu hiện tại</Label>
-                  <Input
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => {
-                      setCurrentPassword(e.target.value);
-                      if (passwordErrors.currentPassword) setPasswordErrors(prev => ({ ...prev, currentPassword: "" }));
-                    }}
-                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${
-                      passwordErrors.currentPassword
-                        ? "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500"
-                        : "border-border/60 focus-visible:ring-primary focus-visible:border-primary"
-                    }`}
-                  />
-                  {passwordErrors.currentPassword && (
-                    <p className="text-red-700 text-[10px] font-semibold mt-1">{passwordErrors.currentPassword}</p>
-                  )}
-                </div>
+                {!isOAuth && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-muted-foreground/80">Mật khẩu hiện tại</Label>
+                    <Input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => {
+                        setCurrentPassword(e.target.value);
+                        if (passwordErrors.currentPassword) setPasswordErrors(prev => ({ ...prev, currentPassword: "" }));
+                      }}
+                      className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${
+                        passwordErrors.currentPassword
+                          ? "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500"
+                          : "border-border/60 focus-visible:ring-primary focus-visible:border-primary"
+                      }`}
+                    />
+                    {passwordErrors.currentPassword && (
+                      <p className="text-red-700 text-[10px] font-semibold mt-1">{passwordErrors.currentPassword}</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -274,6 +293,42 @@ export default function SecurityPage() {
                     Cập nhật mật khẩu
                   </Button>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Section 1.5: Google Linked Account */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-border/40">
+          <div className="space-y-1.5 lg:pr-4">
+            <h3 className="text-base font-bold text-foreground font-serif flex items-center gap-2">
+              <LinkIcon className="h-4.5 w-4.5 text-primary shrink-0" />
+              Tài khoản liên kết
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Quản lý các tài khoản mạng xã hội được liên kết để đăng nhập nhanh.
+            </p>
+          </div>
+          
+          <Card className="lg:col-span-2 bg-card border border-border/80 shadow-sm rounded-md">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between p-3 bg-background/40 border border-border/50 rounded-md">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 border border-primary/20 text-primary rounded-md">
+                    <Chrome className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">Google</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {isOAuth ? "Đã liên kết" : "Chưa liên kết"}
+                    </p>
+                  </div>
+                </div>
+                {isOAuth ? (
+                  <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-md">Đã kết nối</span>
+                ) : (
+                  <Button variant="outline" size="sm" className="h-8 text-xs font-bold">Liên kết</Button>
+                )}
               </div>
             </CardContent>
           </Card>

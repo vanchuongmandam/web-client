@@ -7,6 +7,7 @@ export interface Media {
   isRestricted?: boolean;
   accessGranted?: boolean;
   requestStatus?: "pending" | "approved" | "rejected" | null;
+  unlockPrice?: number;
 }
 
 export interface Comment {
@@ -58,6 +59,7 @@ export interface Article {
   content: TiptapContent;
   media: Media[];
   trending: boolean;
+  relatedDocuments?: MarketDocument[];
   createdAt: string;
   updatedAt: string;
 }
@@ -134,6 +136,10 @@ export interface UserProfile {
   securityStatus?: SecurityStatus;
   subRole?: 'student' | 'teacher' | 'author' | 'reader';
   bookmarkedDocuments?: MarketDocument[] | string[];
+  isOAuth?: boolean;
+  isEmailVerified?: boolean;
+  googleId?: string;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -204,6 +210,7 @@ export interface MarketDocument {
   featured: boolean;
   allowDownload?: boolean;
   relatedArticle?: { _id: string; title: string; slug: string };
+  relatedDocuments?: MarketDocument[];
   uploader?: string;
   createdAt: string;
   updatedAt: string;
@@ -230,6 +237,10 @@ export interface Order {
   };
   qrCodeUrl: string;
   status: 'pending' | 'paid' | 'confirmed' | 'cancelled' | 'expired' | 'refunded';
+  paymentMethod?: 'sepay' | 'wallet';
+  couponCode?: string;
+  discountAmount?: number;
+  orderType?: 'purchase' | 'deposit';
   paidAt?: string;
   paidAmount?: number;
   expiresAt: string;
@@ -268,6 +279,10 @@ export interface AdminDashboardStats {
     pendingOrders: number;
     totalDocuments: number;
     totalDownloads: number;
+    cancelledOrders: number;
+    refundedOrders: number;
+    totalUsers: number;
+    newUsersThisMonth: number;
   };
   deltas: {
     revenueMoM: number;
@@ -283,4 +298,45 @@ export interface AdminDashboardStats {
     purchases: number;
   }>;
   topDocuments: AdminTopDocument[];
+  revenueByPaymentMethod: Record<string, { revenue: number; count: number }>;
+  couponStats: CouponStat[];
+}
+
+export interface Coupon {
+  _id: string;
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  maxDiscountAmount?: number;
+  minOrderAmount: number;
+  maxUses: number | null;
+  usedCount: number;
+  isActive: boolean;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CouponStat {
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  usedCount: number;
+  maxUses: number | null;
+  isActive: boolean;
+  expiresAt: string;
+  totalDiscount: number;
+}
+
+export interface AdminUser {
+  _id: string;
+  username: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  balance: number;
+  isEmailVerified: boolean;
+  isOAuth: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

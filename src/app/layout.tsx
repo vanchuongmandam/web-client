@@ -10,6 +10,7 @@ import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/context/AuthContext";
+import { SessionProvider } from "next-auth/react";
 import { ZenModeProvider } from "@/context/ZenModeContext";
 import { ZenModeLayoutWrapper } from "@/components/zen-mode-layout-wrapper";
 import Script from "next/script";
@@ -104,14 +105,16 @@ export default function RootLayout({
           fontSerif.variable
         )}
       >
-        <AuthProvider>
-          <ZenModeProvider>
-            <ZenModeLayoutWrapper header={<Header />} footer={<Footer />}>
-              {children}
-            </ZenModeLayoutWrapper>
-          </ZenModeProvider>
-          <Toaster />
-        </AuthProvider>
+        <SessionProvider>
+          <AuthProvider>
+            <ZenModeProvider>
+              <ZenModeLayoutWrapper header={<Header />} footer={<Footer />}>
+                {children}
+              </ZenModeLayoutWrapper>
+            </ZenModeProvider>
+            <Toaster />
+          </AuthProvider>
+        </SessionProvider>
       </body>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-GYC404ZRLL"

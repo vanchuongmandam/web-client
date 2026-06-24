@@ -5,11 +5,13 @@ import { createContext, useState, useContext, useEffect, ReactNode, useCallback,
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import { login as apiLogin, register as apiRegister } from '@/lib/api';
+import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react";
 
 interface User {
   _id: string;
   username: string;
   role: string;
+  isOAuth?: boolean;
   balance?: number;
   bookmarkedDocuments?: any[];
 }
@@ -27,11 +29,13 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  register: (username: string, password: string, email: string) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
   isLoading: boolean;
   isHydrated: boolean;
+  isOAuth: boolean;
   error: string | null;
   clearError: () => void;
 }
@@ -43,39 +47,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isOAuth, setIsOAuth] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { data: session, status: sessionStatus } = useSession();
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     setUser(null);
     setToken(null);
+    setIsOAuth(false);
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
+    
+    if (session) {
+      await nextAuthSignOut({ redirect: false });
+    }
+    
     router.push('/login');
-  }, [router]);
+  }, [router, session]);
 
+  // Sync with NextAuth session
   useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      try {
-        const decoded: DecodedToken = jwtDecode(storedToken);
-        if (decoded.exp * 1000 < Date.now()) {
-          logout();
-        } else {
-          setToken(storedToken);
-          const storedUser = localStorage.getItem('authUser');
-          if (storedUser && storedUser !== 'undefined') {
-            setUser(JSON.parse(storedUser));
+    if (sessionStatus === "authenticated" && session?.backendToken && session?.user) {
+      setToken(session.backendToken);
+      setUser(session.user as User);
+      setIsOAuth(true);
+      localStorage.setItem('authToken', session.backendToken);
+      localStorage.setItem('authUser', JSON.stringify(session.user));
+    } else if (sessionStatus === "unauthenticated") {
+      // Only check localStorage if not logged in via NextAuth
+      const storedToken = localStorage.getItem('authToken');
+      if (storedToken) {
+        try {
+          const decoded: DecodedToken = jwtDecode(storedToken);
+          if (decoded.exp * 1000 < Date.now()) {
+            logout();
+          } else {
+            setToken(storedToken);
+            const storedUser = localStorage.getItem('authUser');
+            if (storedUser && storedUser !== 'undefined') {
+              setUser(JSON.parse(storedUser));
+            }
           }
+        } catch (e) {
+          console.error("Invalid token:", e);
+          logout();
         }
-      } catch (e) {
-        console.error("Invalid token:", e);
-        logout();
       }
     }
-    setIsLoading(false);
-    setIsHydrated(true);
-  }, [logout]);
+    
+    if (sessionStatus !== "loading") {
+      setIsLoading(false);
+      setIsHydrated(true);
+    }
+  }, [session, sessionStatus, logout]);
 
   const refreshProfile = useCallback(async () => {
     if (!token) return;
@@ -108,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await apiLogin(username, password);
       setToken(data.token);
       setUser(data.user);
+      setIsOAuth(false);
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('authUser', JSON.stringify(data.user));
       router.push('/');
@@ -120,12 +146,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [router]);
 
-  const register = useCallback(async (username: string, password: string) => {
+  const loginWithGoogle = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      await apiRegister(username, password);
-      await login(username, password);
+      await nextAuthSignIn('google');
+    } catch (err: unknown) {
+      if (err instanceof Error) { setError(err.message); }
+      else { setError("Đã có lỗi không xác định xảy ra"); }
+      setIsLoading(false);
+    }
+  }, []);
+
+  const register = useCallback(async (username: string, password: string, email: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await apiRegister(username, password, email);
     } catch (err: unknown) {
       if (err instanceof Error) { setError(err.message); }
       else { setError("Đã có lỗi không xác định xảy ra"); }
@@ -133,20 +170,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [login]);
+  }, []);
 
   const value = useMemo(() => ({
     user,
     token,
     login,
+    loginWithGoogle,
     register,
     logout,
     refreshProfile,
     isLoading,
     isHydrated,
+    isOAuth,
     error,
     clearError
-  }), [user, token, isLoading, isHydrated, error, logout, login, register, clearError, refreshProfile]);
+  }), [user, token, isLoading, isHydrated, isOAuth, error, logout, login, loginWithGoogle, register, clearError, refreshProfile]);
 
   return (
     <AuthContext.Provider value={value}>

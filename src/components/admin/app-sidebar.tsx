@@ -9,6 +9,8 @@ import {
   MessageSquareQuote,
   ShoppingBag,
   Tag,
+  Users,
+  Ticket
 } from "lucide-react";
 
 import {
@@ -73,6 +75,19 @@ const marketplaceItems = [
   },
 ];
 
+const systemItems = [
+  {
+    title: "Người dùng",
+    url: "/admin/users",
+    icon: Users,
+  },
+  {
+    title: "Mã giảm giá",
+    url: "/admin/coupons",
+    icon: Ticket,
+  },
+];
+
 export function AppSidebar() {
   const pathname = usePathname();
   const isRouteActive = (url: string) => {
@@ -118,6 +133,23 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {marketplaceItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isRouteActive(item.url)}>
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Hệ thống</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {systemItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isRouteActive(item.url)}>
                     <Link href={item.url}>

@@ -10,6 +10,8 @@ import {
   MessageSquareQuote,
   ShoppingBag,
   Tag,
+  Users,
+  Ticket
 } from "lucide-react";
 import Link from "next/link";
 import { OverviewDashboard } from "@/components/admin/overview-dashboard";
@@ -72,6 +74,23 @@ export default function AdminDashboardPage() {
     },
   ];
 
+  const systemActions = [
+    {
+      title: "Người dùng",
+      desc: "Quản lý tài khoản, phân quyền và số dư ví.",
+      href: "/admin/users",
+      cta: "Quản lý người dùng",
+      icon: Users,
+    },
+    {
+      title: "Mã giảm giá",
+      desc: "Tạo và quản lý các mã khuyến mãi (Coupons).",
+      href: "/admin/coupons",
+      cta: "Quản lý mã",
+      icon: Ticket,
+    },
+  ];
+
   return (
     <div className="mx-auto w-full max-w-7xl">
       <header className="mb-8 rounded-xl border bg-card p-6">
@@ -92,6 +111,7 @@ export default function AdminDashboardPage() {
         <TabsList>
           <TabsTrigger value="content">Nội dung</TabsTrigger>
           <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+          <TabsTrigger value="system">Hệ thống</TabsTrigger>
         </TabsList>
 
         <TabsContent value="content" className="mt-6">
@@ -122,6 +142,31 @@ export default function AdminDashboardPage() {
         <TabsContent value="marketplace" className="mt-6">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {marketplaceActions.map((item) => (
+              <Card key={item.title} className="h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <item.icon />
+                    {item.title}
+                  </CardTitle>
+                  <CardDescription>{item.desc}</CardDescription>
+                </CardHeader>
+                <CardContent />
+                <CardFooter>
+                  <Button asChild className="w-full justify-between">
+                    <Link href={item.href}>
+                      {item.cta}
+                      <ArrowRight data-icon="inline-end" />
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="system" className="mt-6">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {systemActions.map((item) => (
               <Card key={item.title} className="h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

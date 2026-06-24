@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,13 +15,15 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, Chrome } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { register, isLoading, error, clearError } = useAuth();
+  const { register, loginWithGoogle, isLoading, error, clearError } = useAuth();
+  const router = useRouter();
 
   // Xóa lỗi khi người dùng rời khỏi trang hoặc component unmount
   useEffect(() => {
@@ -32,8 +35,8 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register(username, password);
-      // Nếu không có lỗi, AuthContext sẽ tự động chuyển hướng
+      await register(username, password, email);
+      router.push('/verify-email?pending=true');
     } catch (err) {
       // Bắt lỗi được ném từ AuthContext để ngăn các hành động tiếp theo
       console.error("Registration failed:", err);
@@ -58,6 +61,18 @@ export default function RegisterPage() {
               </Alert>
             )}
             <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="nguyenvan_a@example.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="username">Tên người dùng</Label>
               <Input
                 id="username"
@@ -81,6 +96,19 @@ export default function RegisterPage() {
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Tạo tài khoản'}
+            </Button>
+            
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-muted" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">hoặc</span>
+              </div>
+            </div>
+
+            <Button variant="outline" type="button" className="w-full" onClick={loginWithGoogle} disabled={isLoading}>
+              <Chrome className="mr-2 h-4 w-4" /> Đăng ký bằng Google
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">

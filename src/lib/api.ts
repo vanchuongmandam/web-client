@@ -13,6 +13,9 @@ import type {
   AdminDashboardStats,
   Review,
   PublicProfile,
+  Coupon,
+  CouponStat,
+  AdminUser,
 } from '@/lib/types';
 
 // ---------------------------------------------------------------------------
@@ -252,11 +255,66 @@ export async function login(
 export async function register(
   username: string,
   password: string,
+  email: string,
 ): Promise<{ message: string }> {
   const res = await apiFetch<ApiEnvelope<{ message: string }>>('/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, email }),
+  });
+  return res.data;
+}
+
+export async function verifyEmail(token: string): Promise<{ message: string }> {
+  const res = await apiFetch<ApiEnvelope<{ message: string }>>('/auth/verify-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  });
+  return res.data;
+}
+
+export async function resendVerification(email: string): Promise<{ message: string }> {
+  const res = await apiFetch<ApiEnvelope<{ message: string }>>('/auth/resend-verification', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  return res.data;
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const res = await apiFetch<ApiEnvelope<{ message: string }>>('/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  return res.data;
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
+  const res = await apiFetch<ApiEnvelope<{ message: string }>>(`/auth/reset-password/${token}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
+  return res.data;
+}
+
+export async function changePassword(data: { currentPassword?: string; newPassword: string }, token: string): Promise<{ message: string }> {
+  const res = await apiFetch<ApiEnvelope<{ message: string }>>('/auth/change-password', {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function linkGoogleAccount(idToken: string, password?: string): Promise<LoginResponse> {
+  const res = await apiFetch<ApiEnvelope<LoginResponse>>('/auth/google', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken, password, linkAccount: true }),
   });
   return res.data;
 }
@@ -359,11 +417,24 @@ export async function reviewAccessRequest(
   status: 'approved' | 'rejected',
   token: string,
 ): Promise<void> {
-  await apiFetch<ApiEnvelope<unknown>>(`/requests/${id}/status`, {
+  await apiFetch<ApiEnvelope<unknown>>(`/admin/requests/${id}/status`, {
     method: 'PATCH',
     headers: authHeaders(token),
     body: JSON.stringify({ status }),
   });
+}
+
+export async function instantUnlock(
+  articleId: string,
+  mediaUrl: string,
+  token: string,
+): Promise<{ message: string }> {
+  const res = await apiFetch<ApiEnvelope<{ message: string }>>('/requests/instant-unlock', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ articleId, mediaUrl }),
+  });
+  return res.data;
 }
 
 // ---------------------------------------------------------------------------
@@ -568,11 +639,25 @@ export async function createOrder(
   documentIds: string[],
   token: string,
   useBalance?: boolean,
+  couponCode?: string,
 ): Promise<Order> {
   const res = await apiFetch<ApiEnvelope<Order>>('/orders', {
     method: 'POST',
     headers: authHeaders(token),
-    body: JSON.stringify({ documentIds, useBalance }),
+    body: JSON.stringify({ documentIds, useBalance, couponCode }),
+  });
+  return res.data;
+}
+
+export async function walletPay(
+  documentIds: string[],
+  token: string,
+  couponCode?: string,
+): Promise<Order> {
+  const res = await apiFetch<ApiEnvelope<Order>>('/orders/wallet-pay', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ documentIds, couponCode }),
   });
   return res.data;
 }
@@ -649,6 +734,100 @@ export async function refundAdminOrder(
 export async function getAdminStats(token: string): Promise<AdminDashboardStats> {
   const res = await apiFetch<ApiEnvelope<AdminDashboardStats>>('/admin/stats', {
     headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+}
+
+// ---------------------------------------------------------------------------
+// Admin Users & Coupons
+// ---------------------------------------------------------------------------
+
+export async function getAdminUsers(
+  params?: { page?: number; limit?: number; search?: string; role?: string; isActive?: string },
+  token?: string,
+): Promise<PaginatedResponse<AdminUser>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<AdminUser[]>>(`/admin/users${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+export async function getAdminUserById(id: string, token: string): Promise<AdminUser & { purchases: Purchase[] }> {
+  const res = await apiFetch<ApiEnvelope<AdminUser & { purchases: Purchase[] }>>(`/admin/users/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+}
+
+export async function updateAdminUserRole(id: string, role: 'admin' | 'user', token: string): Promise<AdminUser> {
+  const res = await apiFetch<ApiEnvelope<AdminUser>>(`/admin/users/${id}/role`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify({ role }),
+  });
+  return res.data;
+}
+
+export async function updateAdminUserStatus(id: string, isActive: boolean, token: string): Promise<AdminUser> {
+  const res = await apiFetch<ApiEnvelope<AdminUser>>(`/admin/users/${id}/status`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify({ isActive }),
+  });
+  return res.data;
+}
+
+export async function adjustAdminUserBalance(id: string, amount: number, reason: string, token: string): Promise<{ user: AdminUser, adjustment: any }> {
+  const res = await apiFetch<ApiEnvelope<{ user: AdminUser, adjustment: any }>>(`/admin/users/${id}/balance`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify({ amount, reason }),
+  });
+  return res.data;
+}
+
+export async function getAdminCoupons(
+  params?: { page?: number; limit?: number },
+  token?: string,
+): Promise<PaginatedResponse<Coupon>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<Coupon[]>>(`/admin/coupons${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+export async function createAdminCoupon(data: Partial<Coupon>, token: string): Promise<Coupon> {
+  const res = await apiFetch<ApiEnvelope<Coupon>>('/admin/coupons', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function updateAdminCoupon(id: string, data: Partial<Coupon>, token: string): Promise<Coupon> {
+  const res = await apiFetch<ApiEnvelope<Coupon>>(`/admin/coupons/${id}`, {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function deleteAdminCoupon(id: string, token: string): Promise<void> {
+  await apiFetch<ApiEnvelope<unknown>>(`/admin/coupons/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function validateCoupon(code: string, documentIds: string[], token: string): Promise<{ valid: boolean, discountAmount: number, maxDiscountAmount?: number, discountType: string, discountValue: number }> {
+  const res = await apiFetch<ApiEnvelope<any>>('/coupons/validate', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ code, documentIds }),
   });
   return res.data;
 }

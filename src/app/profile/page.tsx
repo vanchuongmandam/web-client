@@ -297,7 +297,7 @@ export default function ProfilePage() {
               <Button
                 size="sm"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[9px] py-1 px-2 h-6.5 rounded"
-                onClick={() => setDepositOpen(true)}
+                onClick={() => router.push("/profile/wallet")}
               >
                 + Nạp tiền
               </Button>
@@ -686,51 +686,7 @@ export default function ProfilePage() {
         </Button>
       </div>
 
-      {/* Quick Deposit Dialog modal */}
-      <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
-        <DialogContent className="bg-popover border border-border text-popover-foreground sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold font-serif text-primary">Nạp tiền vào tài khoản</DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs">
-              Chuyển khoản theo thông tin QR dưới đây. Hệ thống SePay sẽ tự động đối soát trong vài giây.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4 font-sans">
-            <div className="flex justify-center">
-              <div className="bg-white p-3 rounded-md shadow-md border border-border">
-                <img
-                  src={`https://qr.sepay.vn/img?bank=MBBank&acc=0123456789&template=compact2&amount=100000&des=VCMD%20DEP%20${profile?.username || ""}`}
-                  alt="QR Code Nạp tiền"
-                  className="w-44 h-44 object-contain"
-                />
-              </div>
-            </div>
-            
-            <div className="bg-muted/50 border border-border rounded-md p-3 space-y-2 text-xs font-mono">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Ngân hàng:</span>
-                <span className="text-foreground font-bold">MBBank</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Số tài khoản:</span>
-                <span className="text-foreground font-bold">0123456789</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Chủ tài khoản:</span>
-                <span className="text-foreground font-bold">VAN CHUONG MAN DAM</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Nội dung CK:</span>
-                <span className="text-primary font-black select-all">VCMD DEP {profile?.username || ""}</span>
-              </div>
-            </div>
-            
-            <p className="text-[10px] text-red-700 leading-relaxed text-center font-bold uppercase tracking-wide">
-              ⚠️ LƯU Ý: Vui lòng chuyển đúng nội dung để ví của bạn được cộng số dư tự động ngay lập tức.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+
 
     </div>
   );
