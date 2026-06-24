@@ -1,7 +1,7 @@
 // src/app/documents/document-list-client.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { MarketDocument, Category, PaginationMeta } from '@/lib/types';
@@ -11,7 +11,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PaginationControls } from '@/components/ui/pagination-controls';
-import { FileText, Star, Eye, Download, Search, FilterX, SlidersHorizontal } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { toggleBookmark, getBookmarks } from '@/lib/api';
+import {
+  FileText,
+  Star,
+  Eye,
+  Download,
+  Search,
+  FilterX,
+  SlidersHorizontal,
+  Bookmark,
+  BookOpen,
+  History,
+  Sparkles,
+  BookMarked,
+  Layers,
+  GraduationCap,
+  Coins,
+  Loader2,
+  Trash2
+} from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -29,6 +50,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface DocumentListClientProps {
   initialDocuments: MarketDocument[];
@@ -38,6 +60,8 @@ interface DocumentListClientProps {
   currentSearch?: string;
   currentSort?: string;
   currentPage: number;
+  currentGrade?: string;
+  currentTag?: string;
 }
 
 function formatPrice(price: number): string {
@@ -46,81 +70,42 @@ function formatPrice(price: number): string {
 }
 
 const sortOptions = [
-  { value: '-createdAt', label: 'Đăng gần đây' },
+  { value: '-createdAt', label: 'Ấn bản mới nhất' },
+  { value: '-purchaseCount', label: 'Tải nhiều nhất' },
+  { value: '-rating.average', label: 'Đánh giá cao nhất' },
   { value: 'price', label: 'Giá từ thấp đến cao' },
   { value: '-price', label: 'Giá từ cao đến thấp' },
-  { value: '-purchaseCount', label: 'Bán chạy nhất' },
-  { value: '-rating.average', label: 'Đánh giá cao nhất' },
 ];
 
-function DocumentCard({ doc }: { doc: MarketDocument }) {
-  const previewImage = doc.previewImages?.[0];
+const gradeOptions = [
+  { value: 'All', label: 'Tất cả khối lớp' },
+  { value: 'Grade 10', label: 'Lớp 10' },
+  { value: 'Grade 11', label: 'Lớp 11' },
+  { value: 'Grade 12', label: 'Lớp 12' },
+];
 
-  return (
-    <Link href={`/documents/${doc.slug}`} className="block h-full group">
-      <Card className="h-full flex flex-col shadow-none border-2 border-border/40 hover:border-primary/60 transition-colors bg-card/80 backdrop-blur-sm rounded-xl overflow-hidden">
-        <CardHeader className="p-0 border-b border-border/40 bg-muted/30">
-          <div className="relative w-full aspect-[1/1.41] overflow-hidden flex items-center justify-center p-4">
-            {previewImage ? (
-              <img
-                src={previewImage}
-                alt={doc.title}
-                className="w-full h-full object-cover rounded shadow-sm transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-               <div className="w-full h-full bg-background border rounded shadow-sm flex flex-col items-center justify-center text-muted-foreground transition-transform duration-500 group-hover:scale-105">
-                 <FileText className="h-10 w-10 mb-2 opacity-50" />
-                 <span className="text-xs font-medium uppercase tracking-wider opacity-70">Tài liệu</span>
-               </div>
-             )}
-             
-             <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-                {doc.featured && (
-                <Badge className="font-semibold px-2 py-0.5 text-[10px] shadow-sm">
-                  Nổi bật
-                </Badge>
-              )}
-            </div>
-            {doc.category && (
-              <Badge variant="secondary" className="absolute bottom-2 right-2 text-[10px] shadow-sm font-medium">
-                {doc.category.name}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 flex flex-1 flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <h3 className="line-clamp-2 font-bold text-base leading-tight group-hover:text-primary transition-colors">{doc.title}</h3>
-            <p className="text-xs text-muted-foreground font-medium truncate">{doc.author}</p>
-          </div>
-          
-          <div className="mt-auto flex items-center gap-3 text-[11px] text-muted-foreground">
-            <span className="flex items-center gap-1 font-medium">
-              <Star className="h-3 w-3 fill-primary/20 text-primary" />
-              {doc.rating?.average > 0 ? doc.rating.average.toFixed(1) : 'Chưa có'}
-            </span>
-            <span className="flex items-center gap-1">
-              <Eye className="h-3 w-3" />
-              {doc.viewCount || 0}
-            </span>
-            <span className="flex items-center gap-1">
-              <Download className="h-3 w-3" />
-              {doc.purchaseCount || 0}
-            </span>
-          </div>
-        </CardContent>
-        <CardFooter className="p-4 pt-0">
-          <div className="w-full pt-3 border-t border-border/40 flex items-center justify-between">
-            <span className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">Giá bán</span>
-            <span className={`text-lg font-black tracking-tight ${doc.isFree ? 'text-green-600' : 'text-primary'}`}>
-              {formatPrice(doc.price)}
-            </span>
-          </div>
-        </CardFooter>
-      </Card>
-    </Link>
-  );
-}
+const popularTags = [
+  { label: 'HSG Quốc Gia', value: 'HSG Quốc Gia' },
+  { label: 'Nghị luận xã hội', value: 'Nghị luận xã hội' },
+  { label: 'Nghị luận văn học', value: 'Nghị luận văn học' },
+  { label: 'Chuyên đề lý luận', value: 'Chuyên đề lý luận' },
+];
+
+// Helper to determine book cover theme dynamically
+const getBookCoverTheme = (docId: string) => {
+  let sum = 0;
+  for (let i = 0; i < docId.length; i++) {
+    sum += docId.charCodeAt(i);
+  }
+  const themes = [
+    { bg: 'bg-[#5c3e35]', text: 'text-[#f4eae1]', border: 'border-[#432d27]', tagBg: 'bg-[#432d27]/40 text-[#f4eae1]/90', lineBg: 'bg-[#a37055]' }, // Warm Mahogany
+    { bg: 'bg-[#2b3a32]', text: 'text-[#e9f1e8]', border: 'border-[#1d2722]', tagBg: 'bg-[#1d2722]/40 text-[#e9f1e8]/90', lineBg: 'bg-[#526f5c]' }, // Forest Moss
+    { bg: 'bg-[#3b2b3a]', text: 'text-[#f5eaf4]', border: 'border-[#261c25]', tagBg: 'bg-[#261c25]/40 text-[#f5eaf4]/90', lineBg: 'bg-[#7a5879]' }, // Dark Aubergine
+    { bg: 'bg-[#1f2d3d]', text: 'text-[#e9f1f6]', border: 'border-[#131b25]', tagBg: 'bg-[#131b25]/40 text-[#e9f1f6]/90', lineBg: 'bg-[#4f6b8c]' }, // Slate Ocean
+    { bg: 'bg-[#e2d6c5]', text: 'text-[#3e342a]', border: 'border-[#ccbfae]', tagBg: 'bg-[#3e342a]/15 text-[#3e342a]/95', lineBg: 'bg-[#bca68d]' }, // Vintage Parchment
+  ];
+  return themes[sum % themes.length];
+};
 
 export function DocumentListClient({
   initialDocuments,
@@ -130,37 +115,91 @@ export function DocumentListClient({
   currentSearch,
   currentSort,
   currentPage,
+  currentGrade,
+  currentTag,
 }: DocumentListClientProps) {
   const router = useRouter();
+  const { token } = useAuth();
+  const { toast } = useToast();
+
   const [searchValue, setSearchValue] = useState(currentSearch || '');
-  const hasActiveFilters = Boolean(currentCategory || currentSearch || currentSort);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState<string | null>(null);
+
+  const hasActiveFilters = Boolean(currentCategory || currentSearch || currentSort || (currentGrade && currentGrade !== 'All') || currentTag);
+
+  // Load bookmarks and search history on client-side mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('vcmd_recent_searches');
+      if (stored) {
+        try {
+          setRecentSearches(JSON.parse(stored));
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (token) {
+      getBookmarks(token, { limit: 100 })
+        .then(res => {
+          setBookmarkedIds(res.data.map(doc => doc._id));
+        })
+        .catch(err => console.error("Error loading bookmarks:", err));
+    } else {
+      setBookmarkedIds([]);
+    }
+  }, [token]);
 
   const updateFilter = (key: string, value: string | undefined) => {
     const params = new URLSearchParams();
     if (currentCategory && key !== 'category') params.set('category', currentCategory);
     if (currentSearch && key !== 'search') params.set('search', currentSearch);
     if (currentSort && key !== 'sort') params.set('sort', currentSort);
-    if (value) params.set(key, value);
+    if (currentGrade && currentGrade !== 'All' && key !== 'grade') params.set('grade', currentGrade);
+    if (currentTag && key !== 'tag') params.set('tag', currentTag);
+
+    if (value && value !== 'All') params.set(key, value);
+    else params.delete(key);
     params.set('page', '1');
     router.push(`/documents?${params.toString()}`);
   };
 
-  const buildParamsForPage = (page: number) => {
+  const handleSearchSubmit = (keyword: string) => {
+    const trimmed = keyword.trim();
+    if (trimmed) {
+      // Save to recent searches
+      const updated = [trimmed, ...recentSearches.filter(s => s !== trimmed)].slice(0, 5);
+      setRecentSearches(updated);
+      localStorage.setItem('vcmd_recent_searches', JSON.stringify(updated));
+    }
+    updateFilter('search', trimmed || undefined);
+  };
+
+  const handleFormSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearchSubmit(searchValue);
+  };
+
+  const handleClearRecentSearches = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRecentSearches([]);
+    localStorage.removeItem('vcmd_recent_searches');
+  };
+
+  const handlePageChange = (page: number) => {
     const params = new URLSearchParams();
     if (currentCategory) params.set('category', currentCategory);
     if (currentSearch) params.set('search', currentSearch);
     if (currentSort) params.set('sort', currentSort);
+    if (currentGrade && currentGrade !== 'All') params.set('grade', currentGrade);
+    if (currentTag) params.set('tag', currentTag);
     params.set('page', String(page));
-    return params;
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateFilter('search', searchValue || undefined);
-  };
-
-  const handlePageChange = (page: number) => {
-    router.push(`/documents?${buildParamsForPage(page).toString()}`);
+    router.push(`/documents?${params.toString()}`);
   };
 
   const clearFilters = () => {
@@ -168,170 +207,531 @@ export function DocumentListClient({
     router.push('/documents');
   };
 
-  const FilterPanel = ({ mobile = false }: { mobile?: boolean }) => (
-    <div className="flex flex-col gap-4">
+  const toggleSaveDocument = async (docId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!token) {
+      toast({
+        title: "Yêu cầu đăng nhập",
+        description: "Bạn cần đăng nhập để lưu tài liệu vào Tủ sách cá nhân.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsBookmarkLoading(docId);
+    try {
+      const res = await toggleBookmark(docId, token);
+      if (res.bookmarked) {
+        setBookmarkedIds(prev => [...prev, docId]);
+        toast({
+          title: "Đã lưu tài liệu",
+          description: "Tài liệu đã được thêm vào tủ sách cá nhân.",
+        });
+      } else {
+        setBookmarkedIds(prev => prev.filter(id => id !== docId));
+        toast({
+          title: "Đã bỏ lưu",
+          description: "Tài liệu đã được xóa khỏi tủ sách cá nhân.",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Thất bại",
+        description: err.message || "Đã xảy ra lỗi khi lưu tài liệu.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBookmarkLoading(null);
+    }
+  };
+
+  const FilterPanel = () => (
+    <div className="flex flex-col gap-5 font-sans">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold">Bộ lọc</h2>
+        <h3 className="text-lg font-bold text-[#4c6b54] flex items-center gap-2">
+          <SlidersHorizontal className="size-4" /> Tinh chỉnh kết quả
+        </h3>
         {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
-            <FilterX data-icon="inline-start" />
-            Xóa lọc
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs text-[#8e2929] hover:text-[#8e2929]/80 hover:bg-transparent p-0 h-auto">
+            <FilterX className="mr-1 size-3.5" /> Xóa lọc
           </Button>
         )}
       </div>
-      <Separator />
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium">Sắp xếp theo</p>
-          <Select value={currentSort || '-createdAt'} onValueChange={(v) => updateFilter('sort', v)}>
-            <SelectTrigger className={mobile ? 'w-full' : 'w-full'}>
-              <SelectValue placeholder="Mới nhất" />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium">Danh mục</p>
-          <Select
-            value={currentCategory || 'all'}
-            onValueChange={(v) => updateFilter('category', v === 'all' ? undefined : v)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Tất cả danh mục" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả danh mục</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat._id} value={cat._id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <Separator className="bg-border/60" />
+
+      {/* Categories Filter */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-[#5a5045] flex items-center gap-1.5">
+          <Layers className="size-3.5 text-[#888072]" /> Chuyên mục tài liệu
+        </label>
+        <Select
+          value={currentCategory || 'all'}
+          onValueChange={(v) => updateFilter('category', v === 'all' ? undefined : v)}
+        >
+          <SelectTrigger className="w-full bg-[#fcf9f2] border-2 border-[#ebdcb9] hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
+            <SelectValue placeholder="Tất cả chuyên mục" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#fcf9f2] border-[#ebdcb9]">
+            <SelectItem value="all">Tất cả chuyên mục</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat._id} value={cat._id}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Grade Filter */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-[#5a5045] flex items-center gap-1.5">
+          <GraduationCap className="size-3.5 text-[#888072]" /> Khối lớp học
+        </label>
+        <Select
+          value={currentGrade || 'All'}
+          onValueChange={(v) => updateFilter('grade', v === 'All' ? undefined : v)}
+        >
+          <SelectTrigger className="w-full bg-[#fcf9f2] border-2 border-[#ebdcb9] hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
+            <SelectValue placeholder="Tất cả khối lớp" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#fcf9f2] border-[#ebdcb9]">
+            {gradeOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Tags Filter */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-[#5a5045] flex items-center gap-1.5">
+          <Sparkles className="size-3.5 text-[#888072]" /> Bộ sưu tập đề thi
+        </label>
+        <Select
+          value={currentTag || 'all'}
+          onValueChange={(v) => updateFilter('tag', v === 'all' ? undefined : v)}
+        >
+          <SelectTrigger className="w-full bg-[#fcf9f2] border-2 border-[#ebdcb9] hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
+            <SelectValue placeholder="Tất cả chuyên đề thi" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#fcf9f2] border-[#ebdcb9]">
+            <SelectItem value="all">Tất cả chuyên đề thi</SelectItem>
+            {popularTags.map((t) => (
+              <SelectItem key={t.value} value={t.value}>
+                {t.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
 
   return (
-    <div className="container max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <Breadcrumb className="mb-4">
+    <div className="container max-w-7xl mx-auto px-4 py-8 bg-background">
+      {/* Breadcrumbs */}
+      <div className="mb-6">
+        <Breadcrumb className="font-sans">
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="/">Trang chủ</BreadcrumbLink>
+              <BreadcrumbLink href="/" className="hover:text-primary transition-colors">Trang chủ</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Kho Tài liệu</BreadcrumbPage>
+              <BreadcrumbPage className="text-[#483d31] font-semibold">Tủ sách Tài liệu</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <h1 className="text-4xl font-black tracking-tight mt-2 text-primary">Marketplace Tài Liệu</h1>
-        <p className="mt-3 text-muted-foreground max-w-2xl text-lg">
-          Khám phá thư viện tài liệu văn học chất lượng cao, bao gồm bài phân tích chuyên sâu, 
-          bài giảng, đề thi và các tài liệu ôn tập độc quyền.
-        </p>
       </div>
 
-      <div className="mb-6 flex items-center justify-between gap-3 lg:hidden">
-        <Card className="w-full">
-          <CardContent className="flex items-center justify-between p-4">
-            <div>
-              <CardTitle className="text-base">Bộ lọc mobile</CardTitle>
-              <CardDescription className="mt-1">Sắp xếp và lọc danh mục nhanh</CardDescription>
-            </div>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline">
-                  <SlidersHorizontal data-icon="inline-start" />
-                  Bộ lọc
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <SheetHeader>
-                  <SheetTitle>Bộ lọc tài liệu</SheetTitle>
-                  <SheetDescription>Điều chỉnh bộ lọc để tìm tài liệu phù hợp.</SheetDescription>
-                </SheetHeader>
-                <div className="mt-6">
-                  <FilterPanel mobile />
-                </div>
-              </SheetContent>
-            </Sheet>
-          </CardContent>
-        </Card>
-      </div>
+      {/* 1. LITERARY HERO SECTION */}
+      <div className="mb-10 text-center md:text-left relative py-8 px-6 md:px-10 rounded-md bg-gradient-to-br from-[#f6ecd9] to-[#ebdcb9] border-2 border-[#e6d0a7]/60 overflow-hidden shadow-sm">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#ebdcb9] opacity-30 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-[#4c6b54] leading-tight">
+              Tủ Sách Tài Liệu
+            </h1>
+            <p className="mt-3 text-[#6e6353] font-medium italic text-base leading-relaxed">
+              &ldquo;Nơi gìn giữ và chia sẻ những ấn phẩm văn chương chọn lọc, chuyên đề lý luận chuyên sâu cùng các đề thi tốt nghiệp, học sinh giỏi quốc gia đạt chuẩn học thuật.&rdquo;
+            </p>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
-        <aside className="hidden lg:block w-72 shrink-0 lg:sticky lg:top-24">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Tinh chỉnh kết quả</CardTitle>
-              <CardDescription>Áp dụng lọc và sắp xếp như sàn thương mại.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FilterPanel />
-            </CardContent>
-          </Card>
-        </aside>
-
-        <main className="flex-1 w-full min-w-0">
-          <div className="mb-6">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm text-muted-foreground">
-                Tìm thấy <span className="font-semibold text-foreground">{initialPagination.total}</span> tài liệu
-              </p>
-              {hasActiveFilters && (
-                <Badge variant="secondary">Đang áp dụng bộ lọc</Badge>
-              )}
-            </div>
-            <form onSubmit={handleSearch} className="relative flex items-center w-full max-w-xl">
-               <div className="pointer-events-none absolute inset-y-0 text-muted-foreground left-0 pl-3 flex items-center">
-                  <Search />
-               </div>
-              <Input
-                placeholder="Nhập tên tài liệu, tác giả bạn muốn tìm..."
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                className="pl-10 h-12 text-base rounded-xl"
-              />
-              <Button type="submit" size="sm" className="absolute right-1.5 h-9 px-4 rounded-lg font-semibold">
-                Tìm kiếm
+            {/* Quick Collections Chips */}
+            <div className="mt-6 flex flex-wrap justify-center md:justify-start items-center gap-2 font-sans">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#8c7e6c] mr-1">Bộ sưu tập:</span>
+              <Button
+                size="sm"
+                variant={!currentTag ? "default" : "outline"}
+                className={`h-7 px-3 text-xs rounded-md border border-primary/20 ${!currentTag ? 'bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341]' : 'bg-[#fcf9f2] text-foreground hover:bg-[#ebdcb9]/40'}`}
+                onClick={() => updateFilter('tag', undefined)}
+              >
+                Tất cả
               </Button>
-            </form>
+              {popularTags.map((tag) => (
+                <Button
+                  key={tag.value}
+                  size="sm"
+                  variant={currentTag === tag.value ? "default" : "outline"}
+                  className={`h-7 px-3 text-xs rounded-md border border-primary/20 transition-all ${currentTag === tag.value ? 'bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] font-semibold' : 'bg-[#fcf9f2] text-foreground hover:bg-[#ebdcb9]/40'}`}
+                  onClick={() => updateFilter('tag', currentTag === tag.value ? undefined : tag.value)}
+                >
+                  {tag.label}
+                </Button>
+              ))}
+            </div>
           </div>
 
-          {initialDocuments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-border/50 rounded-2xl bg-muted/20">
-              <div className="bg-background p-4 rounded-full mb-4 shadow-sm">
-                <FileText className="h-10 w-10 text-muted-foreground/60" />
-              </div>
-              <h2 className="text-xl font-bold mb-2">Không tìm thấy tài liệu phù hợp</h2>
-              <p className="text-muted-foreground max-w-sm">
-                Rất tiếc, không có tài liệu nào khớp với bộ lọc hiện tại của bạn. Bạn hãy thử bỏ bớt điều kiện lọc hoặc nhập từ khóa khác nhé.
+          {/* Elegant Stats Card */}
+          <div className="flex flex-row md:flex-col gap-4 shrink-0 bg-[#fbf7ee] p-5 rounded-md border border-[#ebdcb9] shadow-sm font-sans w-full md:w-auto">
+            <div className="flex-1 text-center md:text-left min-w-[100px]">
+              <p className="text-2xl font-black text-[#4c6b54] tracking-tight">{initialPagination.total || 0}</p>
+              <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mt-0.5">Tác phẩm</p>
+            </div>
+            <div className="hidden md:block border-t border-border/60 my-1"></div>
+            <div className="flex-1 text-center md:text-left min-w-[100px]">
+              <p className="text-2xl font-black text-[#a06b4c] tracking-tight">12.4K+</p>
+              <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mt-0.5">Lượt tải</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. POWERFUL SEARCH AREA */}
+      <div className="mb-8 font-sans max-w-4xl mx-auto">
+        <form onSubmit={handleFormSearch} className="relative flex items-center w-full shadow-sm hover:shadow-md transition-shadow rounded-md overflow-hidden border-2 border-[#ebdcb9] focus-within:border-primary/60 bg-[#fcf9f2]">
+          <div className="pointer-events-none absolute inset-y-0 text-muted-foreground left-0 pl-4 flex items-center">
+            <Search className="size-5 text-[#8c7e6c]" />
+          </div>
+          <Input
+            placeholder="Tìm kiếm tác phẩm, tác giả hoặc chuyên đề ôn thi bạn cần..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            className="pl-12 pr-28 h-14 text-base rounded-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#a69888]"
+          />
+          <Button type="submit" className="absolute right-1.5 h-11 px-5 rounded-md font-bold bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] transition-colors">
+            Tìm kiếm
+          </Button>
+        </form>
+
+        {/* History and Popular Words */}
+        <div className="mt-3.5 flex flex-col gap-2 px-1 text-xs text-[#7e7363]">
+          {recentSearches.length > 0 && (
+            <div className="flex items-center flex-wrap gap-1.5">
+              <span className="flex items-center gap-1 font-semibold text-[#8c7e6c] uppercase tracking-wider text-[10px]">
+                <History className="size-3" /> Đã tìm gần đây:
+              </span>
+              {recentSearches.map((s, idx) => (
+                <div key={idx} className="inline-flex items-center bg-[#f2e9d7] hover:bg-[#ebdcb9] rounded-md px-2 py-0.5 transition-colors">
+                  <button type="button" onClick={() => { setSearchValue(s); handleSearchSubmit(s); }} className="text-[#5a5045]">
+                    {s}
+                  </button>
+                </div>
+              ))}
+              <button onClick={handleClearRecentSearches} className="text-red-700 hover:underline flex items-center gap-0.5 ml-2 font-semibold text-[10px] uppercase tracking-wider">
+                <Trash2 className="size-2.5" /> Xóa lịch sử
+              </button>
+            </div>
+          )}
+
+          <div className="flex items-center flex-wrap gap-1.5 mt-1">
+            <span className="font-semibold text-[#8c7e6c] uppercase tracking-wider text-[10px] flex items-center gap-1">
+              <Sparkles className="size-3" /> Từ khóa gợi ý:
+            </span>
+            {['Học sinh giỏi', 'Lý luận văn học', 'Nghị luận xã hội', 'Trần Đình Sử', 'Hà Tĩnh'].map((kw) => (
+              <button
+                key={kw}
+                type="button"
+                onClick={() => { setSearchValue(kw); handleSearchSubmit(kw); }}
+                className="bg-[#ebdcb9]/40 hover:bg-[#ebdcb9]/80 border border-[#e6d8c4] rounded-md px-2.5 py-0.5 text-[#635748] transition-colors"
+              >
+                {kw}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Layout Area */}
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+
+        {/* 3. SIDEBAR FILTERS (Desktop) */}
+        <aside className="hidden lg:block w-72 shrink-0 lg:sticky lg:top-20 bg-[#fbf7ee] rounded-md p-5 border-2 border-[#ebdcb9] shadow-sm">
+          <FilterPanel />
+        </aside>
+
+        {/* 4. MAIN CONTENT AREA */}
+        <main className="flex-1 w-full min-w-0">
+
+          {/* Header Controls for Main Grid */}
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 font-sans border-b border-border/40 pb-4">
+            <div>
+              <p className="text-sm text-[#7e7363] font-serif italic">
+                Tìm thấy <span className="font-bold text-foreground not-italic">{initialPagination.total}</span> tài liệu văn học
               </p>
-              <Button variant="outline" className="mt-6 font-semibold" onClick={clearFilters}>Mở rộng tìm kiếm</Button>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Mobile Filter Button (Sheet trigger) */}
+              <div className="lg:hidden">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" className="h-9 px-3.5 border-[#ebdcb9] hover:bg-[#ebdcb9]/30 text-[#635748] text-xs">
+                      <SlidersHorizontal className="mr-1.5 size-4" /> Bộ lọc
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="bg-[#fbf7ee] border-l-[#ebdcb9] w-80">
+                    <SheetHeader className="mb-4">
+                      <SheetTitle className="font-serif text-[#4c6b54]">Tìm kiếm tài liệu</SheetTitle>
+                      <SheetDescription>Điều chỉnh các thông số để khám phá thư viện tài liệu.</SheetDescription>
+                    </SheetHeader>
+                    <div className="mt-4">
+                      <FilterPanel />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+
+              {/* Sort Selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap hidden sm:inline">Sắp xếp:</span>
+                <Select value={currentSort || '-createdAt'} onValueChange={(v) => updateFilter('sort', v)}>
+                  <SelectTrigger className="w-[170px] bg-[#fcf9f2] border-2 border-[#ebdcb9] hover:border-primary/45 rounded-md h-9 text-xs">
+                    <SelectValue placeholder="Mới nhất" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#fcf9f2] border-[#ebdcb9] text-xs">
+                    {sortOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Badges indicators */}
+          {hasActiveFilters && (
+            <div className="mb-6 flex flex-wrap gap-2 items-center font-sans">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Lọc hiện tại:</span>
+              {currentCategory && (
+                <Badge variant="secondary" className="bg-[#ebdcb9] text-[#635748] border-none flex items-center gap-1 text-xs">
+                  Chuyên mục: {categories.find(c => c._id === currentCategory)?.name || currentCategory}
+                  <button onClick={() => updateFilter('category', undefined)} className="font-bold hover:text-red-700 ml-1">×</button>
+                </Badge>
+              )}
+              {currentGrade && currentGrade !== 'All' && (
+                <Badge variant="secondary" className="bg-[#ebdcb9] text-[#635748] border-none flex items-center gap-1 text-xs">
+                  {gradeOptions.find(g => g.value === currentGrade)?.label || currentGrade}
+                  <button onClick={() => updateFilter('grade', undefined)} className="font-bold hover:text-red-700 ml-1">×</button>
+                </Badge>
+              )}
+              {currentTag && (
+                <Badge variant="secondary" className="bg-[#ebdcb9] text-[#635748] border-none flex items-center gap-1 text-xs">
+                  Thẻ: {currentTag}
+                  <button onClick={() => updateFilter('tag', undefined)} className="font-bold hover:text-red-700 ml-1">×</button>
+                </Badge>
+              )}
+              {currentSearch && (
+                <Badge variant="secondary" className="bg-[#ebdcb9] text-[#635748] border-none flex items-center gap-1 text-xs">
+                  Từ khóa: &ldquo;{currentSearch}&rdquo;
+                  <button onClick={() => updateFilter('search', undefined)} className="font-bold hover:text-red-700 ml-1">×</button>
+                </Badge>
+              )}
+              <Button size="sm" variant="link" onClick={clearFilters} className="text-xs h-6 text-red-700 hover:text-red-800 p-0">
+                Xóa tất cả bộ lọc
+              </Button>
+            </div>
+          )}
+
+          {/* 5. MARKETPLACE GRID */}
+          {initialDocuments.length === 0 ? (
+            /* EMPTY STATES */
+            <div className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-[#ebdcb9] rounded-md bg-[#ebdcb9]/10 max-w-2xl mx-auto font-sans">
+              <div className="bg-[#fcf9f2] border border-[#ebdcb9] p-5 rounded-md mb-4 shadow-sm text-stone-500">
+                <BookOpen className="size-10 opacity-75" />
+              </div>
+              <h3 className="text-xl font-bold text-[#4c6b54] mb-2">Trang Sách Trống Trơn</h3>
+              <p className="text-[#7e7363] italic max-w-md leading-relaxed mb-6">
+                Rất tiếc, không tìm thấy tài liệu nào khớp với các bộ lọc hiện tại của bạn. Hãy thử thay đổi từ khóa tìm kiếm hoặc bấm nút bên dưới để xem toàn bộ tác phẩm.
+              </p>
+              <Button onClick={clearFilters} className="font-semibold bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] h-10 px-5 rounded-md shadow-sm">
+                Xem toàn bộ Tủ sách
+              </Button>
             </div>
           ) : (
             <>
-              <div className="grid gap-5 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {initialDocuments.map((doc) => (
-                  <DocumentCard key={doc._id} doc={doc} />
-                ))}
+              <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4">
+                {initialDocuments.map((doc) => {
+                  const theme = getBookCoverTheme(doc._id);
+                  const isSaved = bookmarkedIds.includes(doc._id);
+                  const averageRating = doc.rating?.average || 0;
+                  const purchaseCount = doc.purchaseCount || 0;
+
+                  // Define trust badges
+                  const isBestseller = purchaseCount >= 20;
+                  const isHighlyRated = averageRating >= 4.7;
+                  const isEditorChoice = doc.featured;
+
+                  return (
+                    <Link
+                      href={`/documents/${doc.slug}`}
+                      key={doc._id}
+                      className="block group h-full"
+                    >
+                      <Card className="h-full flex flex-col border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 hover:bg-[#fcf9f2] rounded-md overflow-hidden hover:border-[#4c6b54]/60 transition-all duration-300 shadow-[2px_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[5px_5px_15px_rgba(76,107,84,0.1)] hover:-translate-y-0.5">
+
+                        {/* 5A. BOOK COVER CONTAINER */}
+                        <div className="p-3 bg-[#f2ebd9]/40 border-b border-[#e6dfd3] relative flex justify-center h-44 sm:h-48 items-center">
+
+                          {/* Bookmark button */}
+                          <button
+                            type="button"
+                            onClick={(e) => toggleSaveDocument(doc._id, e)}
+                            className="absolute top-2 right-2 z-20 size-7 flex items-center justify-center rounded-full bg-[#fcf9f2]/90 backdrop-blur-sm border border-[#e6dfd3] hover:border-primary/50 text-[#8c7e6c] hover:text-[#4c6b54] transition-all hover:scale-105 shadow-sm"
+                          >
+                            {isBookmarkLoading === doc._id ? (
+                              <Loader2 className="size-3.5 animate-spin text-primary" />
+                            ) : (
+                              <Bookmark className={`size-3.5 ${isSaved ? 'fill-[#4c6b54] text-[#4c6b54]' : ''}`} />
+                            )}
+                          </button>
+
+                          {/* Book Container with Aspect Ratio */}
+                          <div className="relative h-full aspect-[1/1.38] overflow-hidden rounded-md shadow-[3px_3px_10px_rgba(0,0,0,0.12),-1px_0px_2px_rgba(0,0,0,0.08)] border border-[#2d2d2d]/10 transition-transform duration-500 group-hover:scale-[1.025]">
+
+                            {/* Inner Page Simulation wrapper */}
+                            <div className={`w-full h-full ${theme.bg} ${theme.text} flex flex-col p-2.5 justify-between relative`}>
+
+                              {/* Left Crease/Spine Shadow Overlay */}
+                              <div className="absolute top-0 left-0 w-3.5 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>
+                              <div className="absolute top-0 left-0.5 w-[0.5px] h-full bg-white/10 z-10"></div>
+
+                              {/* Header border/pattern of book cover */}
+                              <div className={`border border-current/15 rounded p-1 flex-1 flex flex-col justify-between items-center text-center relative`}>
+
+                                {/* Tiny category or brand label */}
+                                <span className="text-[8px] uppercase tracking-[0.1em] font-semibold opacity-75 truncate max-w-full">
+                                  {doc.category?.name || 'VĂN CHƯƠNG'}
+                                </span>
+
+                                {/* Center: Title and Divider */}
+                                <div className="my-auto py-1">
+                                  <h3 className="font-bold text-[10px] sm:text-xs leading-tight line-clamp-3 text-center px-0.5">
+                                    {doc.title}
+                                  </h3>
+
+                                  {/* Vintage Decorative Book Ornament */}
+                                  <div className="w-8 h-[0.5px] bg-current opacity-30 mx-auto my-1.5 relative rounded-full">
+                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-1 rotate-45 bg-[#fcf9f2] dark:bg-stone-900 border border-current"></div>
+                                  </div>
+
+                                  <p className="text-[9px] italic opacity-85 line-clamp-1">
+                                    {doc.author}
+                                  </p>
+                                </div>
+
+                                {/* Book format details at bottom of cover */}
+                                <div className="w-full flex items-center justify-between text-[7px] opacity-75 font-sans pt-0.5 border-t border-current/10">
+                                  <span>{doc.fileFormat.toUpperCase()}</span>
+                                  {doc.pageCount && <span>{doc.pageCount} TRANG</span>}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 5B. METADATA & CONTENT DETAILS */}
+                        <CardContent className="p-3 flex-1 flex flex-col justify-between font-sans">
+                          <div>
+                            {/* Trust Signals & Indicators */}
+                            <div className="flex flex-wrap gap-1 mb-1.5">
+                              {isEditorChoice && (
+                                <Badge className="bg-[#ebf4ef] text-[#2d5c41] border border-[#d2e7dd] hover:bg-[#ebf4ef] rounded-md text-[9px] font-bold px-1 py-0.5">
+                                  Đề cử từ Admin
+                                </Badge>
+                              )}
+                              {isBestseller && (
+                                <Badge className="bg-[#f9ebeb] text-[#8e2929] border border-[#f3d7d7] hover:bg-[#f9ebeb] rounded-md text-[9px] font-bold px-1 py-0.5">
+                                  Tải nhiều
+                                </Badge>
+                              )}
+                              {isHighlyRated && (
+                                <Badge className="bg-[#fdf7eb] text-[#845e1b] border border-[#f8eacf] hover:bg-[#fdf7eb] rounded-md text-[9px] font-bold px-1 py-0.5">
+                                  Khuyên đọc
+                                </Badge>
+                              )}
+                              {doc.uploader && (
+                                <Badge className="bg-[#f1edf8] text-[#55298e] border border-[#e1d7f3] hover:bg-[#f1edf8] rounded-md text-[9px] font-bold px-1 py-0.5">
+                                  Đã kiểm định
+                                </Badge>
+                              )}
+                            </div>
+
+                            {/* Book Title text display */}
+                            <h4 className="font-bold text-sm text-[#483d31] leading-snug line-clamp-2 group-hover:text-primary transition-colors mb-1">
+                              {doc.title}
+                            </h4>
+                            <p className="text-[11px] text-muted-foreground italic mb-2">Tác giả: {doc.author}</p>
+                          </div>
+
+                          {/* Stats and Meta details */}
+                          <div className="mt-auto">
+                            <div className="flex items-center justify-between text-[10px] text-[#8c7e6c] border-t border-[#e6dfd3]/60 pt-2">
+                              <span className="flex items-center gap-0.5">
+                                <Star className="h-3 w-3 fill-[#cbb685] text-[#cbb685]" />
+                                <strong className="text-[#5a5045]">{averageRating > 0 ? averageRating.toFixed(1) : 'Chưa có'}</strong>
+                                {doc.rating?.count > 0 && `(${doc.rating.count})`}
+                              </span>
+
+                              <span className="flex items-center gap-0.5">
+                                <Eye className="h-3 w-3" />
+                                {doc.viewCount || 0} xem
+                              </span>
+
+                              <span className="flex items-center gap-0.5">
+                                <Download className="h-3 w-3" />
+                                {purchaseCount} tải
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+
+                        {/* 5C. PRICE & DOWNLOAD BUTTON */}
+                        <CardFooter className="p-3 pt-0 border-t border-[#e6dfd3]/40 bg-[#fcf9f2]/40">
+                          <div className="w-full pt-2 flex items-center justify-between">
+                            <span className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">Ấn phí</span>
+                            <div className="flex items-baseline">
+                              {doc.originalPrice && doc.originalPrice > doc.price && (
+                                <span className="text-[11px] text-muted-foreground line-through mr-1.5 font-medium">
+                                  {formatPrice(doc.originalPrice)}
+                                </span>
+                              )}
+                              <span className={`text-sm font-extrabold tracking-tight ${doc.isFree ? 'text-[#3c6b41]' : 'text-[#8e2929]'}`}>
+                                {formatPrice(doc.price)}
+                              </span>
+                            </div>
+                          </div>
+                        </CardFooter>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
 
+              {/* Pagination controls */}
               {initialPagination.totalPages > 1 && (
-                <PaginationControls
-                  pagination={initialPagination}
-                  onPageChange={handlePageChange}
-                />
+                <div className="mt-10">
+                  <PaginationControls
+                    pagination={initialPagination}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
               )}
             </>
           )}

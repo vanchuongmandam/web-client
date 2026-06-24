@@ -11,6 +11,8 @@ import type {
   UserProfile,
   BillingAddress,
   AdminDashboardStats,
+  Review,
+  PublicProfile,
 } from '@/lib/types';
 
 // ---------------------------------------------------------------------------
@@ -447,7 +449,7 @@ export async function getProfile(token: string): Promise<UserProfile> {
 }
 
 export async function updateProfile(
-  data: Partial<Pick<UserProfile, 'displayName' | 'email' | 'bio' | 'phone' | 'billingAddress' | 'preferences'>>,
+  data: Partial<UserProfile>,
   token: string,
 ): Promise<UserProfile> {
   const res = await apiFetch<ApiEnvelope<UserProfile>>('/auth/profile', {
@@ -473,6 +475,8 @@ export interface DocumentListParams {
   isFree?: string;
   search?: string;
   status?: string;
+  grade?: string;
+  tag?: string;
 }
 
 export async function getDocuments(
@@ -563,11 +567,12 @@ export async function getAdminDocuments(
 export async function createOrder(
   documentIds: string[],
   token: string,
+  useBalance?: boolean,
 ): Promise<Order> {
   const res = await apiFetch<ApiEnvelope<Order>>('/orders', {
     method: 'POST',
     headers: authHeaders(token),
-    body: JSON.stringify({ documentIds }),
+    body: JSON.stringify({ documentIds, useBalance }),
   });
   return res.data;
 }
@@ -682,6 +687,85 @@ export async function addReview(
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+// ---------------------------------------------------------------------------
+// Marketplace Additions
+// ---------------------------------------------------------------------------
+
+export async function createDepositOrder(amount: number, token: string): Promise<Order> {
+  const res = await apiFetch<ApiEnvelope<Order>>('/orders/deposit', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ amount }),
+  });
+  return res.data;
+}
+
+export async function toggleBookmark(documentId: string, token: string): Promise<{ bookmarked: boolean }> {
+  const res = await apiFetch<ApiEnvelope<{ bookmarked: boolean }>>(`/documents/${documentId}/bookmark`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+  return res.data;
+}
+
+export async function getBookmarks(token: string, params?: { page?: number; limit?: number }): Promise<PaginatedResponse<MarketDocument>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<MarketDocument[]>>(`/documents/bookmarks${query}`, {
+    headers: authHeaders(token),
+  });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+export async function getReviews(documentId: string, params?: { page?: number; limit?: number; sort?: string }): Promise<PaginatedResponse<Review>> {
+  const query = buildQuery(params as Record<string, string | number | undefined> || {});
+  const res = await apiFetch<ApiEnvelope<Review[]>>(`/documents/${documentId}/reviews${query}`, {
+    next: { revalidate: 60 }
+  });
+  return { data: res.data, pagination: res.pagination! };
+}
+
+export async function createReview(documentId: string, rating: number, content: string, token: string): Promise<Review> {
+  const res = await apiFetch<ApiEnvelope<Review>>(`/reviews`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ documentId, rating, content }),
+  });
+  return res.data;
+}
+
+export async function upvoteReview(reviewId: string, token: string): Promise<Review> {
+  const res = await apiFetch<ApiEnvelope<Review>>(`/reviews/${reviewId}/vote`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+  return res.data;
+}
+
+export async function getRelatedDocuments(documentId: string, limit?: number): Promise<MarketDocument[]> {
+  const query = buildQuery({ limit });
+  const res = await apiFetch<ApiEnvelope<MarketDocument[]>>(`/documents/${documentId}/related${query}`, {
+    next: { revalidate: 3600 }
+  });
+  return res.data;
+}
+
+export async function getSuggestions(token?: string, limit?: number): Promise<MarketDocument[]> {
+  const query = buildQuery({ limit });
+  const headers = token ? authHeaders(token) : {};
+  const res = await apiFetch<ApiEnvelope<MarketDocument[]>>(`/documents/suggestions${query}`, {
+    headers,
+    next: { revalidate: 3600 } // Cache might be tricky for personalized stuff.
+  });
+  return res.data;
+}
+
+export async function getPublicProfile(usernameOrId: string): Promise<PublicProfile> {
+  const res = await apiFetch<ApiEnvelope<PublicProfile>>(`/users/${usernameOrId}`, {
+    next: { revalidate: 600 }
   });
   return res.data;
 }

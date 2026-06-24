@@ -1,29 +1,45 @@
 // src/app/profile/orders/page.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
-import { getUserOrders, cancelOrder } from '@/lib/api';
-import type { Order, PaginationMeta } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2, Package, Clock, XCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import { getUserOrders, cancelOrder } from "@/lib/api";
+import type { Order, PaginationMeta } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Package, Clock, XCircle } from "lucide-react";
 
-const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  pending: { label: 'Chờ thanh toán', variant: 'secondary' },
-  paid: { label: 'Đã thanh toán', variant: 'default' },
-  confirmed: { label: 'Đã xác nhận', variant: 'default' },
-  cancelled: { label: 'Đã hủy', variant: 'destructive' },
-  expired: { label: 'Hết hạn', variant: 'outline' },
-  refunded: { label: 'Đã hoàn tiền', variant: 'outline' },
+const getStatusBadgeClass = (status: string) => {
+  switch (status) {
+    case 'paid':
+    case 'confirmed':
+      return 'bg-[#3c6b41] text-white hover:bg-[#3c6b41] border-none font-bold text-[10px] px-2 py-0.5 rounded';
+    case 'pending':
+      return 'bg-amber-600 text-white hover:bg-amber-600 border-none font-bold text-[10px] px-2 py-0.5 rounded';
+    case 'cancelled':
+      return 'bg-red-700/10 text-red-700 border border-red-200 hover:bg-red-700/15 font-bold text-[10px] px-2 py-0.5 rounded';
+    case 'expired':
+      return 'bg-stone-100 text-stone-500 border border-stone-200 hover:bg-stone-100 font-bold text-[10px] px-2 py-0.5 rounded';
+    default:
+      return 'bg-[#ebdcb9] text-[#635748] hover:bg-[#ebdcb9] border-none font-bold text-[10px] px-2 py-0.5 rounded';
+  }
+};
+
+const statusLabels: Record<string, string> = {
+  pending: "Chờ thanh toán",
+  paid: "Đã thanh toán",
+  confirmed: "Đã xác nhận",
+  cancelled: "Đã hủy",
+  expired: "Hết hạn",
+  refunded: "Đã hoàn tiền",
 };
 
 function formatPrice(price: number): string {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
 }
 
 export default function OrdersPage() {
@@ -38,7 +54,10 @@ export default function OrdersPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!token) { router.push('/login'); return; }
+    if (!token) {
+      router.push("/login");
+      return;
+    }
 
     setLoading(true);
     getUserOrders({ page, limit: 10 }, token)
@@ -46,7 +65,9 @@ export default function OrdersPage() {
         setOrders(res.data);
         setPagination(res.pagination);
       })
-      .catch(() => toast({ title: 'Lỗi', description: 'Không thể tải danh sách', variant: 'destructive' }))
+      .catch(() =>
+        toast({ title: "Lỗi", description: "Không thể tải danh sách đơn hàng", variant: "destructive" })
+      )
       .finally(() => setLoading(false));
   }, [authLoading, token, router, page, toast]);
 
@@ -55,74 +76,98 @@ export default function OrdersPage() {
     try {
       await cancelOrder(orderCode, token);
       setOrders((prev) =>
-        prev.map((o) => (o.orderCode === orderCode ? { ...o, status: 'cancelled' as const } : o))
+        prev.map((o) => (o.orderCode === orderCode ? { ...o, status: "cancelled" as const } : o))
       );
-      toast({ title: 'Đã hủy', description: 'Đơn hàng đã được hủy' });
-    } catch (err: unknown) {
-      toast({ title: 'Lỗi', description: err instanceof Error ? err.message : 'Không thể hủy', variant: 'destructive' });
+      toast({ title: "Đã hủy", description: "Đơn hàng đã được hủy thành công." });
+    } catch (err: any) {
+      toast({
+        title: "Lỗi",
+        description: err.message || "Không thể hủy đơn hàng",
+        variant: "destructive",
+      });
     }
   };
 
   if (authLoading || loading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex h-64 items-center justify-center bg-transparent">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-3xl font-bold flex items-center gap-2">
-        <Package className="h-8 w-8" /> Lịch sử đơn hàng
-      </h1>
+    <div className="space-y-6 font-sans">
+      <h2 className="text-xl font-bold flex items-center gap-2 text-primary font-serif">
+        <Package className="h-5 w-5 text-primary" /> Lịch sử đơn hàng tài liệu
+      </h2>
 
       {orders.length === 0 ? (
-        <div className="py-16 text-center">
-          <Package className="mx-auto mb-4 h-16 w-16 text-muted-foreground" />
-          <h2 className="text-xl font-semibold">Chưa có đơn hàng nào</h2>
-          <Button className="mt-4" onClick={() => router.push('/documents')}>
-            Khám phá tài liệu
+        <div className="py-16 text-center border border-dashed border-border rounded-xl bg-muted/10 min-h-[300px] flex flex-col justify-center items-center">
+          <Package className="mx-auto mb-3 h-14 w-14 text-primary opacity-25" />
+          <h3 className="text-sm font-bold text-foreground">Chưa có đơn hàng nào</h3>
+          <p className="text-xs text-muted-foreground max-w-xs mt-1 mb-4 leading-relaxed">
+            Các giao dịch mua tài liệu của bạn sẽ hiển thị tại đây.
+          </p>
+          <Button
+            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+            onClick={() => router.push("/documents")}
+          >
+            Khám phá tài liệu ngay
           </Button>
         </div>
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {
-            const status = statusMap[order.status] || statusMap.pending;
+            const statusLabel = statusLabels[order.status] || statusLabels.pending;
             return (
-              <Card key={order._id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
+              <Card key={order._id} className="bg-card border border-border shadow-sm rounded-xl">
+                <CardContent className="p-4 sm:p-5">
+                  
+                  {/* Order header information */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border pb-3 mb-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-bold">{order.orderCode}</span>
-                        <Badge variant={status.variant}>{status.label}</Badge>
+                        <span className="font-mono text-sm font-black text-foreground">{order.orderCode}</span>
+                        <Badge className={getStatusBadgeClass(order.status)}>
+                          {statusLabel}
+                        </Badge>
                       </div>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {new Date(order.createdAt).toLocaleString('vi-VN')}
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Khởi tạo lúc: {new Date(order.createdAt).toLocaleString("vi-VN")}
                       </p>
                     </div>
-                    <span className="font-bold">{formatPrice(order.totalAmount)}</span>
+                    <div className="flex items-baseline gap-1 sm:self-center">
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Tổng thanh toán:</span>
+                      <span className="font-extrabold text-[#8e2929] text-base">{formatPrice(order.totalAmount)}</span>
+                    </div>
                   </div>
 
-                  <div className="mt-3 space-y-1">
+                  {/* Items list */}
+                  <div className="space-y-2 py-1">
                     {order.items.map((item, i) => (
-                      <div key={i} className="flex justify-between text-sm">
-                        <span>{item.title}</span>
-                        <span className="text-muted-foreground">{formatPrice(item.price)}</span>
+                      <div key={i} className="flex justify-between text-xs sm:text-sm py-1 border-b border-border/40 last:border-0">
+                        <span className="text-stone-700 font-semibold">{item.title}</span>
+                        <span className="text-stone-500 font-mono text-xs">{formatPrice(item.price)}</span>
                       </div>
                     ))}
                   </div>
 
-                  {order.status === 'pending' && (
-                    <div className="mt-3 flex gap-2">
+                  {/* Pending actions */}
+                  {order.status === "pending" && (
+                    <div className="mt-4 flex gap-2 border-t border-border pt-3">
                       <Link href={`/documents/${(order.items[0]?.document as string)}/checkout`}>
-                        <Button size="sm" variant="outline">
-                          <Clock className="mr-1 h-4 w-4" /> Thanh toán
+                        <Button size="sm" variant="default" className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs h-8 shadow-sm">
+                          <Clock className="mr-1 h-3.5 w-3.5" /> Đi đến Thanh toán
                         </Button>
                       </Link>
-                      <Button size="sm" variant="destructive" onClick={() => handleCancel(order.orderCode)}>
-                        <XCircle className="mr-1 h-4 w-4" /> Hủy
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border border-border bg-transparent text-muted-foreground hover:text-destructive hover:border-destructive hover:bg-destructive/10 font-bold text-xs h-8"
+                        onClick={() => handleCancel(order.orderCode)}
+                      >
+                        <XCircle className="mr-1 h-3.5 w-3.5" /> Hủy đơn hàng này
                       </Button>
                     </div>
                   )}
@@ -131,15 +176,28 @@ export default function OrdersPage() {
             );
           })}
 
+          {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
             <div className="flex justify-center gap-2 pt-4">
-              <Button variant="outline" size="sm" disabled={!pagination.hasPrevPage} onClick={() => setPage((p) => p - 1)}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border border-border bg-card text-primary font-bold hover:bg-accent text-xs rounded"
+                disabled={!pagination.hasPrevPage}
+                onClick={() => setPage((p) => p - 1)}
+              >
                 Trang trước
               </Button>
-              <span className="flex items-center text-sm text-muted-foreground">
-                {pagination.page} / {pagination.totalPages}
+              <span className="flex items-center text-xs text-muted-foreground px-3 font-semibold">
+                Trang {pagination.page} / {pagination.totalPages}
               </span>
-              <Button variant="outline" size="sm" disabled={!pagination.hasNextPage} onClick={() => setPage((p) => p + 1)}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border border-border bg-card text-primary font-bold hover:bg-accent text-xs rounded"
+                disabled={!pagination.hasNextPage}
+                onClick={() => setPage((p) => p + 1)}
+              >
                 Trang sau
               </Button>
             </div>

@@ -8,7 +8,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { Menu, LayoutGrid } from "lucide-react";
+import { Menu, LayoutGrid, BookOpen } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -155,12 +155,6 @@ export async function Header() {
             >
               Trang chủ
             </Link>
-            <Link
-              href="/documents"
-              className="transition-colors hover:text-primary px-2 py-2 rounded-md"
-            >
-              Tài liệu
-            </Link>
             {parentCategories.map((category) => (
               <Link
                 key={category._id}
@@ -172,8 +166,20 @@ export async function Header() {
             ))}
           </div>
 
-          {/* Right side: Search Button - REPLACED */}
-          <SearchButtonAndOverlay />
+          {/* Right side: Actions */}
+          <div className="flex items-center gap-3">
+            <Link href="/documents">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-primary/30 hover:border-primary/80 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs h-9 px-3.5 rounded-md flex items-center gap-1.5 transition-all shadow-sm"
+              >
+                <BookOpen className="h-4 w-4 shrink-0" />
+                Tủ sách tài liệu
+              </Button>
+            </Link>
+            <SearchButtonAndOverlay />
+          </div>
         </div>
       </nav>
     </>

@@ -10,6 +10,8 @@ interface User {
   _id: string;
   username: string;
   role: string;
+  balance?: number;
+  bookmarkedDocuments?: any[];
 }
 
 interface DecodedToken {
@@ -27,6 +29,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshProfile: () => Promise<void>;
   isLoading: boolean;
   isHydrated: boolean;
   error: string | null;
@@ -74,6 +77,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsHydrated(true);
   }, [logout]);
 
+  const refreshProfile = useCallback(async () => {
+    if (!token) return;
+    try {
+      const { getProfile } = await import('@/lib/api');
+      const profile = await getProfile(token);
+      setUser((prev) => {
+        if (!prev) return null;
+        const updatedUser = { ...prev, balance: profile.balance };
+        localStorage.setItem('authUser', JSON.stringify(updatedUser));
+        return updatedUser;
+      });
+    } catch (e) {
+      console.error("Failed to refresh profile:", e);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      refreshProfile();
+    }
+  }, [token, refreshProfile]);
+
   const clearError = useCallback(() => setError(null), []);
 
   const login = useCallback(async (username: string, password: string) => {
@@ -116,11 +141,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     register,
     logout,
+    refreshProfile,
     isLoading,
     isHydrated,
     error,
     clearError
-  }), [user, token, isLoading, isHydrated, error, logout, login, register, clearError]);
+  }), [user, token, isLoading, isHydrated, error, logout, login, register, clearError, refreshProfile]);
 
   return (
     <AuthContext.Provider value={value}>

@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogIn, UserPlus, User, BookOpen, ShoppingBag, LayoutDashboard, LogOut } from "lucide-react";
+import { LogIn, UserPlus, User, BookOpen, ShoppingBag, LayoutDashboard, LogOut, Landmark, Bookmark } from "lucide-react";
 
 export function AuthControls() {
   const { user, logout, isLoading } = useAuth();
@@ -31,12 +31,28 @@ export function AuthControls() {
             <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Chào, {user.username}</DropdownMenuLabel>
+          {user.balance !== undefined && (
+            <div className="px-2 py-1.5 text-sm flex justify-between items-center bg-muted/50 rounded-md mx-1 mb-1">
+              <span className="text-muted-foreground">Số dư:</span>
+              <span className="font-semibold text-primary">{user.balance.toLocaleString('vi-VN')} đ</span>
+            </div>
+          )}
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/profile/wallet" className="flex items-center text-primary focus:text-primary font-medium">
+              <Landmark className="mr-2 h-4 w-4" /> Ví của tôi (Nạp tiền)
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/profile" className="flex items-center">
               <User className="mr-2 h-4 w-4" /> Hồ sơ cá nhân
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/profile/bookmarks" className="flex items-center">
+              <Bookmark className="mr-2 h-4 w-4" /> Tài liệu đã lưu
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>

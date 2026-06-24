@@ -91,15 +91,36 @@ export interface BillingAddress {
   country?: string;
 }
 
+export interface BankInfo {
+  bankName?: string;
+  accountNumber?: string;
+  accountName?: string;
+}
+
+export interface SocialLinks {
+  facebook?: string;
+  website?: string;
+  github?: string;
+}
+
+export interface SecurityStatus {
+  twoFactorEnabled: boolean;
+  passkeysEnabled: boolean;
+  securityLevel: 'standard' | 'high';
+}
+
 export interface UserProfile {
   _id: string;
   username: string;
   role: string;
   displayName?: string;
+  penName?: string;
   email?: string;
   avatar?: string;
+  coverImage?: string;
   bio?: string;
   phone?: string;
+  workPlace?: string;
   billingAddress?: BillingAddress;
   preferences?: {
     fontSize?: 'small' | 'medium' | 'large';
@@ -107,6 +128,51 @@ export interface UserProfile {
   };
   purchaseCount?: number;
   totalSpent?: number;
+  balance?: number;
+  bankInfo?: BankInfo;
+  socialLinks?: SocialLinks;
+  securityStatus?: SecurityStatus;
+  subRole?: 'student' | 'teacher' | 'author' | 'reader';
+  bookmarkedDocuments?: MarketDocument[] | string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublicProfile {
+  _id: string;
+  username: string;
+  displayName?: string;
+  penName?: string;
+  avatar?: string;
+  coverImage?: string;
+  bio?: string;
+  socialLinks?: SocialLinks;
+  subRole?: string;
+  createdAt: string;
+  stats: {
+    totalReviewsLeft: number;
+    totalPublishedDocs: number;
+    totalDocuments?: number;
+    totalViews?: number;
+    averageRating?: number;
+  };
+  documents?: MarketDocument[];
+}
+
+export interface Review {
+  _id: string;
+  document: string;
+  user: {
+    _id: string;
+    displayName?: string;
+    username: string;
+    avatar?: string;
+  };
+  rating: number;
+  content: string;
+  isVerifiedPurchase: boolean;
+  upvotes: string[];
+  upvoteCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -136,7 +202,9 @@ export interface MarketDocument {
   };
   status: 'draft' | 'active' | 'archived';
   featured: boolean;
+  allowDownload?: boolean;
   relatedArticle?: { _id: string; title: string; slug: string };
+  uploader?: string;
   createdAt: string;
   updatedAt: string;
 }

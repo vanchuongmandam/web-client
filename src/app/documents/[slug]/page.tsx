@@ -13,9 +13,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const doc = await getDocumentBySlug(slug);
   if (!doc) return { title: 'Tài liệu không tồn tại' };
+  
+  let descriptionText = '';
+  if (typeof doc.description === 'string') {
+    descriptionText = doc.description;
+  } else if (doc.description && typeof doc.description === 'object') {
+    // Basic extraction for TipTap JSON
+    try {
+      const extractText = (node: any): string => {
+        if (node.type === 'text') return node.text || '';
+        if (node.content && Array.isArray(node.content)) {
+          return node.content.map(extractText).join(' ');
+        }
+        return '';
+      };
+      descriptionText = extractText(doc.description);
+    } catch (e) {
+      descriptionText = 'Tài liệu tham khảo trên Văn Chương Mạn Đàm';
+    }
+  }
+
   return {
     title: `${doc.title} | Văn Chương Mạn Đàm`,
-    description: doc.description,
+    description: descriptionText.substring(0, 160) || 'Tài liệu tham khảo trên Văn Chương Mạn Đàm',
   };
 }
 
