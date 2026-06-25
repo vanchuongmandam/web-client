@@ -56,17 +56,16 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-7xl">
-        <header className="mb-6 rounded-xl border bg-card p-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">Admin dashboard</Badge>
-            <Badge variant="outline">Marketplace</Badge>
+      <div className="mx-auto w-full max-w-7xl flex flex-col gap-6">
+        <div className="flex flex-col gap-1.5 py-4">
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <span>Admin Dashboard</span>
+            <span>•</span>
+            <span>Marketplace</span>
           </div>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">Trang quản trị</h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
-            Đang tải dữ liệu tổng quan...
-          </p>
-        </header>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Trang quản trị</h1>
+          <p className="text-sm text-muted-foreground">Đang tải dữ liệu tổng quan...</p>
+        </div>
         <DashboardSkeleton />
       </div>
     );
@@ -74,17 +73,16 @@ export default function AdminDashboardPage() {
 
   if (!stats) {
     return (
-      <div className="mx-auto w-full max-w-7xl">
-        <header className="mb-6 rounded-xl border bg-card p-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary">Admin dashboard</Badge>
-            <Badge variant="outline">Marketplace</Badge>
+      <div className="mx-auto w-full max-w-7xl flex flex-col gap-6">
+        <div className="flex flex-col gap-1.5 py-4">
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <span>Admin Dashboard</span>
+            <span>•</span>
+            <span>Marketplace</span>
           </div>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight">Trang quản trị</h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
-            Không có dữ liệu thống kê để hiển thị.
-          </p>
-        </header>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Trang quản trị</h1>
+          <p className="text-sm text-muted-foreground text-destructive">Không có dữ liệu thống kê để hiển thị.</p>
+        </div>
       </div>
     );
   }
