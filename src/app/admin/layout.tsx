@@ -29,7 +29,7 @@ export default function AdminLayout({
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
+      <div className="admin-layout flex h-screen w-full items-center justify-center">
         <Loader2 className="size-12 animate-spin text-primary" />
         <p className="ml-4 text-lg">Đang kiểm tra quyền truy cập...</p>
       </div>
@@ -38,7 +38,7 @@ export default function AdminLayout({
 
   if (user && user.role !== "admin") {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center p-6">
+      <div className="admin-layout flex min-h-screen w-full items-center justify-center p-6">
         <div className="w-full max-w-md rounded-xl border bg-card p-8 text-center">
           <ShieldAlert className="mx-auto mb-4 size-12 text-destructive" />
           <h1 className="text-2xl font-bold text-destructive">Truy cập bị từ chối</h1>
@@ -54,22 +54,24 @@ export default function AdminLayout({
 
   if (user && user.role === "admin") {
     return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <header className="sticky top-0 z-10 bg-background/95 backdrop-blur">
-            <div className="flex h-14 items-center gap-3 border-b px-4 lg:px-6">
-              <SidebarTrigger />
-              <Separator orientation="vertical" className="h-6" />
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Bảng điều khiển admin</span>
-                <Badge variant="outline">Marketplace</Badge>
+      <div className="admin-layout w-full min-h-screen">
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <header className="sticky top-0 z-10 bg-background/95 backdrop-blur">
+              <div className="flex h-14 items-center gap-3 border-b px-4 lg:px-6">
+                <SidebarTrigger />
+                <Separator orientation="vertical" className="h-6" />
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Bảng điều khiển admin</span>
+                  <Badge variant="outline">Marketplace</Badge>
+                </div>
               </div>
-            </div>
-          </header>
-          <main className="min-h-[calc(100vh-56px)] bg-muted/20 p-4 lg:p-6">{children}</main>
-        </SidebarInset>
-      </SidebarProvider>
+            </header>
+            <main className="min-h-[calc(100vh-56px)] bg-muted/20 p-4 lg:p-6">{children}</main>
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
     );
   }
 

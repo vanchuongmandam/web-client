@@ -1,194 +1,142 @@
-// src/app/admin/page.tsx
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import {
-  ArrowRight,
-  FilePlus,
-  FilePlus2,
-  FileText,
-  LayoutList,
-  MessageSquareQuote,
-  ShoppingBag,
-  Tag,
-  Users,
-  Ticket
-} from "lucide-react";
-import Link from "next/link";
-import { OverviewDashboard } from "@/components/admin/overview-dashboard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { getAdminStats } from "@/lib/api";
+import type { AdminDashboardStats } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
+import { KpiCards } from "@/components/admin/dashboard/kpi-cards";
+import { RevenueChart } from "@/components/admin/dashboard/revenue-chart";
+import { OrderStatusChart } from "@/components/admin/dashboard/order-status-chart";
+import { RecentOrdersTable } from "@/components/admin/dashboard/recent-orders-table";
+import { TopDocumentsTable } from "@/components/admin/dashboard/top-documents-table";
+import { ActivityChart } from "@/components/admin/dashboard/activity-chart";
+import { CouponPerformance } from "@/components/admin/dashboard/coupon-performance";
+import { DashboardSkeleton } from "@/components/admin/dashboard/dashboard-skeleton";
+
 export default function AdminDashboardPage() {
-  const contentActions = [
-    {
-      title: "Quản lý bài viết",
-      desc: "Xem, chỉnh sửa hoặc xóa bài viết đã đăng.",
-      href: "/admin/articles",
-      cta: "Đi tới quản lý",
-      icon: LayoutList,
-    },
-    {
-      title: "Thêm bài viết mới",
-      desc: "Tạo bài viết mới với trình soạn thảo hiện tại.",
-      href: "/admin/articles/new",
-      cta: "Tạo bài viết",
-      icon: FilePlus2,
-    },
-    {
-      title: "Quản lý danh mục",
-      desc: "Tổ chức cây danh mục và cập nhật nhanh.",
-      href: "/admin/categories",
-      cta: "Quản lý danh mục",
-      icon: Tag,
-    },
-  ];
+  const { token } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
 
-  const marketplaceActions = [
-    {
-      title: "Kho tài liệu",
-      desc: "Quản lý tài liệu đang bán, trạng thái và nội dung.",
-      href: "/admin/documents",
-      cta: "Đi tới kho tài liệu",
-      icon: FileText,
-    },
-    {
-      title: "Thêm tài liệu mới",
-      desc: "Tạo tài liệu mới cho marketplace.",
-      href: "/admin/documents/new",
-      cta: "Tạo tài liệu",
-      icon: FilePlus,
-    },
-    {
-      title: "Đơn hàng",
-      desc: "Theo dõi thanh toán, trạng thái và doanh thu.",
-      href: "/admin/orders",
-      cta: "Xem đơn hàng",
-      icon: ShoppingBag,
-    },
-    {
-      title: "Yêu cầu truy cập",
-      desc: "Duyệt các yêu cầu truy cập tài liệu hạn chế.",
-      href: "/admin/requests",
-      cta: "Xử lý yêu cầu",
-      icon: MessageSquareQuote,
-    },
-  ];
+  const fetchStats = useCallback(
+    async (silent = false) => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-  const systemActions = [
-    {
-      title: "Người dùng",
-      desc: "Quản lý tài khoản, phân quyền và số dư ví.",
-      href: "/admin/users",
-      cta: "Quản lý người dùng",
-      icon: Users,
+      if (!silent) {
+        setLoading(true);
+      }
+      try {
+        const data = await getAdminStats(token);
+        setStats(data);
+      } catch (err: unknown) {
+        toast({
+          title: "Lỗi",
+          description: err instanceof Error ? err.message : "Không thể tải số liệu dashboard",
+          variant: "destructive",
+        });
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
+      }
     },
-    {
-      title: "Mã giảm giá",
-      desc: "Tạo và quản lý các mã khuyến mãi (Coupons).",
-      href: "/admin/coupons",
-      cta: "Quản lý mã",
-      icon: Ticket,
-    },
-  ];
+    [token, toast]
+  );
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  if (loading) {
+    return (
+      <div className="mx-auto w-full max-w-7xl">
+        <header className="mb-6 rounded-xl border bg-card p-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">Admin dashboard</Badge>
+            <Badge variant="outline">Marketplace</Badge>
+          </div>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight">Trang quản trị</h1>
+          <p className="mt-2 max-w-3xl text-muted-foreground">
+            Đang tải dữ liệu tổng quan...
+          </p>
+        </header>
+        <DashboardSkeleton />
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="mx-auto w-full max-w-7xl">
+        <header className="mb-6 rounded-xl border bg-card p-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">Admin dashboard</Badge>
+            <Badge variant="outline">Marketplace</Badge>
+          </div>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight">Trang quản trị</h1>
+          <p className="mt-2 max-w-3xl text-muted-foreground">
+            Không có dữ liệu thống kê để hiển thị.
+          </p>
+        </header>
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
-      <header className="mb-8 rounded-xl border bg-card p-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">Admin dashboard</Badge>
-          <Badge variant="outline">Marketplace</Badge>
+    <div className="mx-auto w-full max-w-7xl flex flex-col gap-6">
+      <div className="flex flex-col gap-1.5 py-4">
+        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          <span>Admin Dashboard</span>
+          <span>•</span>
+          <span>Marketplace</span>
         </div>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight">Trang quản trị</h1>
-        <p className="mt-2 max-w-3xl text-muted-foreground">
-          Khu vực điều phối nội dung và marketplace. Chọn nhanh tác vụ bên dưới để thao tác theo từng
-          nhóm.
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Trang quản trị</h1>
+        <p className="text-sm text-muted-foreground">
+          Khu vực điều phối nội dung và marketplace. Tổng quan thống kê và xử lý nhanh giao dịch.
         </p>
-      </header>
+      </div>
 
-      <OverviewDashboard />
+      {/* Row 1: KPI Cards */}
+      <KpiCards stats={stats} />
 
-      <Tabs defaultValue="content" className="w-full">
-        <TabsList>
-          <TabsTrigger value="content">Nội dung</TabsTrigger>
-          <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
-          <TabsTrigger value="system">Hệ thống</TabsTrigger>
-        </TabsList>
+      {/* Row 2: Charts (col-span-3 for Revenue, col-span-2 for Order Status) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3">
+          <RevenueChart data={stats.revenueByMonth} revenueMoM={stats.deltas.revenueMoM} />
+        </div>
+        <div className="lg:col-span-2">
+          <OrderStatusChart breakdown={stats.orderStatusBreakdown} paymentMethod={stats.revenueByPaymentMethod} />
+        </div>
+      </div>
 
-        <TabsContent value="content" className="mt-6">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {contentActions.map((item) => (
-              <Card key={item.title} className="h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <item.icon />
-                    {item.title}
-                  </CardTitle>
-                  <CardDescription>{item.desc}</CardDescription>
-                </CardHeader>
-                <CardContent />
-                <CardFooter>
-                  <Button asChild className="w-full justify-between">
-                    <Link href={item.href}>
-                      {item.cta}
-                      <ArrowRight data-icon="inline-end" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+      {/* Row 3: 2 Tables (Recent Orders col-span-3, Top Documents col-span-2) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3">
+          <RecentOrdersTable
+            orders={stats.recentOrders}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <TopDocumentsTable documents={stats.topDocuments} />
+        </div>
+      </div>
 
-        <TabsContent value="marketplace" className="mt-6">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {marketplaceActions.map((item) => (
-              <Card key={item.title} className="h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <item.icon />
-                    {item.title}
-                  </CardTitle>
-                  <CardDescription>{item.desc}</CardDescription>
-                </CardHeader>
-                <CardContent />
-                <CardFooter>
-                  <Button asChild className="w-full justify-between">
-                    <Link href={item.href}>
-                      {item.cta}
-                      <ArrowRight data-icon="inline-end" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="system" className="mt-6">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {systemActions.map((item) => (
-              <Card key={item.title} className="h-full">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <item.icon />
-                    {item.title}
-                  </CardTitle>
-                  <CardDescription>{item.desc}</CardDescription>
-                </CardHeader>
-                <CardContent />
-                <CardFooter>
-                  <Button asChild className="w-full justify-between">
-                    <Link href={item.href}>
-                      {item.cta}
-                      <ArrowRight data-icon="inline-end" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* Row 4: 2 panels (col-span-3 for Activity Trend, col-span-2 for Coupon Performance) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3">
+          <ActivityChart data={stats.activityByMonth} />
+        </div>
+        <div className="lg:col-span-2">
+          <CouponPerformance coupons={stats.couponStats} />
+        </div>
+      </div>
     </div>
   );
 }

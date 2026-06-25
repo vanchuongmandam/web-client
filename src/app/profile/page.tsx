@@ -358,7 +358,7 @@ export default function ProfilePage() {
         {/* Personal Info Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="space-y-1.5 lg:pr-4">
-            <h3 className="text-base font-bold text-foreground font-serif flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <User className="h-4.5 w-4.5 text-primary shrink-0" />
               Thông tin cá nhân
             </h3>
@@ -481,7 +481,7 @@ export default function ProfilePage() {
         {/* Bank Config Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-border/40">
           <div className="space-y-1.5 lg:pr-4">
-            <h3 className="text-base font-bold text-foreground font-serif flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <Landmark className="h-4.5 w-4.5 text-primary shrink-0" />
               Cấu hình nhận thanh toán
             </h3>
@@ -564,7 +564,7 @@ export default function ProfilePage() {
         {/* Social Links Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-border/40">
           <div className="space-y-1.5 lg:pr-4">
-            <h3 className="text-base font-bold text-foreground font-serif flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <Share2 className="h-4.5 w-4.5 text-primary shrink-0" />
               Liên kết mạng xã hội
             </h3>
@@ -611,7 +611,7 @@ export default function ProfilePage() {
         {/* Default Billing Address Card */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-border/40">
           <div className="space-y-1.5 lg:pr-4">
-            <h3 className="text-base font-bold text-foreground font-serif flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <Wallet className="h-4.5 w-4.5 text-primary shrink-0" />
               Địa chỉ thanh toán mặc định
             </h3>

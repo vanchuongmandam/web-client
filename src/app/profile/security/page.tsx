@@ -197,7 +197,7 @@ export default function SecurityPage() {
   return (
     <div className="space-y-6 font-sans">
       <div>
-        <h1 className="text-2xl font-bold font-serif text-primary">Mật khẩu & Bảo mật</h1>
+        <h1 className="text-2xl font-bold text-primary">Mật khẩu & Bảo mật</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Quản lý khóa bảo mật, cài đặt đổi mật khẩu và thiết lập đăng nhập hai yếu tố.
         </p>
@@ -208,7 +208,7 @@ export default function SecurityPage() {
         {/* Section 1: Change Password */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="space-y-1.5 lg:pr-4">
-            <h3 className="text-base font-bold text-foreground font-serif flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <KeyRound className="h-4.5 w-4.5 text-primary shrink-0" />
               Đổi mật khẩu
             </h3>
@@ -301,7 +301,7 @@ export default function SecurityPage() {
         {/* Section 1.5: Google Linked Account */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-border/40">
           <div className="space-y-1.5 lg:pr-4">
-            <h3 className="text-base font-bold text-foreground font-serif flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <LinkIcon className="h-4.5 w-4.5 text-primary shrink-0" />
               Tài khoản liên kết
             </h3>
@@ -337,7 +337,7 @@ export default function SecurityPage() {
         {/* Section 2: Passkeys */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-border/40">
           <div className="space-y-1.5 lg:pr-4">
-            <h3 className="text-base font-bold text-foreground font-serif flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <Fingerprint className="h-4.5 w-4.5 text-primary shrink-0" />
               Khóa bảo mật (Passkeys)
             </h3>
@@ -402,7 +402,7 @@ export default function SecurityPage() {
         {/* Section 3: 2FA */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-6 border-t border-border/40">
           <div className="space-y-1.5 lg:pr-4">
-            <h3 className="text-base font-bold text-foreground font-serif flex items-center gap-2">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <Smartphone className="h-4.5 w-4.5 text-primary shrink-0" />
               Xác thực 2 yếu tố (2FA)
             </h3>
@@ -468,7 +468,7 @@ export default function SecurityPage() {
       <Dialog open={registeringPasskey} onOpenChange={setRegisteringPasskey}>
         <DialogContent className="bg-popover border border-border text-popover-foreground sm:max-w-[425px]">
           <DialogHeader className="text-center">
-            <DialogTitle className="text-lg font-bold font-serif text-primary flex items-center justify-center gap-2">
+            <DialogTitle className="text-lg font-bold text-primary flex items-center justify-center gap-2">
               <Fingerprint className="h-5 w-5 text-primary" /> Thiết lập Khóa bảo mật
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs">
@@ -532,7 +532,7 @@ export default function SecurityPage() {
       <Dialog open={show2FADialog} onOpenChange={setShow2FADialog}>
         <DialogContent className="bg-popover border border-border text-popover-foreground sm:max-w-[450px]">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold font-serif text-primary flex items-center gap-2">
+            <DialogTitle className="text-lg font-bold text-primary flex items-center gap-2">
               <Smartphone className="h-5 w-5 text-primary" /> Cài đặt Xác thực 2 yếu tố
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-xs">

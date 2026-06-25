@@ -16,16 +16,6 @@ export default {
         "2xl": "1400px",
       },
     },
-    fontSize: {
-      xs: '0.778rem',  // ~14px
-      sm: '0.889rem',  // ~16px
-      base: '1rem',      // 18px (DEFAULT)
-      lg: '1.111rem',  // ~20px
-      xl: '1.222rem',   // ~22px
-      '2xl': '1.5rem',  // 27px
-      '3xl': '1.833rem', // ~33px
-      '4xl': '2.167rem', // ~39px
-    },
     extend: {
       fontFamily: {
         sans: ['var(--font-sans)', ...fontFamily.sans],
@@ -64,6 +54,16 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
         },
         chart: {
           '1': 'hsl(var(--chart-1))',

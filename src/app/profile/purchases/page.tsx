@@ -130,7 +130,7 @@ export default function PurchasesPage() {
 
   return (
     <div className="space-y-6 font-sans">
-      <h2 className="text-xl font-bold flex items-center gap-2 text-primary font-serif">
+      <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
         <BookOpen className="h-5 w-5 text-primary" /> Thư viện tài liệu đã mua
       </h2>
 

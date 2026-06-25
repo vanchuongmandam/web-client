@@ -823,8 +823,8 @@ export async function deleteAdminCoupon(id: string, token: string): Promise<void
   });
 }
 
-export async function validateCoupon(code: string, documentIds: string[], token: string): Promise<{ valid: boolean, discountAmount: number, maxDiscountAmount?: number, discountType: string, discountValue: number }> {
-  const res = await apiFetch<ApiEnvelope<any>>('/coupons/validate', {
+export async function validateCoupon(code: string, documentIds: string[], token: string): Promise<{ coupon: Coupon; discountAmount: number }> {
+  const res = await apiFetch<ApiEnvelope<{ coupon: Coupon; discountAmount: number }>>('/coupons/validate', {
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify({ code, documentIds }),

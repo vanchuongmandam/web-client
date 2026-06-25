@@ -300,6 +300,26 @@ export interface AdminDashboardStats {
   topDocuments: AdminTopDocument[];
   revenueByPaymentMethod: Record<string, { revenue: number; count: number }>;
   couponStats: CouponStat[];
+  recentOrders: Array<{
+    _id: string;
+    orderCode: string;
+    user: { _id: string; username: string; email?: string };
+    totalAmount: number;
+    status: string;
+    orderType: 'purchase' | 'deposit';
+    paymentMethod: 'sepay' | 'wallet';
+    createdAt: string;
+  }>;
+  recentUsers: Array<{
+    _id: string;
+    username: string;
+    email: string;
+    role: string;
+    isOAuth: boolean;
+    createdAt: string;
+  }>;
+  pendingAccessRequests: number;
+  orderStatusBreakdown: Record<string, number>;
 }
 
 export interface Coupon {

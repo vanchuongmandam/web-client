@@ -105,7 +105,7 @@ export function AppSidebar() {
           <LayoutDashboard />
           <span>VCM Admin</span>
         </Link>
-        <Badge variant="secondary" className="mt-3 w-fit">
+        <Badge variant="outline" className="mt-3 w-fit bg-primary/5 text-primary border-primary/10 text-[10px] font-medium py-0.5 px-2 rounded-md">
           Bảng điều khiển
         </Badge>
       </SidebarHeader>

@@ -63,8 +63,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           // Store backend data in the account object temporarily so jwt callback can access it
-          account.backendToken = data.data.token
-          account.backendUser = data.data.user
+          const anyAccount = account as any
+          if (anyAccount) {
+            anyAccount.backendToken = data.data.token
+            anyAccount.backendUser = data.data.user
+          }
           return true
         } catch (error) {
           console.error("Google signIn callback error:", error)
@@ -74,38 +77,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true
     },
     async jwt({ token, account }) {
+      const anyAccount = account as any
+      const anyToken = token as any
       // Initial sign in
-      if (account && account.backendToken && account.backendUser) {
-        const decoded = jwtDecode<{ exp: number }>(account.backendToken as string)
+      if (anyAccount && anyAccount.backendToken && anyAccount.backendUser) {
+        const decoded = jwtDecode<{ exp: number }>(anyAccount.backendToken as string)
         return {
           ...token,
-          backendToken: account.backendToken as string,
+          backendToken: anyAccount.backendToken as string,
           backendTokenExpires: decoded.exp * 1000,
-          user: account.backendUser as any
+          user: anyAccount.backendUser as any
         }
       }
 
       // Return previous token if the backend token has not expired yet
       // Refresh token if it's going to expire in the next 1 hour
-      if (Date.now() < token.backendTokenExpires - 60 * 60 * 1000) {
+      if (anyToken.backendTokenExpires && Date.now() < anyToken.backendTokenExpires - 60 * 60 * 1000) {
         return token
       }
 
       // TODO: Implement refresh token logic if needed. 
       // For now, if expired, we'll let it expire and client will handle logout.
-      if (Date.now() >= token.backendTokenExpires) {
+      if (anyToken.backendTokenExpires && Date.now() >= anyToken.backendTokenExpires) {
         return { ...token, error: "RefreshAccessTokenError" }
       }
 
       return token
     },
     async session({ session, token }) {
-      session.backendToken = token.backendToken
+      const anyToken = token as any
+      session.backendToken = anyToken.backendToken
       session.user = {
         ...session.user,
-        ...token.user
+        ...anyToken.user
       }
-      session.error = token.error
+      session.error = anyToken.error
       return session
     }
   },

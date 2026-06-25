@@ -12,12 +12,19 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Plus, Pencil, Trash2, FileText, Eye, Search, LayoutGrid } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash2, FileText, Eye, Search, LayoutGrid, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -46,7 +53,7 @@ export default function AdminDocumentsPage() {
     try {
       const params: { page: number; limit: number; status?: string; search?: string } = {
         page,
-        limit: 20,
+        limit: 15,
       };
       if (statusFilter !== 'all') {
         params.status = statusFilter;
@@ -84,140 +91,161 @@ export default function AdminDocumentsPage() {
   const totalOnPage = documents.length;
   const activeOnPage = documents.filter((doc) => doc.status === 'active').length;
 
-  if (loading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="rounded-xl border bg-card p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold">
-              <FileText />
-              Quản lý tài liệu
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Theo dõi danh mục tài liệu marketplace, trạng thái và hiệu suất bán.
-            </p>
-          </div>
-          <Link href="/admin/documents/new">
-            <Button>
-              <Plus data-icon="inline-start" />
-              Thêm tài liệu
-            </Button>
-          </Link>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-2">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
+            <FileText className="h-6 w-6 text-primary" /> Quản lý Tài liệu
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Tổng cộng: {pagination?.total ?? 0} tài liệu trong hệ thống.
+          </p>
         </div>
-      </header>
+        <Button asChild size="sm" className="h-9 text-xs font-bold shadow-sm">
+          <Link href="/admin/documents/new">
+            <Plus className="mr-2 h-4 w-4" /> Thêm tài liệu
+          </Link>
+        </Button>
+      </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Tài liệu trang hiện tại</CardDescription>
-            <CardTitle className="text-2xl">{totalOnPage}</CardTitle>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        <Card className="border border-border/60 shadow-sm rounded-xl">
+          <CardHeader className="py-3 px-4">
+            <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tài liệu hiện tại</CardDescription>
+            <CardTitle className="text-2xl font-bold mt-1 tracking-tight">{loading ? <Skeleton className="h-8 w-12" /> : totalOnPage}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Tài liệu đang bán</CardDescription>
-            <CardTitle className="text-2xl">{activeOnPage}</CardTitle>
+        <Card className="border border-border/60 shadow-sm rounded-xl">
+          <CardHeader className="py-3 px-4">
+            <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tài liệu đang bán</CardDescription>
+            <CardTitle className="text-2xl font-bold mt-1 tracking-tight text-emerald-600">{loading ? <Skeleton className="h-8 w-12" /> : activeOnPage}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Tổng bản ghi API</CardDescription>
-            <CardTitle className="text-2xl">{pagination?.total ?? 0}</CardTitle>
+        <Card className="border border-border/60 shadow-sm rounded-xl">
+          <CardHeader className="py-3 px-4">
+            <CardDescription className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tổng số tài liệu</CardDescription>
+            <CardTitle className="text-2xl font-bold mt-1 tracking-tight">{loading ? <Skeleton className="h-8 w-12" /> : (pagination?.total ?? 0)}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Danh sách tài liệu</CardTitle>
-          <CardDescription>Lọc nhanh theo trạng thái và tên tài liệu/tác giả.</CardDescription>
-          <Separator />
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:max-w-sm">
-              <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Tìm theo tên tài liệu hoặc tác giả..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
+      <Card className="border border-border/60 shadow-sm rounded-xl overflow-hidden">
+        <CardHeader className="py-4 border-b border-border/40 bg-zinc-50/50">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-sm font-bold text-foreground">Bộ lọc & Tìm kiếm</CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">Tìm kiếm nhanh tài liệu marketplace.</CardDescription>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-44">
-                <SelectValue placeholder="Lọc trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="draft">Bản nháp</SelectItem>
-                <SelectItem value="active">Đang bán</SelectItem>
-                <SelectItem value="archived">Đã ẩn</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto items-stretch sm:items-center">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Tìm tên tài liệu hoặc tác giả..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 h-9 text-xs rounded-lg border-zinc-200 bg-white"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-40 h-9 text-xs rounded-lg bg-white border-zinc-200">
+                  <SelectValue placeholder="Trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem className="text-xs" value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem className="text-xs" value="draft">Bản nháp</SelectItem>
+                  <SelectItem className="text-xs" value="active">Đang bán</SelectItem>
+                  <SelectItem className="text-xs" value="archived">Đã ẩn</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tiêu đề</TableHead>
-                <TableHead>Danh mục</TableHead>
-                <TableHead>Giá</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead className="text-right">Lượt mua</TableHead>
-                <TableHead className="text-right">Lượt xem</TableHead>
-                <TableHead></TableHead>
+            <TableHeader className="bg-muted/30">
+              <TableRow className="hover:bg-transparent border-b border-border/40">
+                <TableHead className="text-xs font-semibold py-2.5 text-muted-foreground">Tài liệu</TableHead>
+                <TableHead className="text-xs font-semibold py-2.5 text-muted-foreground">Danh mục</TableHead>
+                <TableHead className="text-xs font-semibold py-2.5 text-muted-foreground">Giá bán</TableHead>
+                <TableHead className="text-xs font-semibold py-2.5 text-muted-foreground">Trạng thái</TableHead>
+                <TableHead className="text-right text-xs font-semibold py-2.5 text-muted-foreground">Lượt mua</TableHead>
+                <TableHead className="text-right text-xs font-semibold py-2.5 text-muted-foreground">Lượt xem</TableHead>
+                <TableHead className="text-right text-xs font-semibold py-2.5 text-muted-foreground pr-4">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {documents.map((doc) => (
-                <TableRow key={doc._id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{doc.title}</div>
-                      <div className="text-xs text-muted-foreground">{doc.author}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{doc.category?.name || '-'}</TableCell>
-                  <TableCell>{formatPrice(doc.price)}</TableCell>
-                  <TableCell>
-                    <Badge variant={doc.status === 'active' ? 'default' : 'secondary'}>
-                      {statusLabel[doc.status] || doc.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">{doc.purchaseCount}</TableCell>
-                  <TableCell className="text-right">{doc.viewCount}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Link href={`/documents/${doc.slug}`}>
-                        <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
-                      </Link>
-                      <Link href={`/admin/documents/edit/${doc.slug}`}>
-                        <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                      </Link>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(doc.slug)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {documents.length === 0 && (
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={7} className="py-3.5"><Skeleton className="h-5 w-full rounded-md" /></TableCell>
+                  </TableRow>
+                ))
+              ) : documents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground font-semibold text-sm">
                     <div className="flex flex-col items-center gap-2 py-4">
-                      <LayoutGrid className="text-muted-foreground" />
-                      <p>Không có tài liệu phù hợp với bộ lọc hiện tại.</p>
+                      <LayoutGrid className="h-6 w-6 text-muted-foreground/60" />
+                      <p className="text-xs">Không có tài liệu nào phù hợp với bộ lọc hiện tại.</p>
                     </div>
                   </TableCell>
                 </TableRow>
+              ) : (
+                documents.map((doc) => (
+                  <TableRow key={doc._id} className="hover:bg-muted/30 transition-colors border-b border-border/30">
+                    <TableCell className="py-2.5">
+                      <div className="font-bold text-foreground text-xs">{doc.title}</div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">{doc.author}</div>
+                    </TableCell>
+                    <TableCell className="py-2.5 text-xs text-muted-foreground font-semibold">{doc.category?.name || 'Chưa phân loại'}</TableCell>
+                    <TableCell className="py-2.5 text-xs text-foreground font-bold font-mono">{formatPrice(doc.price)}</TableCell>
+                    <TableCell className="py-2.5">
+                      {doc.status === 'active' ? (
+                        <Badge className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border-emerald-200/40 text-emerald-700 hover:bg-emerald-500/10">
+                          {statusLabel[doc.status] || doc.status}
+                        </Badge>
+                      ) : doc.status === 'draft' ? (
+                        <Badge className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-amber-500/10 border-amber-200/40 text-amber-700 hover:bg-amber-500/10">
+                          {statusLabel[doc.status] || doc.status}
+                        </Badge>
+                      ) : (
+                        <Badge className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-zinc-500/10 border-zinc-200/40 text-zinc-600 hover:bg-zinc-500/10">
+                          {statusLabel[doc.status] || doc.status}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-2.5 text-right font-semibold text-xs font-mono">{doc.purchaseCount}</TableCell>
+                    <TableCell className="py-2.5 text-right font-semibold text-xs font-mono text-muted-foreground">{doc.viewCount}</TableCell>
+                    <TableCell className="py-2.5 pr-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-7 w-7 p-0 hover:bg-muted rounded-md border border-transparent hover:border-border/30">
+                            <MoreHorizontal className="h-3.5 w-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Hành động</DropdownMenuLabel>
+                          <DropdownMenuItem asChild className="text-xs font-medium cursor-pointer">
+                            <Link href={`/documents/${doc.slug}`}>
+                              <Eye className="h-3 w-3 mr-2" /> Xem Chi tiết
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild className="text-xs font-medium cursor-pointer">
+                            <Link href={`/admin/documents/edit/${doc.slug}`}>
+                              <Pencil className="h-3 w-3 mr-2" /> Chỉnh sửa
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-xs font-semibold cursor-pointer text-rose-600 hover:text-rose-700" 
+                            onClick={() => handleDelete(doc.slug)}
+                          >
+                            <Trash2 className="h-3 w-3 mr-2" /> Xóa tài liệu
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
@@ -225,11 +253,13 @@ export default function AdminDocumentsPage() {
       </Card>
 
       {pagination && pagination.totalPages > 1 && (
-        <PaginationControls
-          pagination={pagination}
-          onPageChange={setPage}
-          isLoading={loading}
-        />
+        <div className="pt-2">
+          <PaginationControls
+            pagination={pagination}
+            onPageChange={setPage}
+            isLoading={loading}
+          />
+        </div>
       )}
     </div>
   );

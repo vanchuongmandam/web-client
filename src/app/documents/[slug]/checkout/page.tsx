@@ -154,7 +154,7 @@ export default function CheckoutPage() {
     setCouponError(null);
     try {
       const res = await validateCoupon(couponCode.toUpperCase(), [doc._id], token);
-      if (res.valid) {
+      if (res && res.coupon) {
         setDiscountAmount(res.discountAmount);
         setAppliedCoupon(couponCode.toUpperCase());
         toast({

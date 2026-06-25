@@ -112,7 +112,7 @@ export default function WalletPage() {
   return (
     <div className="space-y-6 font-sans">
       <div>
-        <h1 className="text-2xl font-bold font-serif text-primary">Ví cá nhân</h1>
+        <h1 className="text-2xl font-bold text-primary">Ví cá nhân</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Quản lý số dư tài khoản và nạp tiền để giao dịch tài liệu nhanh chóng.
         </p>
@@ -139,7 +139,7 @@ export default function WalletPage() {
 
           <Card className="bg-card border border-border shadow-sm rounded-md">
             <CardHeader className="pb-3 border-b border-border">
-              <CardTitle className="text-base font-serif text-foreground">Yêu cầu nạp số dư</CardTitle>
+              <CardTitle className="text-base text-foreground">Yêu cầu nạp số dư</CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
                 Hệ thống tự động quét giao dịch đối soát tức thì qua SePay.
               </CardDescription>
@@ -193,7 +193,7 @@ export default function WalletPage() {
           {qrCodeUrl && (
             <Card className="border border-primary bg-card shadow-md rounded-md overflow-hidden ring-4 ring-primary/10">
               <CardHeader className="text-center pb-2 border-b border-border bg-muted/20">
-                <CardTitle className="text-base font-serif text-primary">Quét mã VietQR chuyển khoản</CardTitle>
+                <CardTitle className="text-base text-primary">Quét mã VietQR chuyển khoản</CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
                   Mở ứng dụng ngân hàng của bạn quét mã để cộng tiền tự động
                 </CardDescription>

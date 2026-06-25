@@ -98,7 +98,7 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6 font-sans">
-      <h2 className="text-xl font-bold flex items-center gap-2 text-primary font-serif">
+      <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
         <Package className="h-5 w-5 text-primary" /> Lịch sử đơn hàng tài liệu
       </h2>
 
