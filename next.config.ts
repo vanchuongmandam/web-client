@@ -34,6 +34,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: 'patterns/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/media/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '9000',
+        pathname: '/media/**',
+      },
     ],
     dangerouslyAllowSVG: true,
     deviceSizes: [320, 640, 768, 1024, 1200, 1920, 2048, 3840],

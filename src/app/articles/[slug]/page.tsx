@@ -2,6 +2,7 @@
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Article } from "@/lib/types";
@@ -28,11 +29,21 @@ import CommentSection from "./comment-section";
 import { RelatedDocumentsCTA } from "./related-documents-cta";
 
 // --- API Function to get a specific article ---
-async function getArticle(slug: string): Promise<Article | null> {
+async function getArticle(slug: string, token?: string): Promise<Article | null> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    // OPTIMIZED: Changed cache strategy to revalidate every hour
-    const response = await fetch(`${apiBaseUrl}/articles/${slug}`, { next: { revalidate: 3600 } });
+    const headers: HeadersInit = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    // Bypass Next.js cache for logged-in requests to avoid cache pollution,
+    // while keeping 1-hour cache for public guests.
+    const fetchOptions: RequestInit = token
+      ? { headers, cache: "no-store" }
+      : { next: { revalidate: 3600 } };
+
+    const response = await fetch(`${apiBaseUrl}/articles/${slug}`, fetchOptions);
     if (!response.ok) {
       if (response.status === 404) return null;
       throw new Error(`Failed to fetch article: ${response.statusText}`);
@@ -48,7 +59,9 @@ async function getArticle(slug: string): Promise<Article | null> {
 // --- generateMetadata for dynamic SEO / OG tags ---
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getArticle(slug);
+  const cookieStore = await cookies();
+  const token = cookieStore.get("authToken")?.value;
+  const article = await getArticle(slug, token);
   if (!article) {
     return {
       title: "Bài viết không tồn tại",
@@ -88,7 +101,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 // --- Article Detail Page Component (FIXED) ---
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = await getArticle(slug);
+  const cookieStore = await cookies();
+  const token = cookieStore.get("authToken")?.value;
+  const article = await getArticle(slug, token);
 
   if (!article) {
     notFound();
@@ -155,7 +170,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       <div className="mt-12">
         <ReadingSuggestions
-          articleContent={article.content}
+          currentSlug={article.slug}
+          categoryId={article.category._id || String(article.category)}
         />
       </div>
 

@@ -32,6 +32,12 @@ export default function WalletPage() {
   const presetAmounts = [20000, 50000, 100000, 200000, 500000];
 
   useEffect(() => {
+    if (token) {
+      refreshProfile();
+    }
+  }, [token, refreshProfile]);
+
+  useEffect(() => {
     // Update initial balance once user is loaded
     if (user?.balance !== undefined && initialBalanceRef.current === undefined) {
       initialBalanceRef.current = user.balance;

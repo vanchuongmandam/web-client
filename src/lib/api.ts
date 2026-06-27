@@ -302,10 +302,14 @@ export async function resetPassword(token: string, password: string): Promise<{ 
 }
 
 export async function changePassword(data: { currentPassword?: string; newPassword: string }, token: string): Promise<{ message: string }> {
+  const payload = {
+    oldPassword: data.currentPassword,
+    newPassword: data.newPassword,
+  };
   const res = await apiFetch<ApiEnvelope<{ message: string }>>('/auth/change-password', {
     method: 'PUT',
     headers: authHeaders(token),
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
   return res.data;
 }
@@ -939,6 +943,15 @@ export async function getSuggestions(token?: string, limit?: number): Promise<Ma
     headers,
     next: { revalidate: 3600 } // Cache might be tricky for personalized stuff.
   });
+  return res.data;
+}
+
+export async function getArticleSuggestions(
+  currentSlug: string,
+  categoryId: string,
+): Promise<Article[]> {
+  const query = buildQuery({ current_slug: currentSlug, categoryId });
+  const res = await apiFetch<ApiEnvelope<Article[]>>(`/articles/suggestions${query}`);
   return res.data;
 }
 

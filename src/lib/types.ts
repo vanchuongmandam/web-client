@@ -305,6 +305,8 @@ export interface AdminDashboardStats {
     orderCode: string;
     user: { _id: string; username: string; email?: string };
     totalAmount: number;
+    discountAmount?: number;
+    couponCode?: string;
     status: string;
     orderType: 'purchase' | 'deposit';
     paymentMethod: 'sepay' | 'wallet';

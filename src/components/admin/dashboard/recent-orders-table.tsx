@@ -168,7 +168,7 @@ export function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
 
                       {/* Total Amount */}
                       <TableCell className="text-xs font-bold tabular-nums text-right py-2 w-[16%]">
-                        {vndFormat.format(order.totalAmount)}
+                        {vndFormat.format(order.totalAmount - (order.discountAmount || 0))}
                       </TableCell>
 
                       {/* Status */}

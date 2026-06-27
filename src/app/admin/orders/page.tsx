@@ -190,7 +190,7 @@ export default function AdminOrdersPage() {
   });
 
   const paidOrders = orders.filter((o) => o.status === 'paid' || o.status === 'confirmed');
-  const totalRevenue = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.totalAmount - (o.discountAmount || 0)), 0);
   const pendingCount = orders.filter((o) => o.status === 'pending').length;
 
   if (loading) {
@@ -341,8 +341,14 @@ export default function AdminOrdersPage() {
                   {order.items.map((item) => item.title).join(', ') || "Nạp số dư ví"}
                 </TableCell>
 
-                {/* Price */}
-                <TableCell className="py-2.5 font-bold text-xs text-foreground tabular-nums">{formatPrice(order.totalAmount)}</TableCell>
+                <TableCell className="py-2.5 font-bold text-xs text-foreground tabular-nums">
+                  {formatPrice(order.totalAmount - (order.discountAmount || 0))}
+                  {order.discountAmount !== undefined && order.discountAmount > 0 && (
+                    <span className="block text-[9px] text-emerald-600 font-medium leading-none mt-0.5">
+                      (-{formatPrice(order.discountAmount)})
+                    </span>
+                  )}
+                </TableCell>
                 
                 {/* Status */}
                 <TableCell className="py-2.5">{statusBadge(order.status)}</TableCell>
@@ -496,9 +502,15 @@ export default function AdminOrdersPage() {
                       </div>
                     ))
                   )}
+                  {selectedOrderDetails.discountAmount !== undefined && selectedOrderDetails.discountAmount > 0 && (
+                    <div className="flex justify-between items-center text-xs text-muted-foreground py-1">
+                      <span>Giảm giá ({selectedOrderDetails.couponCode || ""})</span>
+                      <span className="font-mono font-semibold text-emerald-600">-{formatPrice(selectedOrderDetails.discountAmount)}</span>
+                    </div>
+                  )}
                   <div className="border-t border-border/40 pt-2 flex justify-between items-center font-bold text-sm">
-                    <span className="text-foreground">Tổng cộng</span>
-                    <span className="text-primary font-mono">{formatPrice(selectedOrderDetails.totalAmount)}</span>
+                    <span className="text-foreground">Tổng thanh toán</span>
+                    <span className="text-primary font-mono">{formatPrice(selectedOrderDetails.totalAmount - (selectedOrderDetails.discountAmount || 0))}</span>
                   </div>
                 </div>
               </div>

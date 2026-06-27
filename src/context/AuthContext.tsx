@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsOAuth(false);
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
+    document.cookie = "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
     
     if (session) {
       await nextAuthSignOut({ redirect: false });
@@ -70,10 +71,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (sessionStatus === "authenticated" && session?.backendToken && session?.user) {
       setToken(session.backendToken);
-      setUser(session.user as User);
       setIsOAuth(true);
       localStorage.setItem('authToken', session.backendToken);
-      localStorage.setItem('authUser', JSON.stringify(session.user));
+      document.cookie = `authToken=${session.backendToken}; path=/; max-age=604800; SameSite=Lax`;
+      
+      setUser((prev) => {
+        const merged = { ...session.user, ...prev } as User;
+        // Explicitly preserve balance if present in previous state
+        if (prev && prev.balance !== undefined) {
+          merged.balance = prev.balance;
+        }
+        localStorage.setItem('authUser', JSON.stringify(merged));
+        return merged;
+      });
     } else if (sessionStatus === "unauthenticated") {
       // Only check localStorage if not logged in via NextAuth
       const storedToken = localStorage.getItem('authToken');
@@ -86,7 +96,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setToken(storedToken);
             const storedUser = localStorage.getItem('authUser');
             if (storedUser && storedUser !== 'undefined') {
-              setUser(JSON.parse(storedUser));
+              const parsedUser = JSON.parse(storedUser);
+              setUser((prev) => {
+                const merged = { ...parsedUser, ...prev } as User;
+                if (prev && prev.balance !== undefined) {
+                  merged.balance = prev.balance;
+                }
+                return merged;
+              });
             }
           }
         } catch (e) {
@@ -108,8 +125,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { getProfile } = await import('@/lib/api');
       const profile = await getProfile(token);
       setUser((prev) => {
-        if (!prev) return null;
-        const updatedUser = { ...prev, balance: profile.balance };
+        const baseUser = prev || {
+          _id: profile._id,
+          username: profile.username,
+          role: profile.role,
+        };
+        const updatedUser = {
+          ...baseUser,
+          balance: profile.balance,
+          avatar: profile.avatar,
+          displayName: profile.displayName,
+          email: profile.email,
+        };
         localStorage.setItem('authUser', JSON.stringify(updatedUser));
         return updatedUser;
       });
@@ -136,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsOAuth(false);
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('authUser', JSON.stringify(data.user));
+      document.cookie = `authToken=${data.token}; path=/; max-age=604800; SameSite=Lax`;
       router.push('/');
     } catch (err: unknown) {
       if (err instanceof Error) { setError(err.message); }

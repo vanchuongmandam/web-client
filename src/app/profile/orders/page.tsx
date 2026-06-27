@@ -137,9 +137,16 @@ export default function OrdersPage() {
                         Khởi tạo lúc: {new Date(order.createdAt).toLocaleString("vi-VN")}
                       </p>
                     </div>
-                    <div className="flex items-baseline gap-1 sm:self-center">
-                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Tổng thanh toán:</span>
-                      <span className="font-extrabold text-[#8e2929] text-base">{formatPrice(order.totalAmount)}</span>
+                    <div className="flex flex-col items-end sm:self-center">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Tổng thanh toán:</span>
+                        <span className="font-extrabold text-[#8e2929] text-base">{formatPrice(order.totalAmount - (order.discountAmount || 0))}</span>
+                      </div>
+                      {order.discountAmount !== undefined && order.discountAmount > 0 && (
+                        <span className="text-[10px] text-emerald-600 font-semibold leading-none mt-0.5">
+                          (Đã giảm {formatPrice(order.discountAmount)} bằng mã {order.couponCode || ""})
+                        </span>
+                      )}
                     </div>
                   </div>
 
