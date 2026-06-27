@@ -53,6 +53,9 @@ export default function PDFViewerClient({ documentId, title }: { documentId: str
       router.push('/login');
       return;
     }
+    
+    let active = true;
+
     const fetchStream = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ''}/documents/${documentId}/view-stream`, {
@@ -64,16 +67,27 @@ export default function PDFViewerClient({ documentId, title }: { documentId: str
           throw new Error("Không thể tải tài liệu. Vui lòng kiểm tra lại quyền mua hoặc truy cập.");
         }
         const blob = await res.blob();
-        setPdfData(blob);
+        if (active) {
+          setPdfData(blob);
+        }
       } catch (e: any) {
-        toast({ title: "Lỗi tải tài liệu", description: e.message, variant: "destructive" });
-        router.back();
+        if (active) {
+          toast({ title: "Lỗi tải tài liệu", description: e.message, variant: "destructive" });
+          router.back();
+        }
       } finally {
-        setLoadingFile(false);
+        if (active) {
+          setLoadingFile(false);
+        }
       }
     };
+    
     fetchStream();
-  }, [documentId, token, isLoading, toast, router]);
+
+    return () => {
+      active = false;
+    };
+  }, [documentId, token, isLoading]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages);

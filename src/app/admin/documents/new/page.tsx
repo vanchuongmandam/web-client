@@ -112,7 +112,6 @@ export default function NewDocumentPage() {
     status: "draft" as "draft" | "active" | "archived",
     featured: false,
     allowDownload: true,
-    grade: "All" as "Grade 10" | "Grade 11" | "Grade 12" | "All",
   });
 
   // Redirect non-admins
@@ -172,7 +171,6 @@ export default function NewDocumentPage() {
         status: form.status,
         featured: form.featured,
         allowDownload: form.allowDownload,
-        grade: form.grade,
         tags: form.tags
           .split(",")
           .map((t) => t.trim())
@@ -527,19 +525,6 @@ export default function NewDocumentPage() {
                     {flatCategories.map((c) => (
                       <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="grade">Khối lớp *</Label>
-                <Select value={form.grade} onValueChange={(v) => handleChange("grade", v)}>
-                  <SelectTrigger id="grade"><SelectValue placeholder="Chọn khối lớp" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">Tất cả các lớp</SelectItem>
-                    <SelectItem value="Grade 10">Khối 10 (Lớp 10)</SelectItem>
-                    <SelectItem value="Grade 11">Khối 11 (Lớp 11)</SelectItem>
-                    <SelectItem value="Grade 12">Khối 12 (Lớp 12)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

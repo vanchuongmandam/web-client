@@ -1,5 +1,3 @@
-// src/app/documents/[slug]/page.tsx
-
 import { getDocumentBySlug } from '@/lib/api';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -18,7 +16,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (typeof doc.description === 'string') {
     descriptionText = doc.description;
   } else if (doc.description && typeof doc.description === 'object') {
-    // Basic extraction for TipTap JSON
     try {
       const extractText = (node: any): string => {
         if (node.type === 'text') return node.text || '';

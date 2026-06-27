@@ -20,11 +20,10 @@ export default async function DocumentsPage({
   const category = typeof params.category === 'string' ? params.category : undefined;
   const search = typeof params.search === 'string' ? params.search : undefined;
   const sort = typeof params.sort === 'string' ? params.sort : undefined;
-  const grade = typeof params.grade === 'string' ? params.grade : undefined;
   const tag = typeof params.tag === 'string' ? params.tag : undefined;
 
   const [documentsRes, categories] = await Promise.all([
-    getDocuments({ page, limit: 12, category, search, sort, grade, tag }),
+    getDocuments({ page, limit: 12, category, search, sort, tag }),
     getCategories(),
   ]);
 
@@ -37,7 +36,6 @@ export default async function DocumentsPage({
       currentSearch={search}
       currentSort={sort}
       currentPage={page}
-      currentGrade={grade}
       currentTag={tag}
     />
   );

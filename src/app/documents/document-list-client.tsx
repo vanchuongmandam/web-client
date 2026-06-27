@@ -28,7 +28,6 @@ import {
   Sparkles,
   BookMarked,
   Layers,
-  GraduationCap,
   Coins,
   Loader2,
   Trash2
@@ -60,7 +59,6 @@ interface DocumentListClientProps {
   currentSearch?: string;
   currentSort?: string;
   currentPage: number;
-  currentGrade?: string;
   currentTag?: string;
 }
 
@@ -77,12 +75,6 @@ const sortOptions = [
   { value: '-price', label: 'Giá từ cao đến thấp' },
 ];
 
-const gradeOptions = [
-  { value: 'All', label: 'Tất cả khối lớp' },
-  { value: 'Grade 10', label: 'Lớp 10' },
-  { value: 'Grade 11', label: 'Lớp 11' },
-  { value: 'Grade 12', label: 'Lớp 12' },
-];
 
 const popularTags = [
   { label: 'HSG Quốc Gia', value: 'HSG Quốc Gia' },
@@ -115,7 +107,6 @@ export function DocumentListClient({
   currentSearch,
   currentSort,
   currentPage,
-  currentGrade,
   currentTag,
 }: DocumentListClientProps) {
   const router = useRouter();
@@ -127,7 +118,7 @@ export function DocumentListClient({
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState<string | null>(null);
 
-  const hasActiveFilters = Boolean(currentCategory || currentSearch || currentSort || (currentGrade && currentGrade !== 'All') || currentTag);
+  const hasActiveFilters = Boolean(currentCategory || currentSearch || currentSort || currentTag);
 
   // Load bookmarks and search history on client-side mount
   useEffect(() => {
@@ -160,7 +151,6 @@ export function DocumentListClient({
     if (currentCategory && key !== 'category') params.set('category', currentCategory);
     if (currentSearch && key !== 'search') params.set('search', currentSearch);
     if (currentSort && key !== 'sort') params.set('sort', currentSort);
-    if (currentGrade && currentGrade !== 'All' && key !== 'grade') params.set('grade', currentGrade);
     if (currentTag && key !== 'tag') params.set('tag', currentTag);
 
     if (value && value !== 'All') params.set(key, value);
@@ -196,7 +186,6 @@ export function DocumentListClient({
     if (currentCategory) params.set('category', currentCategory);
     if (currentSearch) params.set('search', currentSearch);
     if (currentSort) params.set('sort', currentSort);
-    if (currentGrade && currentGrade !== 'All') params.set('grade', currentGrade);
     if (currentTag) params.set('tag', currentTag);
     params.set('page', String(page));
     router.push(`/documents?${params.toString()}`);
@@ -279,28 +268,6 @@ export function DocumentListClient({
             {categories.map((cat) => (
               <SelectItem key={cat._id} value={cat._id}>
                 {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Grade Filter */}
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-[#5a5045] flex items-center gap-1.5">
-          <GraduationCap className="size-3.5 text-[#888072]" /> Khối lớp học
-        </label>
-        <Select
-          value={currentGrade || 'All'}
-          onValueChange={(v) => updateFilter('grade', v === 'All' ? undefined : v)}
-        >
-          <SelectTrigger className="w-full bg-[#fcf9f2] border-2 border-[#ebdcb9] hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
-            <SelectValue placeholder="Tất cả khối lớp" />
-          </SelectTrigger>
-          <SelectContent className="bg-[#fcf9f2] border-[#ebdcb9]">
-            {gradeOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -525,12 +492,7 @@ export function DocumentListClient({
                   <button onClick={() => updateFilter('category', undefined)} className="font-bold hover:text-red-700 ml-1">×</button>
                 </Badge>
               )}
-              {currentGrade && currentGrade !== 'All' && (
-                <Badge variant="secondary" className="bg-[#ebdcb9] text-[#635748] border-none flex items-center gap-1 text-xs">
-                  {gradeOptions.find(g => g.value === currentGrade)?.label || currentGrade}
-                  <button onClick={() => updateFilter('grade', undefined)} className="font-bold hover:text-red-700 ml-1">×</button>
-                </Badge>
-              )}
+
               {currentTag && (
                 <Badge variant="secondary" className="bg-[#ebdcb9] text-[#635748] border-none flex items-center gap-1 text-xs">
                   Thẻ: {currentTag}
