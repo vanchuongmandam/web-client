@@ -102,6 +102,8 @@ export default function EditDocumentPage() {
     tags: "",
     status: "draft" as "draft" | "active" | "archived",
     featured: false,
+    allowDownload: true,
+    grade: "All" as "Grade 10" | "Grade 11" | "Grade 12" | "All",
   });
 
   useEffect(() => {
@@ -149,6 +151,8 @@ export default function EditDocumentPage() {
         tags: (doc.tags ?? []).join(", "),
         status: (doc.status as "draft" | "active" | "archived") ?? "draft",
         featured: doc.featured ?? false,
+        allowDownload: doc.allowDownload ?? true,
+        grade: (doc.grade as "Grade 10" | "Grade 11" | "Grade 12" | "All") ?? "All",
       });
     } catch {
       toast({ title: "Lỗi tải tài liệu", variant: "destructive" });
@@ -201,6 +205,8 @@ export default function EditDocumentPage() {
         fileFormat: form.fileFormat,
         status: form.status,
         featured: form.featured,
+        allowDownload: form.allowDownload,
+        grade: form.grade,
         tags: form.tags
           .split(",")
           .map((t) => t.trim())
@@ -509,8 +515,13 @@ export default function EditDocumentPage() {
               </div>
 
               <div className="flex items-center justify-between border-t pt-4">
-                <Label htmlFor="featured" className="cursor-pointer">Tài liệu nổi bật (Ghim)</Label>
+                <Label htmlFor="featured" className="cursor-pointer font-medium text-muted-foreground">Tài liệu nổi bật (Ghim)</Label>
                 <Switch id="featured" checked={form.featured} onCheckedChange={(v) => handleChange("featured", v)} />
+              </div>
+
+              <div className="flex items-center justify-between border-t pt-4">
+                <Label htmlFor="allowDownload" className="cursor-pointer font-medium text-muted-foreground">Cho phép tải file gốc</Label>
+                <Switch id="allowDownload" checked={form.allowDownload} onCheckedChange={(v) => handleChange("allowDownload", v)} />
               </div>
             </CardContent>
           </Card>
@@ -569,6 +580,19 @@ export default function EditDocumentPage() {
                     {flatCategories.map((c) => (
                       <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="grade">Khối lớp *</Label>
+                <Select value={form.grade} onValueChange={(v) => handleChange("grade", v)}>
+                  <SelectTrigger id="grade"><SelectValue placeholder="Chọn khối lớp" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">Tất cả các lớp</SelectItem>
+                    <SelectItem value="Grade 10">Khối 10 (Lớp 10)</SelectItem>
+                    <SelectItem value="Grade 11">Khối 11 (Lớp 11)</SelectItem>
+                    <SelectItem value="Grade 12">Khối 12 (Lớp 12)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
