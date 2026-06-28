@@ -27,7 +27,8 @@ import {
   Bookmark,
   BookmarkCheck,
   Ban,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 import {
   Breadcrumb,
@@ -38,16 +39,25 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ReviewSection from '@/components/documents/ReviewSection';
 import DocumentSuggestions from '@/components/documents/DocumentSuggestions';
+import dynamic from 'next/dynamic';
 
 function formatPrice(price: number): string {
   if (price === 0) return 'Miễn phí';
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 }
 
+const RichTextEditor = dynamic(() => import("@/components/ui/rich-text-editor"), {
+  loading: () => <div className="animate-pulse bg-[#fcf9f2] h-40 rounded border border-[#ebdcb9]" />,
+  ssr: false
+});
+
 interface Props {
   document: MarketDocument;
+  initialOwned?: boolean;
 }
 
 // Helper to determine book cover theme dynamically (identical to document-list-client)
@@ -69,12 +79,28 @@ const getBookCoverTheme = (docId: string) => {
 export function DocumentDetailClient({ document: doc }: Props) {
   const { user, token, refreshProfile } = useAuth();
   const router = useRouter();
+  
+  // Fallback chain: coverImage -> first previewImages -> previewFile (if image)
+  const primaryCoverImage = doc.coverImage?.trim() || 
+    (Array.isArray(doc.previewImages) && doc.previewImages.length > 0 ? doc.previewImages[0] : null) ||
+    (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
+
+  // Combine coverImage, previewFile (if it's an image) and previewImages
+  const allPreviewImages = Array.from(new Set([
+    ...(doc.coverImage ? [doc.coverImage] : []),
+    ...(Array.isArray(doc.previewImages) ? doc.previewImages : []),
+    ...(doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? [doc.previewFile] : [])
+  ]));
+
   const { toast } = useToast();
   const [owned, setOwned] = useState(false);
   const [checking, setChecking] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("description");
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     if (user?.bookmarkedDocuments) {
@@ -175,11 +201,11 @@ export function DocumentDetailClient({ document: doc }: Props) {
               
               {/* Document cover container */}
               <div className="w-full flex justify-center">
-                {doc.previewImages && doc.previewImages.length > 0 ? (
+                {primaryCoverImage ? (
                   // Flat display for actual uploaded preview covers
                   <div className="relative aspect-[1/1.38] w-full max-w-[220px] overflow-hidden rounded-md border-2 border-[#ebdcb9] bg-[#fcf9f2] p-1.5 shadow-md">
                     <img
-                      src={doc.previewImages[0]}
+                      src={primaryCoverImage}
                       alt={doc.title}
                       className="h-full w-full rounded-md object-cover"
                     />
@@ -282,7 +308,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
           </Card>
 
           {/* Tab kẹp giấy Navigation panel */}
-          <Tabs defaultValue="description" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} id="doc-tabs" className="w-full">
             <TabsList className="w-full justify-start overflow-x-auto bg-transparent border-b-2 border-[#ebdcb9] h-auto p-0 gap-1 rounded-none">
               <TabsTrigger 
                 value="description"
@@ -317,26 +343,16 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   <CardDescription className="text-xs text-muted-foreground">Giá trị sử dụng và tóm lược nội dung của ấn phẩm.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="whitespace-pre-line leading-relaxed text-[#5a5045] text-sm">
-                    {(() => {
-                      if (!doc.description) return 'Tài liệu này chưa có mô tả chi tiết.';
-                      if (typeof doc.description === 'string') return doc.description;
-                      
-                      // Handle TipTap JSON format
-                      try {
-                        const extractText = (node: any): string => {
-                          if (node.type === 'text') return node.text || '';
-                          if (node.content && Array.isArray(node.content)) {
-                            const childrenText = node.content.map(extractText).join('');
-                            return node.type === 'paragraph' ? childrenText + '\n' : childrenText;
-                          }
-                          return '';
-                        };
-                        return extractText(doc.description) || 'Tài liệu này chưa có mô tả chi tiết.';
-                      } catch (e) {
-                        return JSON.stringify(doc.description);
-                      }
-                    })()}
+                  <div className="w-full text-[#5a5045] text-sm">
+                    {doc.description ? (
+                      <RichTextEditor
+                        content={doc.description as any}
+                        editable={false}
+                        className="w-full overflow-hidden bg-transparent border-none p-0"
+                      />
+                    ) : (
+                      <p>Tài liệu này chưa có mô tả chi tiết.</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -345,24 +361,49 @@ export function DocumentDetailClient({ document: doc }: Props) {
             <TabsContent value="preview" className="mt-4 focus-visible:outline-none">
               <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-md overflow-hidden shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-base font-bold text-[#483d31]">Trang xem trước bổ sung</CardTitle>
+                  <CardTitle className="text-base font-bold text-[#483d31]">Tài liệu xem trước</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">Tham khảo một phần nội dung trước khi đưa vào tủ sách.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {doc.previewImages && doc.previewImages.length > 1 ? (
-                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-                      {doc.previewImages.slice(1).map((img, i) => (
-                        <div key={i} className="aspect-[1/1.38] overflow-hidden rounded-md border border-[#ebdcb9] bg-card p-1 shadow-sm">
-                          <img
-                            src={img}
-                            alt={`Preview ${i + 2}`}
-                            className="h-full w-full rounded-md object-cover transition-transform hover:scale-105 duration-300"
-                          />
-                        </div>
-                      ))}
+                <CardContent className="space-y-6">
+                  {doc.previewFile && doc.previewFile.toLowerCase().endsWith('.pdf') && (
+                    <div className="w-full aspect-[16/9] min-h-[600px] border border-[#ebdcb9] rounded-md overflow-hidden bg-gray-100">
+                      <iframe
+                        src={`https://drive.google.com/viewer?embedded=true&url=${encodeURIComponent(doc.previewFile)}`}
+                        title="PDF Preview"
+                        className="w-full h-full border-0"
+                        allowFullScreen
+                      />
                     </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic">Chưa có trang xem trước bổ sung nào cho tài liệu này.</p>
+                  )}
+
+                  {allPreviewImages.length > 0 && (
+                    <div className="space-y-3">
+                      {doc.previewFile && doc.previewFile.toLowerCase().endsWith('.pdf') && (
+                        <h4 className="text-sm font-semibold text-[#483d31] pt-4 border-t border-[#e6dfd3]">Trang xem trước bổ sung</h4>
+                      )}
+                      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 rounded-xl overflow-hidden border-2 border-[#ebdcb9] bg-[#ebdcb9]/10 p-1.5">
+                        {allPreviewImages.map((img, i) => (
+                          <div 
+                            key={i} 
+                            className="relative aspect-[1/1.38] overflow-hidden cursor-pointer group rounded-lg"
+                            onClick={() => {
+                              setSelectedImageIndex(i);
+                              setIsLightboxOpen(true);
+                            }}
+                          >
+                            <img
+                              src={img}
+                              alt={`Preview ${i + 1}`}
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {(!doc.previewFile || !doc.previewFile.toLowerCase().endsWith('.pdf')) && allPreviewImages.length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">Chưa có trang xem trước nào cho tài liệu này.</p>
                   )}
                 </CardContent>
               </Card>
@@ -379,7 +420,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                     <span className="text-muted-foreground">Định dạng file</span>
                     <Badge variant="outline" className="border-[#ebdcb9] uppercase font-bold text-[10px]">{doc.fileFormat}</Badge>
                   </div>
-                  {doc.pageCount ? (
+                  {doc.pageCount !== undefined && doc.pageCount !== null ? (
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Số trang</span>
                       <span className="font-semibold">{doc.pageCount} trang</span>
@@ -388,7 +429,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   {doc.fileSize ? (
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Kích thước file</span>
-                      <span className="font-semibold">{(doc.fileSize / 1024 / 1024).toFixed(2)} MB</span>
+                      <span className="font-semibold">{doc.fileSize >= 1024 ? (doc.fileSize / 1024).toFixed(2) + ' MB' : doc.fileSize + ' KB'}</span>
                     </div>
                   ) : null}
                   <div className="flex items-center justify-between">
@@ -464,6 +505,22 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 </Button>
               )}
 
+              {!owned && doc.previewFile && doc.previewFile.toLowerCase().endsWith('.pdf') && (
+                <Button 
+                  variant="outline" 
+                  className="w-full border-2 border-[#ebdcb9] hover:bg-[#ebdcb9]/20 font-bold" 
+                  size="lg" 
+                  onClick={() => {
+                    setActiveTab("preview");
+                    const el = document.getElementById("doc-tabs");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  <Eye className="mr-2 h-4 w-4 text-[#8c7e6c]" />
+                  Đọc thử tài liệu (PDF)
+                </Button>
+              )}
+
               {/* Specs checklist */}
               <div className="space-y-3 rounded-md border-2 border-[#ebdcb9]/50 bg-[#ebdcb9]/10 p-4 text-xs text-[#5a5045]">
                 <div className="flex items-center justify-between">
@@ -517,6 +574,48 @@ export function DocumentDetailClient({ document: doc }: Props) {
       
       {/* Suggestions Section */}
       <DocumentSuggestions documentId={doc._id} />
+
+      {/* Lightbox Preview Images Dialog */}
+      <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
+        <DialogContent className="max-w-screen-xl w-full h-full md:h-[90vh] md:w-[90vw] p-0 bg-transparent border-none shadow-none flex items-center justify-center">
+          <DialogTitle className="sr-only">Xem ảnh xem trước</DialogTitle>
+          <Button
+            variant="ghost"
+            className="absolute top-4 right-4 z-50 rounded-full h-10 w-10 p-2 bg-black/50 text-white hover:bg-black/80 hover:text-white"
+            onClick={() => setIsLightboxOpen(false)}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+
+          <Carousel
+            opts={{ loop: true, startIndex: selectedImageIndex }}
+            className="w-full max-w-4xl px-8"
+          >
+            <CarouselContent>
+              {allPreviewImages.map((img, index) => (
+                <CarouselItem key={index} className="flex items-center justify-center">
+                  <div className="relative w-full h-[70vh] flex flex-col items-center justify-center">
+                    <img
+                      src={img}
+                      alt={`Preview image ${index + 1}`}
+                      className="max-h-full max-w-full object-contain rounded-md"
+                    />
+                    <p className="absolute bottom-4 text-center text-white text-xs bg-black/60 px-3 py-1.5 rounded-full">
+                      Trang {index + 1} / {allPreviewImages.length}
+                    </p>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            {allPreviewImages.length > 1 && (
+              <>
+                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black/40 hover:bg-black/60 border-none h-10 w-10" />
+                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/40 hover:bg-black/60 border-none h-10 w-10" />
+              </>
+            )}
+          </Carousel>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import type {
   Article,
   Category,
+  DocumentCategory,
+  DocumentCollection,
   Comment,
   Media,
   PaginationMeta,
@@ -103,6 +105,85 @@ export async function deleteCategory(
   await apiFetch<ApiEnvelope<unknown>>(`/categories/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Document Categories
+// ---------------------------------------------------------------------------
+
+export async function getDocumentCategories(
+  fetchOptions?: RequestInit,
+): Promise<DocumentCategory[]> {
+  const res = await apiFetch<ApiEnvelope<DocumentCategory[]>>('/document-categories', { next: { revalidate: 3600 }, ...fetchOptions });
+  return res.data;
+}
+
+export async function createDocumentCategory(
+  data: { name: string; slug: string; parent?: string },
+  token: string,
+): Promise<DocumentCategory> {
+  const res = await apiFetch<ApiEnvelope<DocumentCategory>>('/document-categories', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function deleteDocumentCategory(
+  id: string,
+  token: string,
+): Promise<void> {
+  await apiFetch<ApiEnvelope<unknown>>(`/document-categories/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Document Collections
+// ---------------------------------------------------------------------------
+
+export async function getDocumentCollections(
+  fetchOptions?: RequestInit,
+): Promise<DocumentCollection[]> {
+  const res = await apiFetch<ApiEnvelope<DocumentCollection[]>>('/document-collections', { next: { revalidate: 3600 }, ...fetchOptions });
+  return res.data;
+}
+
+export async function createDocumentCollection(
+  data: { name: string; slug: string; description?: string },
+  token: string,
+): Promise<DocumentCollection> {
+  const res = await apiFetch<ApiEnvelope<DocumentCollection>>('/document-collections', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function updateDocumentCollection(
+  id: string,
+  data: Partial<DocumentCollection>,
+  token: string,
+): Promise<DocumentCollection> {
+  const res = await apiFetch<ApiEnvelope<DocumentCollection>>(`/document-collections/${id}`, {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return res.data;
+}
+
+export async function deleteDocumentCollection(
+  id: string,
+  token: string,
+): Promise<void> {
+  await apiFetch<ApiEnvelope<unknown>>(`/document-collections/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
   });
 }
 

@@ -4,8 +4,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { getDocumentBySlug, updateDocument, getCategories } from "@/lib/api";
-import type { Category } from "@/lib/types";
+import { getDocumentBySlug, updateDocument, getDocumentCategories, getDocumentCollections } from "@/lib/api";
+import type { DocumentCategory, DocumentCollection } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,13 +77,16 @@ export default function EditDocumentPage() {
   const { token, user } = useAuth();
   const { toast } = useToast();
 
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<DocumentCategory[]>([]);
+  const [availableCollections, setAvailableCollections] = useState<DocumentCollection[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [isFullUploading, setIsFullUploading] = useState(false);
   const [isPreviewUploading, setIsPreviewUploading] = useState(false);
+  const [isImagesUploading, setIsImagesUploading] = useState(false);
   const [fullUploadProgress, setFullUploadProgress] = useState(0);
   const [previewUploadProgress, setPreviewUploadProgress] = useState(0);
+  const [imagesUploadProgress, setImagesUploadProgress] = useState(0);
 
   const [form, setForm] = useState({
     title: "",
@@ -91,11 +94,14 @@ export default function EditDocumentPage() {
     description: null as Record<string, unknown> | null,
     author: "",
     category: "",
+    collections: [] as string[],
     price: "",
     originalPrice: "",
     isFree: false,
     fullFile: "",
     previewFile: "",
+    coverImage: "",
+    previewImages: [] as string[],
     fileFormat: "pdf" as "pdf" | "docx" | "zip",
     fileSize: "",
     pageCount: "",
@@ -112,9 +118,10 @@ export default function EditDocumentPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [doc, cats] = await Promise.all([
+      const [doc, cats, cols] = await Promise.all([
         getDocumentBySlug(slug, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined),
-        getCategories(),
+        getDocumentCategories(),
+        getDocumentCollections(),
       ]);
       if (!doc) {
         toast({ title: "Không tìm thấy tài liệu", variant: "destructive" });
@@ -133,17 +140,21 @@ export default function EditDocumentPage() {
             : null;
 
       setCategories(cats);
+      setAvailableCollections(cols);
       setForm({
         title: doc.title,
         slug: doc.slug,
         description: normalizedDescription,
         author: doc.author,
         category: typeof doc.category === "object" ? doc.category._id : (doc.category as string),
+        collections: (doc.collections || []).map(c => typeof c === 'object' ? c._id : c),
         price: String(doc.price),
         originalPrice: doc.originalPrice ? String(doc.originalPrice) : "",
         isFree: doc.isFree ?? false,
         fullFile: doc.fullFile ?? "",
         previewFile: doc.previewFile ?? "",
+        coverImage: doc.coverImage ?? "",
+        previewImages: doc.previewImages ?? [],
         fileFormat: (doc.fileFormat as "pdf" | "docx" | "zip") ?? "pdf",
         fileSize: doc.fileSize ? String(doc.fileSize) : "",
         pageCount: doc.pageCount ? String(doc.pageCount) : "",
@@ -165,7 +176,7 @@ export default function EditDocumentPage() {
 
   const handleChange = (
     field: string,
-    value: string | boolean | Record<string, unknown> | null,
+    value: string | boolean | Record<string, unknown> | string[] | null,
   ) => {
     setForm((f) => ({ ...f, [field]: value }));
   };
@@ -197,6 +208,7 @@ export default function EditDocumentPage() {
         description: form.description,
         author: form.author.trim(),
         category: form.category,
+        collections: form.collections,
         price: form.isFree ? 0 : Number(form.price),
         isFree: form.isFree,
         fullFile: form.fullFile.trim(),
@@ -212,6 +224,9 @@ export default function EditDocumentPage() {
 
       if (form.originalPrice) payload.originalPrice = Number(form.originalPrice);
       if (form.previewFile) payload.previewFile = form.previewFile.trim();
+      if (form.coverImage) payload.coverImage = form.coverImage.trim();
+      // Always send previewImages array, even if empty, so the admin can clear it if they delete all preview images.
+      payload.previewImages = form.previewImages;
       if (form.fileSize) payload.fileSize = Number(form.fileSize);
       if (form.pageCount) payload.pageCount = Number(form.pageCount);
 
@@ -473,6 +488,135 @@ export default function EditDocumentPage() {
                 )}
               </div>
 
+              <div className="space-y-3 pt-2">
+                <Label className="font-semibold text-base flex items-center gap-1.5">
+                  <span>Ảnh xem trước (Preview Images) & Banner</span>
+                  <Badge variant="outline" className="text-[10px] font-normal border-zinc-200">Không bắt buộc</Badge>
+                </Label>
+                
+                {/* Upload zone for preview images */}
+                <div className="relative border-2 border-dashed border-muted-foreground/25 rounded-xl text-center hover:bg-muted/30 transition-colors h-[120px] flex items-center justify-center">
+                  <Input 
+                    type="file" 
+                    multiple
+                    accept="image/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={isImagesUploading}
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files || []);
+                      if (files.length === 0 || !token) return;
+                      setIsImagesUploading(true);
+                      setImagesUploadProgress(0);
+                      
+                      let uploadedCount = 0;
+                      const newUrls: string[] = [];
+                      for (const file of files) {
+                        try {
+                          const media = await uploadFileWithProgress(
+                            file,
+                            token,
+                            "documents",
+                            (p) => {
+                              // Calculate overall progress
+                              const singleProgress = p / files.length;
+                              const baseProgress = (uploadedCount / files.length) * 100;
+                              setImagesUploadProgress(Math.round(baseProgress + singleProgress));
+                            }
+                          );
+                          newUrls.push(media.url);
+                          uploadedCount++;
+                        } catch (err: any) {
+                          toast({ title: "Lỗi tải ảnh", description: err.message, variant: "destructive" });
+                        }
+                      }
+                      
+                      if (newUrls.length > 0) {
+                        const updatedImages = [...(form.previewImages || []), ...newUrls];
+                        handleChange("previewImages", updatedImages);
+                        // If no cover image was selected, set the first uploaded image as the cover image
+                        if (!form.coverImage) {
+                          handleChange("coverImage", newUrls[0]);
+                        }
+                        toast({ title: "Đã tải lên " + newUrls.length + " ảnh xem trước" });
+                      }
+                      setIsImagesUploading(false);
+                      e.target.value = "";
+                    }} 
+                  />
+                  <div className="flex flex-col items-center gap-1 pointer-events-none mt-2">
+                    <UploadCloud className="w-5 h-5 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground font-medium">Nhấn hoặc kéo thả nhiều ảnh xem trước</p>
+                    <p className="text-[10px] text-muted-foreground">Chỉ chấp nhận file hình ảnh (JPEG, PNG, v.v.)</p>
+                  </div>
+                </div>
+
+                {isImagesUploading && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Đang tải các ảnh xem trước...</span>
+                      <span>{imagesUploadProgress}%</span>
+                    </div>
+                    <Progress value={imagesUploadProgress} className="h-2" />
+                  </div>
+                )}
+
+                {/* Grid layout of uploaded preview images */}
+                {form.previewImages && form.previewImages.length > 0 && (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 mt-4">
+                    {form.previewImages.map((imgUrl, idx) => {
+                      const isCover = form.coverImage === imgUrl;
+                      return (
+                        <div key={idx} className={`relative aspect-[1/1.38] rounded-xl border-2 overflow-hidden bg-[#fcf9f2] p-1 shadow-sm transition-all group ${isCover ? 'border-[#4c6b54] ring-2 ring-[#4c6b54]/20' : 'border-zinc-200'}`}>
+                          <img 
+                            src={imgUrl} 
+                            alt={`Preview ${idx + 1}`} 
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                          
+                          {/* Hover Overlay Actions */}
+                          <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                            {/* Delete Button */}
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="h-7 w-7 rounded-full ml-auto"
+                              onClick={() => {
+                                const updatedImages = form.previewImages.filter(url => url !== imgUrl);
+                                handleChange("previewImages", updatedImages);
+                                if (isCover) {
+                                  handleChange("coverImage", updatedImages.length > 0 ? updatedImages[0] : "");
+                                }
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                            
+                            {/* Set Cover Button */}
+                            <Button
+                              type="button"
+                              variant={isCover ? "default" : "secondary"}
+                              size="sm"
+                              className="w-full font-bold text-xs h-7 bg-[#4c6b54] text-white hover:bg-[#3b5341]"
+                              onClick={() => handleChange("coverImage", imgUrl)}
+                            >
+                              {isCover ? "Ảnh bìa chính" : "Chọn làm ảnh bìa"}
+                            </Button>
+                          </div>
+                          
+                          {/* Banner Indicator badge when not hovered */}
+                          {isCover && (
+                            <Badge className="absolute top-2 left-2 bg-[#4c6b54] text-white border-none text-[9px] font-bold py-0.5 px-1.5 shadow-sm">
+                              Ảnh bìa chính
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <div className="rounded-xl border border-dashed bg-muted/20 p-4">
                 <p className="text-sm font-semibold">Metadata tự động từ file gốc</p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -579,6 +723,36 @@ export default function EditDocumentPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Bộ sưu tập</Label>
+                <div className="max-h-40 overflow-y-auto border rounded-md p-3 space-y-2 bg-background">
+                  {availableCollections.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Chưa có bộ sưu tập nào.</p>
+                  ) : (
+                    availableCollections.map(col => (
+                      <div key={col._id} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`col-${col._id}`}
+                          className="rounded border-gray-300 text-primary focus:ring-primary"
+                          checked={form.collections.includes(col._id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              handleChange("collections", [...form.collections, col._id]);
+                            } else {
+                              handleChange("collections", form.collections.filter(id => id !== col._id));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`col-${col._id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                          {col.name}
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
               <div className="space-y-1.5">

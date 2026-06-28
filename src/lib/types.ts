@@ -183,13 +183,29 @@ export interface Review {
   updatedAt: string;
 }
 
+export interface DocumentCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  parent?: string;
+  children?: DocumentCategory[];
+}
+
+export interface DocumentCollection {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
 export interface MarketDocument {
   _id: string;
   title: string;
   slug: string;
   description: string;
   author: string;
-  category: Category;
+  category: DocumentCategory;
+  collections?: DocumentCollection[];
   tags: string[];
   price: number;
   originalPrice?: number;
@@ -197,6 +213,7 @@ export interface MarketDocument {
   previewImages: string[];
   fullFile?: string;
   previewFile?: string;
+  coverImage?: string;
   fileFormat: 'pdf' | 'docx' | 'zip';
   fileSize?: number;
   pageCount?: number;

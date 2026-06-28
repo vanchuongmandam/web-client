@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { MarketDocument, Category, PaginationMeta } from '@/lib/types';
+import type { MarketDocument, DocumentCategory, DocumentCollection, PaginationMeta } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -54,7 +54,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface DocumentListClientProps {
   initialDocuments: MarketDocument[];
   initialPagination: PaginationMeta;
-  categories: Category[];
+  categories: DocumentCategory[];
+  collections: DocumentCollection[];
   currentCategory?: string;
   currentSearch?: string;
   currentSort?: string;
@@ -75,14 +76,7 @@ const sortOptions = [
   { value: '-price', label: 'Giá từ cao đến thấp' },
 ];
 
-
-const popularTags = [
-  { label: 'HSG Quốc Gia', value: 'HSG Quốc Gia' },
-  { label: 'Nghị luận xã hội', value: 'Nghị luận xã hội' },
-  { label: 'Nghị luận văn học', value: 'Nghị luận văn học' },
-  { label: 'Chuyên đề lý luận', value: 'Chuyên đề lý luận' },
-];
-
+// popularTags is removed since collections handles it now
 // Helper to determine book cover theme dynamically
 const getBookCoverTheme = (docId: string) => {
   let sum = 0;
@@ -103,6 +97,7 @@ export function DocumentListClient({
   initialDocuments,
   initialPagination,
   categories,
+  collections,
   currentCategory,
   currentSearch,
   currentSort,
@@ -274,7 +269,7 @@ export function DocumentListClient({
         </Select>
       </div>
 
-      {/* Tags Filter */}
+      {/* Collections Filter */}
       <div className="flex flex-col gap-2">
         <label className="text-sm font-semibold text-[#5a5045] flex items-center gap-1.5">
           <Sparkles className="size-3.5 text-[#888072]" /> Bộ sưu tập đề thi
@@ -288,9 +283,9 @@ export function DocumentListClient({
           </SelectTrigger>
           <SelectContent className="bg-[#fcf9f2] border-[#ebdcb9]">
             <SelectItem value="all">Tất cả chuyên đề thi</SelectItem>
-            {popularTags.map((t) => (
-              <SelectItem key={t.value} value={t.value}>
-                {t.label}
+            {collections.map((col) => (
+              <SelectItem key={col.slug} value={col.slug}>
+                {col.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -339,15 +334,15 @@ export function DocumentListClient({
               >
                 Tất cả
               </Button>
-              {popularTags.map((tag) => (
+              {collections.slice(0, 4).map((tag) => (
                 <Button
-                  key={tag.value}
+                  key={tag.slug}
                   size="sm"
-                  variant={currentTag === tag.value ? "default" : "outline"}
-                  className={`h-7 px-3 text-xs rounded-md border border-primary/20 transition-all ${currentTag === tag.value ? 'bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] font-semibold' : 'bg-[#fcf9f2] text-foreground hover:bg-[#ebdcb9]/40'}`}
-                  onClick={() => updateFilter('tag', currentTag === tag.value ? undefined : tag.value)}
+                  variant={currentTag === tag.slug ? "default" : "outline"}
+                  className={`h-7 px-3 text-xs rounded-md border border-primary/20 transition-all ${currentTag === tag.slug ? 'bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] font-semibold' : 'bg-[#fcf9f2] text-foreground hover:bg-[#ebdcb9]/40'}`}
+                  onClick={() => updateFilter('tag', currentTag === tag.slug ? undefined : tag.slug)}
                 >
-                  {tag.label}
+                  {tag.name}
                 </Button>
               ))}
             </div>

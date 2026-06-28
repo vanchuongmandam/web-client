@@ -10,7 +10,9 @@ import {
   ShoppingBag,
   Tag,
   Users,
-  Ticket
+  Ticket,
+  FolderTree,
+  Layers
 } from "lucide-react";
 
 import {
@@ -46,7 +48,7 @@ const contentItems = [
     icon: FilePlus2,
   },
   {
-    title: "Danh mục",
+    title: "Danh mục bài viết",
     url: "/admin/categories",
     icon: Tag,
   },
@@ -62,6 +64,16 @@ const marketplaceItems = [
     title: "Thêm tài liệu",
     url: "/admin/documents/new",
     icon: FilePlus,
+  },
+  {
+    title: "Danh mục tài liệu",
+    url: "/admin/document-categories",
+    icon: FolderTree,
+  },
+  {
+    title: "Bộ sưu tập",
+    url: "/admin/document-collections",
+    icon: Layers,
   },
   {
     title: "Đơn hàng",

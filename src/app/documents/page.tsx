@@ -1,7 +1,6 @@
 // src/app/documents/page.tsx
 
-import { getDocuments } from '@/lib/api';
-import { getCategories } from '@/lib/api';
+import { getDocuments, getDocumentCategories, getDocumentCollections } from '@/lib/api';
 import type { Metadata } from 'next';
 import { DocumentListClient } from './document-list-client';
 
@@ -22,9 +21,10 @@ export default async function DocumentsPage({
   const sort = typeof params.sort === 'string' ? params.sort : undefined;
   const tag = typeof params.tag === 'string' ? params.tag : undefined;
 
-  const [documentsRes, categories] = await Promise.all([
-    getDocuments({ page, limit: 12, category, search, sort, tag }),
-    getCategories(),
+  const [documentsRes, categories, collections] = await Promise.all([
+    getDocuments({ page, limit: 12, category, search, sort, collection: tag }),
+    getDocumentCategories(),
+    getDocumentCollections(),
   ]);
 
   return (
@@ -32,6 +32,7 @@ export default async function DocumentsPage({
       initialDocuments={documentsRes.data}
       initialPagination={documentsRes.pagination}
       categories={categories}
+      collections={collections}
       currentCategory={category}
       currentSearch={search}
       currentSort={sort}
