@@ -39,8 +39,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { ImageLightbox } from '@/components/ui/image-lightbox';
 import ReviewSection from '@/components/documents/ReviewSection';
 import DocumentSuggestions from '@/components/documents/DocumentSuggestions';
 import dynamic from 'next/dynamic';
@@ -79,9 +78,9 @@ const getBookCoverTheme = (docId: string) => {
 export function DocumentDetailClient({ document: doc }: Props) {
   const { user, token, refreshProfile } = useAuth();
   const router = useRouter();
-  
+
   // Fallback chain: coverImage -> first previewImages -> previewFile (if image)
-  const primaryCoverImage = doc.coverImage?.trim() || 
+  const primaryCoverImage = doc.coverImage?.trim() ||
     (Array.isArray(doc.previewImages) && doc.previewImages.length > 0 ? doc.previewImages[0] : null) ||
     (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
 
@@ -104,7 +103,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
   useEffect(() => {
     if (user?.bookmarkedDocuments) {
-      const isBookmarked = user.bookmarkedDocuments.some((b: any) => 
+      const isBookmarked = user.bookmarkedDocuments.some((b: any) =>
         typeof b === 'string' ? b === doc._id : b._id === doc._id
       );
       setBookmarked(isBookmarked);
@@ -165,7 +164,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-8 bg-background font-sans">
-      
+
       {/* Navigation & Breadcrumbs */}
       <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <Breadcrumb>
@@ -193,40 +192,48 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
       {/* Main Grid */}
       <div className="grid items-start gap-8 lg:grid-cols-12">
-        
+
         {/* Left main area (Document info & Tabs) */}
         <div className="space-y-8 lg:col-span-8">
-          <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-md overflow-hidden shadow-sm">
-            <CardContent className="grid gap-6 p-6 md:grid-cols-[250px_1fr] items-start">
-              
-              {/* Document cover container */}
-              <div className="w-full flex justify-center">
-                {primaryCoverImage ? (
-                  // Flat display for actual uploaded preview covers
-                  <div className="relative aspect-[1/1.38] w-full max-w-[220px] overflow-hidden rounded-md border-2 border-[#ebdcb9] bg-[#fcf9f2] p-1.5 shadow-md">
-                    <img
-                      src={primaryCoverImage}
-                      alt={doc.title}
-                      className="h-full w-full rounded-md object-cover"
-                    />
-                    <div className="absolute left-3 top-3 flex flex-col gap-1.5">
-                      {doc.featured && <Badge className="bg-[#4c6b54] text-white hover:bg-[#4c6b54] text-[9px] font-bold px-1.5 py-0.5">Nổi bật</Badge>}
-                      {doc.category && <Badge variant="secondary" className="bg-[#fcf9f2]/90 text-foreground border border-[#ebdcb9] text-[9px] font-medium px-1.5 py-0.5">{doc.category.name}</Badge>}
-                    </div>
-                  </div>
-                ) : (
-                  // Mock 3D book cover for blank covers
-                  <div className="relative aspect-[1/1.38] w-full max-w-[220px] overflow-hidden rounded-md shadow-[5px_5px_15px_rgba(0,0,0,0.15),-1px_0px_2px_rgba(0,0,0,0.08)] border border-[#2d2d2d]/10">
-                    <div className={`w-full h-full ${theme.bg} ${theme.text} flex flex-col p-4 justify-between relative`}>
+          <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-sm">
+            <CardContent className="p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start">
+
+              {/* Left: Document Cover Frame */}
+              <div className="w-full md:w-auto shrink-0 flex flex-col items-center">
+                <div 
+                  className="relative aspect-[1/1.38] w-48 sm:w-56 md:w-60 overflow-hidden rounded-lg border border-[#e6dfd3] bg-white group cursor-pointer"
+                  onClick={() => {
+                    if (allPreviewImages.length > 0) {
+                      setSelectedImageIndex(0);
+                      setIsLightboxOpen(true);
+                    }
+                  }}
+                >
+                  {primaryCoverImage ? (
+                    <>
+                      <img
+                        src={primaryCoverImage}
+                        alt={doc.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/75 text-white text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 backdrop-blur-xs">
+                          <Eye className="w-3.5 h-3.5" /> Phóng to
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    // Mock 3D book cover for blank covers
+                    <div className={`w-full h-full ${theme.bg} ${theme.text} flex flex-col p-4 justify-between relative transition-transform duration-500 group-hover:scale-105`}>
                       {/* Crease shadow */}
-                      <div className="absolute top-0 left-0 w-3 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>
+                      <div className="absolute top-0 left-0 w-3.5 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>
                       <div className="absolute top-0 left-0.5 w-[0.5px] h-full bg-white/10 z-10"></div>
-                      
-                      <div className="border border-current/15 rounded p-2 flex-1 flex flex-col justify-between items-center text-center relative">
-                        <span className="text-[8px] uppercase tracking-[0.15em] font-semibold opacity-75 truncate max-w-full">
+
+                      <div className="border border-current/15 rounded-md p-2 flex-1 flex flex-col justify-between items-center text-center relative">
+                        <span className="text-[9px] uppercase tracking-[0.15em] font-semibold opacity-75 truncate max-w-full">
                           {doc.category?.name || 'VĂN CHƯƠNG'}
                         </span>
-                        
+
                         <div className="my-auto py-2">
                           <h3 className="font-bold text-xs sm:text-sm leading-snug line-clamp-3 text-center px-1">
                             {doc.title}
@@ -238,27 +245,59 @@ export function DocumentDetailClient({ document: doc }: Props) {
                             {doc.author}
                           </p>
                         </div>
-                        
+
                         <div className="w-full flex items-center justify-between text-[8px] opacity-75 font-sans pt-1 border-t border-current/10">
                           <span>{doc.fileFormat.toUpperCase()}</span>
                           {doc.pageCount && <span>{doc.pageCount} TRANG</span>}
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+                </div>
+
+                {allPreviewImages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedImageIndex(0);
+                      setIsLightboxOpen(true);
+                    }}
+                    className="mt-3 text-xs text-muted-foreground hover:text-primary flex items-center gap-1.5 transition-colors font-medium"
+                  >
+                    <Eye className="w-3.5 h-3.5" /> Xem trước ({allPreviewImages.length} ảnh)
+                  </button>
                 )}
               </div>
 
-              {/* Main text metadata */}
-              <div className="flex flex-col gap-4">
+              {/* Right: Document Details & Metadata */}
+              <div className="flex-1 min-w-0 flex flex-col gap-4">
+
+                {/* Category & Status Badges */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {doc.category && (
+                    <Badge variant="secondary" className="text-xs font-semibold px-2.5 py-0.5 border-[#ebdcb9]">
+                      {doc.category.name}
+                    </Badge>
+                  )}
+                  {doc.featured && (
+                    <Badge variant="default" className="text-xs font-semibold px-2.5 py-0.5">
+                      Đề cử
+                    </Badge>
+                  )}
+                  <Badge variant={doc.isFree ? "default" : "destructive"} className="text-xs font-semibold px-2.5 py-0.5">
+                    {doc.isFree ? 'Miễn phí' : 'Có phí'}
+                  </Badge>
+                </div>
+
+                {/* Main Title & Bookmark Button */}
                 <div className="flex items-start justify-between gap-4">
-                  <h1 className="text-2xl font-bold leading-snug text-[#483d31] md:text-3xl">
+                  <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-[#483d31]">
                     {doc.title}
                   </h1>
-                  <Button 
-                    variant={bookmarked ? "default" : "outline"} 
-                    size="icon" 
-                    className="shrink-0 rounded-full border-[#ebdcb9] hover:bg-[#ebdcb9]/20"
+                  <Button
+                    variant={bookmarked ? "default" : "outline"}
+                    size="icon"
+                    className="shrink-0 rounded-full border-[#ebdcb9] hover:bg-[#ebdcb9]/20 h-10 w-10"
                     onClick={handleBookmark}
                     disabled={isBookmarkLoading}
                     title={bookmarked ? "Bỏ lưu tài liệu" : "Lưu tài liệu"}
@@ -266,43 +305,70 @@ export function DocumentDetailClient({ document: doc }: Props) {
                     {isBookmarkLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin text-primary" />
                     ) : bookmarked ? (
-                      <BookmarkCheck className="w-4.5 h-4.5 text-[#4c6b54] fill-[#4c6b54]" />
+                      <BookmarkCheck className="w-5 h-5 text-[#4c6b54] fill-[#4c6b54]" />
                     ) : (
-                      <Bookmark className="w-4.5 h-4.5 text-[#8c7e6c]" />
+                      <Bookmark className="w-5 h-5 text-[#8c7e6c]" />
                     )}
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <Badge variant="outline" className="border-[#ebdcb9] text-[#635748] bg-[#fcf9f2]/40">
-                    <BookOpen className="mr-1.5 size-3.5 text-muted-foreground" />
-                    Tác giả: {doc.author || 'Khuyết danh'}
-                  </Badge>
-                  <Badge variant="outline" className="border-[#ebdcb9] text-[#635748] bg-[#fcf9f2]/40">
-                    <Eye className="mr-1.5 size-3.5 text-muted-foreground" />
-                    {doc.viewCount || 0} lượt xem
-                  </Badge>
-                  <Badge variant="outline" className="border-[#ebdcb9] text-[#635748] bg-[#fcf9f2]/40 uppercase">
-                    {doc.fileFormat}
-                  </Badge>
-                  <Badge className={doc.isFree ? "bg-[#ebf4ef] text-[#2d5c41] hover:bg-[#ebf4ef]" : "bg-[#f9ebeb] text-[#8e2929] hover:bg-[#f9ebeb]"}>
-                    {doc.isFree ? 'Miễn phí' : 'Có phí'}
-                  </Badge>
+                {/* Author & Stats Line */}
+                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-[#635748]">
+                  <div className="flex items-center gap-1.5">
+                    <BookOpen className="size-4 text-muted-foreground" />
+                    <span>Tác giả: <strong className="text-foreground font-semibold">{doc.author || 'Khuyết danh'}</strong></span>
+                  </div>
+
+                  <span className="text-muted-foreground">•</span>
+
+                  <div className="flex items-center gap-1.5">
+                    <Eye className="size-4 text-muted-foreground" />
+                    <span><strong className="text-foreground font-semibold">{doc.viewCount || 0}</strong> lượt xem</span>
+                  </div>
+
+                  {doc.purchaseCount !== undefined && (
+                    <>
+                      <span className="text-muted-foreground">•</span>
+                      <div className="flex items-center gap-1.5">
+                        <Download className="size-4 text-muted-foreground" />
+                        <span><strong className="text-foreground font-semibold">{doc.purchaseCount}</strong> lượt tải</span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
+                {/* File Specs Mini Chips */}
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <Badge variant="outline" className="border-[#ebdcb9] bg-[#fcf9f2] text-[#635748] text-xs font-mono">
+                    ĐỊNH DẠNG: {doc.fileFormat.toUpperCase()}
+                  </Badge>
+                  {doc.pageCount && (
+                    <Badge variant="outline" className="border-[#ebdcb9] bg-[#fcf9f2] text-[#635748] text-xs">
+                      {doc.pageCount} trang
+                    </Badge>
+                  )}
+                  {doc.fileSize && (
+                    <Badge variant="outline" className="border-[#ebdcb9] bg-[#fcf9f2] text-[#635748] text-xs">
+                      {doc.fileSize >= 1024 ? (doc.fileSize / 1024).toFixed(1) + ' MB' : doc.fileSize + ' KB'}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Tags */}
                 {doc.tags?.length ? (
                   <>
-                    <Separator className="bg-[#e6dfd3]/60" />
-                    <div className="flex flex-wrap gap-1.5">
+                    <Separator className="bg-[#e6dfd3]/60 my-1" />
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Tag className="size-3.5 text-[#8c7e6c] mr-1" />
                       {doc.tags.map((tag) => (
-                        <Badge key={tag} variant="outline" className="bg-[#ebdcb9]/20 text-[#635748] border-none text-[11px] font-medium px-2.5 py-0.5">
-                          <Tag className="mr-1 size-3 text-[#8c7e6c]" />
+                        <Badge key={tag} variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 bg-[#ebdcb9]/30 text-[#635748] border-none">
                           {tag}
                         </Badge>
                       ))}
                     </div>
                   </>
                 ) : null}
+
               </div>
             </CardContent>
           </Card>
@@ -310,34 +376,34 @@ export function DocumentDetailClient({ document: doc }: Props) {
           {/* Tab kẹp giấy Navigation panel */}
           <Tabs value={activeTab} onValueChange={setActiveTab} id="doc-tabs" className="w-full">
             <TabsList className="w-full justify-start overflow-x-auto bg-transparent border-b-2 border-[#ebdcb9] h-auto p-0 gap-1 rounded-none">
-              <TabsTrigger 
+              <TabsTrigger
                 value="description"
                 className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-[#ebdcb9] data-[state=active]:bg-[#fcf9f2] data-[state=active]:text-[#4c6b54] data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Mô tả chi tiết
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="preview"
                 className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-[#ebdcb9] data-[state=active]:bg-[#fcf9f2] data-[state=active]:text-[#4c6b54] data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Hình ảnh xem trước
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="meta"
                 className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-[#ebdcb9] data-[state=active]:bg-[#fcf9f2] data-[state=active]:text-[#4c6b54] data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Thông tin kỹ thuật
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="reviews"
                 className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-[#ebdcb9] data-[state=active]:bg-[#fcf9f2] data-[state=active]:text-[#4c6b54] data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Nhận xét & Đánh giá
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="description" className="mt-4 focus-visible:outline-none">
-              <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-md overflow-hidden shadow-sm">
+              <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-xs">
                 <CardHeader>
                   <CardTitle className="text-base font-bold text-[#483d31]">Nội dung tóm tắt</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">Giá trị sử dụng và tóm lược nội dung của ấn phẩm.</CardDescription>
@@ -357,60 +423,47 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="preview" className="mt-4 focus-visible:outline-none">
-              <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-md overflow-hidden shadow-sm">
+              <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base font-bold text-[#483d31]">Tài liệu xem trước</CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">Tham khảo một phần nội dung trước khi đưa vào tủ sách.</CardDescription>
+                  <CardTitle className="text-base font-bold text-[#483d31]">Hình ảnh xem trước</CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">Tham khảo các trang mẫu được trích xuất từ tài liệu.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {doc.previewFile && doc.previewFile.toLowerCase().endsWith('.pdf') && (
-                    <div className="w-full aspect-[16/9] min-h-[600px] border border-[#ebdcb9] rounded-md overflow-hidden bg-gray-100">
-                      <iframe
-                        src={`https://drive.google.com/viewer?embedded=true&url=${encodeURIComponent(doc.previewFile)}`}
-                        title="PDF Preview"
-                        className="w-full h-full border-0"
-                        allowFullScreen
-                      />
-                    </div>
-                  )}
-
-                  {allPreviewImages.length > 0 && (
-                    <div className="space-y-3">
-                      {doc.previewFile && doc.previewFile.toLowerCase().endsWith('.pdf') && (
-                        <h4 className="text-sm font-semibold text-[#483d31] pt-4 border-t border-[#e6dfd3]">Trang xem trước bổ sung</h4>
-                      )}
-                      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 rounded-xl overflow-hidden border-2 border-[#ebdcb9] bg-[#ebdcb9]/10 p-1.5">
-                        {allPreviewImages.map((img, i) => (
-                          <div 
-                            key={i} 
-                            className="relative aspect-[1/1.38] overflow-hidden cursor-pointer group rounded-lg"
-                            onClick={() => {
-                              setSelectedImageIndex(i);
-                              setIsLightboxOpen(true);
-                            }}
-                          >
-                            <img
-                              src={img}
-                              alt={`Preview ${i + 1}`}
-                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
+                <CardContent className="space-y-4">
+                  {allPreviewImages.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 rounded-lg overflow-hidden border-2 border-[#ebdcb9] bg-[#ebdcb9]/10 p-2">
+                      {allPreviewImages.map((img, i) => (
+                        <div
+                          key={i}
+                          className="relative aspect-[1/1.38] overflow-hidden cursor-pointer group rounded-md border bg-white shadow-xs"
+                          onClick={() => {
+                            setSelectedImageIndex(i);
+                            setIsLightboxOpen(true);
+                          }}
+                        >
+                          <img
+                            src={img}
+                            alt={`Trang xem trước ${i + 1}`}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white text-[11px] px-2 py-1 rounded-md font-medium">
+                              Phóng to
+                            </span>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
-
-                  {(!doc.previewFile || !doc.previewFile.toLowerCase().endsWith('.pdf')) && allPreviewImages.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic">Chưa có trang xem trước nào cho tài liệu này.</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic py-6 text-center">Chưa có hình ảnh xem trước nào cho tài liệu này.</p>
                   )}
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="meta" className="mt-4 focus-visible:outline-none">
-              <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-md overflow-hidden shadow-sm">
+              <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-xs">
                 <CardHeader>
                   <CardTitle className="text-base font-bold text-[#483d31]">Thông số tệp tin</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">Thông số kỹ thuật định dạng số của tài liệu.</CardDescription>
@@ -418,7 +471,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 <CardContent className="space-y-3.5 text-xs text-[#5a5045]">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Định dạng file</span>
-                    <Badge variant="outline" className="border-[#ebdcb9] uppercase font-bold text-[10px]">{doc.fileFormat}</Badge>
+                    <Badge variant="outline" className="border-[#ebdcb9] uppercase font-bold text-[10px] rounded-md">{doc.fileFormat}</Badge>
                   </div>
                   {doc.pageCount !== undefined && doc.pageCount !== null ? (
                     <div className="flex items-center justify-between">
@@ -448,7 +501,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="reviews" className="mt-4 focus-visible:outline-none">
               <ReviewSection documentId={doc._id} price={doc.price} isFree={doc.isFree} />
             </TabsContent>
@@ -457,7 +510,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
         {/* Right side (Payment CTA box) */}
         <div className="lg:col-span-4 lg:sticky lg:top-20">
-          <Card className="overflow-hidden border-2 border-[#e6dfd3] bg-[#fcf9f2] rounded-md shadow-sm">
+          <Card className="overflow-hidden border-2 border-[#e6dfd3] bg-[#fcf9f2] rounded-xl shadow-xs">
             <CardHeader className="border-b border-[#e6dfd3] bg-gradient-to-br from-[#f6ecd9] to-[#ebdcb9]/40 p-5">
               {doc.originalPrice && doc.originalPrice > doc.price ? (
                 <p className="text-xs text-muted-foreground line-through font-medium">{formatPrice(doc.originalPrice)}</p>
@@ -467,7 +520,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
               </CardTitle>
               <CardDescription className="text-xs text-[#7e7363] mt-1">Sở hữu vĩnh viễn, đọc online và tải file gốc không giới hạn.</CardDescription>
             </CardHeader>
-            
+
             <CardContent className="space-y-6 p-5">
               {owned ? (
                 <div className="space-y-3">
@@ -505,11 +558,11 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 </Button>
               )}
 
-              {!owned && doc.previewFile && doc.previewFile.toLowerCase().endsWith('.pdf') && (
-                <Button 
-                  variant="outline" 
-                  className="w-full border-2 border-[#ebdcb9] hover:bg-[#ebdcb9]/20 font-bold" 
-                  size="lg" 
+              {!owned && allPreviewImages.length > 0 && (
+                <Button
+                  variant="outline"
+                  className="w-full border-2 border-[#ebdcb9] hover:bg-[#ebdcb9]/20 font-bold"
+                  size="lg"
                   onClick={() => {
                     setActiveTab("preview");
                     const el = document.getElementById("doc-tabs");
@@ -517,7 +570,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   }}
                 >
                   <Eye className="mr-2 h-4 w-4 text-[#8c7e6c]" />
-                  Đọc thử tài liệu (PDF)
+                  Xem trước hình ảnh ({allPreviewImages.length} ảnh)
                 </Button>
               )}
 
@@ -571,51 +624,18 @@ export function DocumentDetailClient({ document: doc }: Props) {
           </Card>
         </div>
       </div>
-      
+
       {/* Suggestions Section */}
       <DocumentSuggestions documentId={doc._id} />
 
-      {/* Lightbox Preview Images Dialog */}
-      <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
-        <DialogContent className="max-w-screen-xl w-full h-full md:h-[90vh] md:w-[90vw] p-0 bg-transparent border-none shadow-none flex items-center justify-center">
-          <DialogTitle className="sr-only">Xem ảnh xem trước</DialogTitle>
-          <Button
-            variant="ghost"
-            className="absolute top-4 right-4 z-50 rounded-full h-10 w-10 p-2 bg-black/50 text-white hover:bg-black/80 hover:text-white"
-            onClick={() => setIsLightboxOpen(false)}
-          >
-            <X className="h-6 w-6" />
-          </Button>
-
-          <Carousel
-            opts={{ loop: true, startIndex: selectedImageIndex }}
-            className="w-full max-w-4xl px-8"
-          >
-            <CarouselContent>
-              {allPreviewImages.map((img, index) => (
-                <CarouselItem key={index} className="flex items-center justify-center">
-                  <div className="relative w-full h-[70vh] flex flex-col items-center justify-center">
-                    <img
-                      src={img}
-                      alt={`Preview image ${index + 1}`}
-                      className="max-h-full max-w-full object-contain rounded-md"
-                    />
-                    <p className="absolute bottom-4 text-center text-white text-xs bg-black/60 px-3 py-1.5 rounded-full">
-                      Trang {index + 1} / {allPreviewImages.length}
-                    </p>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {allPreviewImages.length > 1 && (
-              <>
-                <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black/40 hover:bg-black/60 border-none h-10 w-10" />
-                <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black/40 hover:bg-black/60 border-none h-10 w-10" />
-              </>
-            )}
-          </Carousel>
-        </DialogContent>
-      </Dialog>
+      {/* Lightbox Preview Images */}
+      <ImageLightbox
+        items={allPreviewImages}
+        initialIndex={selectedImageIndex}
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        title={`Bản xem trước: ${doc.title}`}
+      />
     </div>
   );
 }

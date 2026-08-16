@@ -16,9 +16,9 @@ export function PublicProfileClient({ profile }: Props) {
     <div className="container mx-auto max-w-6xl px-4 py-8">
       {/* Header / Cover */}
       <div className="relative mb-24">
-        <div className="h-48 w-full rounded-2xl bg-gradient-to-r from-primary/80 to-emerald-600/80 object-cover shadow-lg" />
+        <div className="h-48 w-full rounded-xl bg-gradient-to-r from-primary/80 to-emerald-600/80 object-cover shadow-xs" />
         <div className="absolute -bottom-16 left-8 flex items-end gap-6">
-          <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
+          <Avatar className="h-32 w-32 border-4 border-background shadow-sm">
             <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${profile.username}`} />
             <AvatarFallback className="text-4xl">{profile.username[0].toUpperCase()}</AvatarFallback>
           </Avatar>
@@ -32,7 +32,7 @@ export function PublicProfileClient({ profile }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Column: Stats & Bio */}
         <div className="lg:col-span-1 space-y-6">
-          <Card>
+          <Card className="rounded-xl shadow-xs">
             <CardContent className="p-6 space-y-6">
               {profile.bio ? (
                 <div>
@@ -43,38 +43,23 @@ export function PublicProfileClient({ profile }: Props) {
                 <p className="text-sm text-muted-foreground italic">Chưa có thông tin giới thiệu.</p>
               )}
               
-              <div className="space-y-4 pt-4 border-t">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-amber-500" /> Thống kê tác giả
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-muted/50 p-3 rounded-lg text-center">
-                    <FileText className="w-5 h-5 mx-auto text-primary mb-1" />
-                    <p className="text-xl font-bold">{profile.stats?.totalDocuments || 0}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Tài liệu</p>
-                  </div>
-                  <div className="bg-muted/50 p-3 rounded-lg text-center">
-                    <Eye className="w-5 h-5 mx-auto text-emerald-600 mb-1" />
-                    <p className="text-xl font-bold">{profile.stats?.totalViews || 0}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Lượt xem</p>
-                  </div>
-                  <div className="bg-muted/50 p-3 rounded-lg text-center col-span-2">
-                    <Star className="w-5 h-5 mx-auto text-amber-500 mb-1" />
-                    <p className="text-xl font-bold">{profile.stats?.averageRating?.toFixed(1) || '0.0'}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Điểm đánh giá TB</p>
-                  </div>
+              <div className="border-t pt-4 space-y-3">
+                <div className="flex items-center text-sm text-muted-foreground gap-2">
+                  <Calendar className="w-4 h-4" />
+                  <span>Tham gia: {format(new Date(profile.createdAt || Date.now()), 'dd/MM/yyyy')}</span>
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground gap-2">
+                  <FileText className="w-4 h-4" />
+                  <span>{profile.documents?.length || 0} tài liệu</span>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column: Documents */}
+        {/* Right Column: Documents List */}
         <div className="lg:col-span-3">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-primary" /> 
-            Tài liệu đã xuất bản ({profile.documents?.length || 0})
-          </h2>
+          <h2 className="text-2xl font-bold mb-6">Tài liệu đã xuất bản</h2>
           
           {!profile.documents || profile.documents.length === 0 ? (
             <div className="bg-muted/20 border border-dashed rounded-xl p-12 text-center text-muted-foreground">
@@ -84,7 +69,7 @@ export function PublicProfileClient({ profile }: Props) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {profile.documents.map((doc: MarketDocument) => (
-                <Card key={doc._id} className="overflow-hidden flex flex-col group h-full hover:shadow-lg transition-all">
+                <Card key={doc._id} className="overflow-hidden rounded-xl flex flex-col group h-full shadow-xs hover:border-primary/50 transition-all">
                   <Link href={`/documents/${doc.slug}`} className="relative aspect-[4/3] block overflow-hidden bg-muted">
                     {doc.previewImages?.[0] ? (
                       <Image 
@@ -98,13 +83,11 @@ export function PublicProfileClient({ profile }: Props) {
                         <BookOpen className="h-10 w-10 opacity-30" />
                       </div>
                     )}
-                    {doc.isFree ? (
-                      <div className="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">Miễn phí</div>
-                    ) : (
-                      <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded shadow-sm">
-                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(doc.price)}
-                      </div>
-                    )}
+                    <div className="absolute top-2 left-2">
+                      <Badge variant={doc.isFree ? "default" : "destructive"} className="rounded-full text-xs font-semibold px-2 py-0.5">
+                        {doc.isFree ? 'Miễn phí' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(doc.price)}
+                      </Badge>
+                    </div>
                   </Link>
                   <CardContent className="p-4 flex-1 flex flex-col">
                     <Link href={`/documents/${doc.slug}`}>

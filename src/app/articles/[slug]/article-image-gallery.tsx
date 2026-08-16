@@ -1,16 +1,14 @@
-// src/app/articles/[slug]/article-image-gallery.tsx
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogClose, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
+import { ImageLightbox } from '@/components/ui/image-lightbox';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
-import { X, PlayCircle, Lock } from 'lucide-react';
-import { CustomVideoPlayer } from '@/components/ui/custom-video-player';
+import { PlayCircle, Lock } from 'lucide-react';
 import { RequestAccessModal } from '@/components/articles/RequestAccessModal';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -193,8 +191,6 @@ export function ArticleImageGallery({ media, articleId, articleTitle }: ArticleM
   const filteredMedia = media.filter(m => m.mediaType === 'image' || m.mediaType === 'video');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
-  const [api, setApi] = useState<CarouselApi>();
-  const [currentSlide, setCurrentSlide] = useState(0);
   const router = useRouter();
 
   const handleRequestSuccess = () => {
@@ -208,31 +204,6 @@ export function ArticleImageGallery({ media, articleId, articleTitle }: ArticleM
     setSelectedMediaIndex(index);
     setIsLightboxOpen(true);
   };
-
-  const handleCloseLightbox = (open: boolean) => {
-    if (!open) {
-      // When dialog closes, setting currentSlide to an invalid index
-      // will cause all CustomVideoPlayer instances to become inactive.
-      setCurrentSlide(-1);
-    }
-    setIsLightboxOpen(open);
-  }
-
-  useEffect(() => {
-    if (!api) return;
-
-    const handleSelect = (emblaApi: CarouselApi) => {
-      if (emblaApi) setCurrentSlide(emblaApi.selectedScrollSnap());
-    };
-
-    api.on('select', handleSelect);
-    // Set initial slide correctly
-    handleSelect(api);
-
-    return () => {
-      api.off('select', handleSelect);
-    };
-  }, [api]);
 
   const totalMedia = filteredMedia.length;
 
@@ -288,64 +259,19 @@ export function ArticleImageGallery({ media, articleId, articleTitle }: ArticleM
     }
   };
 
-
   return (
     <>
-      <div className="rounded-lg overflow-hidden my-6">
+      <div className="rounded-xl overflow-hidden my-6 border border-[#e6dfd3] shadow-xs">
         {renderGrid()}
       </div>
 
-      <Dialog open={isLightboxOpen} onOpenChange={handleCloseLightbox}>
-        <DialogContent className="max-w-screen-xl w-full h-full md:h-screen-90 md:w-screen-90 p-0 bg-transparent border-none shadow-none flex items-center justify-center">
-          <DialogTitle className="sr-only">View Media</DialogTitle>
-          <DialogClose asChild>
-            <Button
-              variant="default"
-              className="absolute top-2 right-2 z-50 rounded-full h-10 w-10 p-2 bg-black/50 text-white opacity-80 hover:opacity-100 transition-opacity"
-            >
-              <X className="h-6 w-6" />
-              <span className="sr-only">Close</span>
-            </Button>
-          </DialogClose>
-          <Carousel
-            setApi={setApi}
-            opts={{ loop: true, startIndex: selectedMediaIndex }}
-            className="w-full max-w-5xl"
-          >
-            <CarouselContent>
-              {filteredMedia.map((item, index) => (
-                <CarouselItem key={index} className="flex items-center justify-center">
-                  <div className="relative w-full h-full md:h-[80vh] flex flex-col items-center justify-center">
-                    {item.mediaType === 'image' ? (
-                      <Image
-                        src={item.url}
-                        alt={item.caption || `Lightbox image ${index + 1}`}
-                        fill
-                        className="object-contain"
-                        sizes="100vw"
-                      />
-                    ) : (
-                      <CustomVideoPlayer
-                        src={item.url}
-                        playsInline
-                        isActive={isLightboxOpen && index === currentSlide}
-                        className="w-full h-full object-contain"
-                      />
-                    )}
-                    {item.caption && <p className="absolute bottom-16 text-center text-white text-sm bg-black/50 p-2 rounded-md">{item.caption}</p>}
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {totalMedia > 1 && (
-              <>
-                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none h-12 w-12" />
-                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 text-white bg-black/30 hover:bg-black/50 border-none h-12 w-12" />
-              </>
-            )}
-          </Carousel>
-        </DialogContent>
-      </Dialog>
+      <ImageLightbox
+        items={filteredMedia}
+        initialIndex={selectedMediaIndex}
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        title={articleTitle}
+      />
     </>
   );
 }

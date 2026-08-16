@@ -162,8 +162,8 @@ export default function PurchasesPage() {
                     
                     {/* Cover image (compact size) */}
                     <div className="relative w-14 aspect-[1/1.38] shrink-0 overflow-hidden rounded shadow-[2px_2px_5px_rgba(0,0,0,0.12)] border border-[#2d2d2d]/10 bg-card">
-                      {purchase.document.previewImages?.[0] ? (
-                        <img src={purchase.document.previewImages[0]} alt={purchase.document.title} className="w-full h-full object-cover" />
+                      {purchase.document.coverImage || purchase.document.previewImages?.[0] ? (
+                        <img src={purchase.document.coverImage || purchase.document.previewImages[0]} alt={purchase.document.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className={`w-full h-full ${getBookCoverTheme(purchase.document._id).bg} ${getBookCoverTheme(purchase.document._id).text} flex flex-col p-1.5 justify-between relative`}>
                           <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>

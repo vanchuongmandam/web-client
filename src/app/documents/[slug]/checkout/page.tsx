@@ -326,9 +326,9 @@ export default function CheckoutPage() {
 
           {/* STEP 1: BILLING ADDRESS */}
           {step === 'billing' ? (
-            <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 shadow-sm rounded-md">
+            <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 shadow-xs rounded-xl">
               <CardHeader className="pb-3 border-b border-[#e6dfd3]/60">
-                <CardTitle className="text-xl font-serif text-[#4c6b54] flex items-center gap-2">
+                <CardTitle className="text-xl font-sans font-bold text-[#4c6b54] flex items-center gap-2">
                   <CreditCard className="size-5" /> Địa chỉ thanh toán
                 </CardTitle>
                 <CardDescription>Thông tin này dùng để xuất hóa đơn và lưu thông tin mua hàng.</CardDescription>
@@ -408,15 +408,15 @@ export default function CheckoutPage() {
 
           {/* STEP 2: CONFIRMATION & PAYMENT METHOD */}
           {step === 'confirm' ? (
-            <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 shadow-sm rounded-md">
+            <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 shadow-xs rounded-xl">
               <CardHeader className="pb-3 border-b border-[#e6dfd3]/60">
-                <CardTitle className="text-xl font-serif text-[#4c6b54]">Xác nhận & Thanh toán</CardTitle>
+                <CardTitle className="text-xl font-sans font-bold text-[#4c6b54]">Xác nhận & Thanh toán</CardTitle>
                 <CardDescription>Chọn phương thức thanh toán phù hợp để hoàn tất đơn hàng.</CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-6 font-sans">
                 
                 {/* Address Summary */}
-                <div className="rounded-md border-2 border-[#ebdcb9] bg-[#fdfaf5] p-4 relative">
+                <div className="rounded-lg border-2 border-[#ebdcb9] bg-[#fdfaf5] p-4 relative">
                   <h4 className="text-xs uppercase tracking-wider font-bold text-[#8c7e6c] mb-1">Địa chỉ thanh toán</h4>
                   <p className="text-sm font-semibold text-[#5a5045]">
                     {billingForm.fullName} {billingForm.phone ? `(${billingForm.phone})` : ''}
@@ -581,9 +581,9 @@ export default function CheckoutPage() {
 
           {/* STEP 3: QR BANK TRANSFER */}
           {step === 'payment' && order ? (
-            <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 shadow-sm rounded-md">
+            <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 shadow-xs rounded-xl">
               <CardHeader className="pb-3 border-b border-[#e6dfd3]/60 text-center md:text-left">
-                <CardTitle className="text-xl font-serif text-[#4c6b54] flex items-center justify-center md:justify-start gap-2">
+                <CardTitle className="text-xl font-sans font-bold text-[#4c6b54] flex items-center justify-center md:justify-start gap-2">
                   <QrCode className="size-5" /> Thanh toán chuyển khoản
                 </CardTitle>
                 <CardDescription>Quét mã QR bằng ứng dụng ngân hàng hoặc tự nhập thông tin chuyển khoản.</CardDescription>
@@ -595,7 +595,7 @@ export default function CheckoutPage() {
                   {/* QR Image block */}
                   {order.qrCodeUrl ? (
                     <div className="flex flex-col items-center shrink-0">
-                      <div className="bg-[#fcf9f2] border-2 border-[#ebdcb9] p-3 rounded-md shadow-md">
+                      <div className="bg-[#fcf9f2] border-2 border-[#ebdcb9] p-3 rounded-lg shadow-xs">
                         <img src={order.qrCodeUrl} alt="QR Code" className="h-56 w-56 object-contain" />
                       </div>
                       <span className="text-[10px] text-muted-foreground uppercase tracking-widest mt-2 font-semibold">VietQR / Napas</span>
@@ -622,7 +622,7 @@ export default function CheckoutPage() {
                       <span className="col-span-2 font-extrabold text-[#8e2929] text-right text-base">{formatPrice(order.totalAmount)}</span>
                     </div>
 
-                    <div className="border-2 border-dashed border-[#ebdcb9] bg-[#fdfaf5] p-3 rounded-md flex items-center justify-between gap-3 mt-4">
+                    <div className="border-2 border-dashed border-[#ebdcb9] bg-[#fdfaf5] p-3 rounded-lg flex items-center justify-between gap-3 mt-4">
                       <div className="min-w-0">
                         <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Nội dung chuyển khoản chính xác</span>
                         <div className="font-mono font-black text-[#4c6b54] text-lg select-all truncate mt-0.5">
@@ -632,7 +632,7 @@ export default function CheckoutPage() {
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        className="border-[#ebdcb9] hover:bg-[#ebdcb9]/40 text-[#4c6b54] font-bold shrink-0 shadow-sm"
+                        className="border-[#ebdcb9] hover:bg-[#ebdcb9]/40 text-[#4c6b54] font-bold shrink-0 shadow-xs rounded-md"
                         onClick={handleCopyTransferContent}
                       >
                         <Copy className="mr-1 h-3.5 w-3.5" />
@@ -646,7 +646,7 @@ export default function CheckoutPage() {
                 <Separator className="bg-[#e6dfd3]" />
 
                 {/* Countdown and Waiting loader */}
-                <div className="bg-[#ebdcb9]/20 border border-[#ebdcb9]/60 rounded-md p-4 space-y-3.5 text-center">
+                <div className="bg-[#ebdcb9]/20 border border-[#ebdcb9]/60 rounded-lg p-4 space-y-3.5 text-center">
                   
                   {remainingSeconds !== null && remainingSeconds > 0 ? (
                     <div className="flex items-center justify-center gap-2 text-xs font-semibold text-stone-700">
@@ -675,13 +675,13 @@ export default function CheckoutPage() {
 
           {/* STEP 4: SUCCESS PAGE */}
           {step === 'success' ? (
-            <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 shadow-sm rounded-md">
+            <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 shadow-xs rounded-xl">
               <CardContent className="p-8 text-center font-sans space-y-5">
                 <div className="size-16 bg-[#ebf4ef] rounded-full flex items-center justify-center mx-auto border-2 border-[#d2e7dd]">
                   <CheckCircle className="h-10 w-10 text-[#3c6b41]" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-serif font-bold text-[#4c6b54]">Thanh toán thành công!</h2>
+                  <h2 className="text-2xl font-sans font-bold text-[#4c6b54]">Thanh toán thành công!</h2>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
                     Giao dịch của bạn đã được đối soát thành công. Tài liệu hiện đã được mở khóa và lưu vào thư viện cá nhân của bạn.
                   </p>

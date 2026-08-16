@@ -79,7 +79,7 @@ function VerifyEmailContent() {
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
-      <Card className="max-w-md w-full text-center shadow-lg border-muted">
+      <Card className="max-w-md w-full text-center rounded-xl shadow-xs border border-border">
         <CardHeader className="space-y-4 pb-2">
           <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
             {status === "loading" && <Loader2 className="h-8 w-8 animate-spin text-primary" />}

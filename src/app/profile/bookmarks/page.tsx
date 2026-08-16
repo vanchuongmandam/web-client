@@ -98,23 +98,24 @@ export default function BookmarksPage() {
         <div className="grid gap-5 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
           {documents.map((doc) => {
             const theme = getBookCoverTheme(doc._id);
+            const coverImg = doc.coverImage?.trim() || 
+              (Array.isArray(doc.previewImages) && doc.previewImages.length > 0 ? doc.previewImages[0] : null) ||
+              (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
+
             return (
               <Card key={doc._id} className="overflow-hidden flex flex-col group border border-border bg-card/70 hover:bg-card rounded-xl overflow-hidden hover:border-primary/60 transition-all duration-300 shadow-[2px_2px_8px_rgba(0,0,0,0.02)]">
                 
                 {/* Book Cover container */}
-                <Link href={`/documents/${doc.slug}`} className="p-3 bg-muted/30 border-b border-border relative flex justify-center h-40 md:h-44 items-center">
-                  {doc.previewImages?.[0] ? (
-                    // Flat preview image
-                    <div className="relative aspect-[1/1.38] h-full overflow-hidden rounded border border-border bg-card p-1 shadow-sm">
-                      <img 
-                        src={doc.previewImages[0]} 
-                        alt={doc.title} 
-                        className="h-full w-full object-cover rounded" 
-                      />
-                    </div>
+                <Link href={`/documents/${doc.slug}`} className="relative w-full aspect-[4/3] overflow-hidden bg-muted/30 border-b border-border block">
+                  {coverImg ? (
+                    <img 
+                      src={coverImg} 
+                      alt={doc.title} 
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                    />
                   ) : (
                     // 3D book cover representation
-                    <div className="relative aspect-[1/1.38] h-full overflow-hidden rounded shadow-[3px_3px_8px_rgba(0,0,0,0.15),-1px_0px_2px_rgba(0,0,0,0.08)] border border-border/10 transition-transform duration-300 group-hover:scale-[1.02]">
+                    <div className="relative h-full w-full overflow-hidden transition-transform duration-300 group-hover:scale-105">
                       <div className={`w-full h-full ${theme.bg} ${theme.text} flex flex-col p-2.5 justify-between relative`}>
                         {/* Spine crease shadow */}
                         <div className="absolute top-0 left-0 w-2.5 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>

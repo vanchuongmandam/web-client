@@ -1,9 +1,7 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
-// Import 'localFont' to use self-hosted fonts
 import localFont from "next/font/local";
-import { Alegreya as FontSerif } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/header";
@@ -64,13 +62,6 @@ const fontSans = localFont({
 });
 
 
-const fontSerif = FontSerif({
-  subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "700"],
-  style: ["normal", "italic"],
-  variable: "--font-serif",
-});
-
 export const metadata: Metadata = {
   title: "Văn Chương Mạn Đàm",
   description: "Fanpage được sáng lập bởi đội ngũ Admin giàu kinh nghiệm Trường THPT Chuyên Hà Tĩnh - GV Ngữ văn và Cựu HSGQG môn Văn. Ở đây có: tiếng nói TRI ÂM qua trang sách, CÂU CHUYỆN văn chương thú vị và KIẾN THỨC cần thiết cho tất cả các kì thi.",
@@ -101,8 +92,7 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable,
-          fontSerif.variable
+          fontSans.variable
         )}
       >
         <SessionProvider>

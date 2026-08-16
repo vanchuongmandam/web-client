@@ -29,7 +29,7 @@ export function RelatedDocumentsCTA({ documents }: { documents: MarketDocument[]
 
       <div className="grid gap-4 sm:grid-cols-2">
         {documents.map((doc) => (
-          <Card key={doc._id} className="overflow-hidden border-[#ebdcb9]/50 shadow-sm hover:shadow-md transition-shadow">
+          <Card key={doc._id} className="overflow-hidden border border-[#ebdcb9]/50 rounded-xl shadow-xs hover:border-primary/50 transition-colors">
             <CardContent className="p-0">
               <div className="flex flex-col h-full">
                 <div className="p-4 flex-1">

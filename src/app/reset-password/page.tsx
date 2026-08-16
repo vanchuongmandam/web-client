@@ -60,7 +60,7 @@ function ResetPasswordContent() {
   if (!token) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
-        <Card className="max-w-sm w-full shadow-lg border-muted">
+        <Card className="max-w-sm w-full rounded-xl shadow-xs border border-border">
           <CardHeader>
             <CardTitle className="text-2xl font-headline text-center text-destructive">Lỗi</CardTitle>
           </CardHeader>
@@ -77,7 +77,7 @@ function ResetPasswordContent() {
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
-      <Card className="max-w-sm w-full shadow-lg border-muted">
+      <Card className="max-w-sm w-full rounded-xl shadow-xs border border-border">
         <CardHeader>
           <CardTitle className="text-2xl font-headline text-center">Đặt lại mật khẩu</CardTitle>
           <CardDescription className="text-center">

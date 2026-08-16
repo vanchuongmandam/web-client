@@ -148,13 +148,24 @@ export default async function Home() {
       {/* === HERO SECTION === */}
       {featuredArticle && (
         <section className="mb-12">
-          <Card className="grid md:grid-cols-2 overflow-hidden border-2 border-primary/20 shadow-xl">
+          <Card className="grid md:grid-cols-2 overflow-hidden border-2 border-primary/20 rounded-xl shadow-xs">
             <FeaturedImageFallback 
               initialImageUrl={featuredImage} 
               title={featuredArticle.title} 
               priority 
             />
-            <div className="p-8 flex flex-col justify-center"><Badge variant="secondary" className="mb-2 w-fit">{featuredArticle.category.name}</Badge><h1 className="font-headline text-4xl md:text-5xl font-bold mb-4 text-primary"><Link href={`/articles/${featuredArticle.slug}`} className="hover:underline">{featuredArticle.title}</Link></h1><p className="text-muted-foreground mb-4">{featuredArticle.author}</p><p className="mb-6">{featuredArticle.excerpt}</p><Button asChild className="w-fit" variant="accent"><Link href={`/articles/${featuredArticle.slug}`}>Đọc tiếp <ArrowRight className="ml-2 h-4 w-4" /></Link></Button></div></Card>
+            <div className="p-8 flex flex-col justify-center">
+              <Badge variant="secondary" className="mb-2 w-fit rounded-full">{featuredArticle.category.name}</Badge>
+              <h1 className="font-headline text-4xl md:text-5xl font-bold mb-4 text-primary">
+                <Link href={`/articles/${featuredArticle.slug}`} className="hover:underline">{featuredArticle.title}</Link>
+              </h1>
+              <p className="text-muted-foreground mb-4">{featuredArticle.author}</p>
+              <p className="mb-6">{featuredArticle.excerpt}</p>
+              <Button asChild className="w-fit rounded-md" variant="accent">
+                <Link href={`/articles/${featuredArticle.slug}`}>Đọc tiếp <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
+          </Card>
         </section>
       )}
 

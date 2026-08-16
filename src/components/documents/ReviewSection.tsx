@@ -24,11 +24,11 @@ interface Props {
 export default function ReviewSection({ documentId, price = 0, isFree = false }: Props) {
   const { user, token } = useAuth();
   const { toast } = useToast();
-  
+
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [owned, setOwned] = useState(false);
-  
+
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -38,7 +38,7 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
     if (token) {
       checkDocumentOwnership(documentId, token)
         .then(res => setOwned(res.owned))
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [documentId, token]);
 
@@ -87,12 +87,12 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
   const canReview = isFree || price === 0 || owned;
 
   return (
-    <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-md overflow-hidden shadow-sm font-sans">
+    <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-xs font-sans">
       <CardHeader className="pb-4">
         <CardTitle className="text-base font-bold text-[#483d31]">Đánh giá từ cộng đồng</CardTitle>
         <CardDescription className="text-xs text-[#7e7363]">Ý kiến, nhận xét học thuật và chia sẻ cảm nhận từ các độc giả.</CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
         {/* Form Đánh giá */}
         {user ? (
@@ -126,18 +126,18 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
                     ))}
                   </div>
                 </div>
-                
-                <Textarea 
-                  placeholder="Chia sẻ cảm nhận chân thực của bạn để giúp ích cho cộng đồng học tập..." 
+
+                <Textarea
+                  placeholder="Chia sẻ cảm nhận chân thực của bạn để giúp ích cho cộng đồng học tập..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   className="resize-none border-2 border-[#ebdcb9]/60 focus-visible:ring-primary/45 rounded-md bg-transparent text-sm"
                   rows={3}
                 />
-                
+
                 <div className="flex justify-end">
-                  <Button 
-                    onClick={handleSubmit} 
+                  <Button
+                    onClick={handleSubmit}
                     disabled={submitting || !content.trim()}
                     className="bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] font-bold h-9 text-xs rounded-md shadow-sm"
                   >
@@ -197,9 +197,9 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
                   </div>
                   <p className="text-xs text-[#5a5045] whitespace-pre-wrap leading-relaxed pl-12">{r.content}</p>
                   <div className="mt-3 flex items-center justify-end">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className={`h-7 px-2 gap-1 rounded-md text-[10px] ${r.upvotes?.includes(user?._id || '') ? "text-[#4c6b54] bg-[#4c6b54]/10 hover:bg-[#4c6b54]/20" : "text-muted-foreground hover:bg-[#ebdcb9]/15"}`}
                       onClick={() => handleUpvote(r._id)}
                     >

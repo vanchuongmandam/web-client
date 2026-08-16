@@ -1,6 +1,6 @@
 import { getDocumentBySlug } from '@/lib/api';
 import { notFound } from 'next/navigation';
-import PDFViewerClient from './pdf-viewer-client';
+import PDFViewerWrapper from '@/components/pdf-viewer/pdf-viewer-wrapper';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -11,5 +11,5 @@ export default async function ViewerPage({ params }: Props) {
   const doc = await getDocumentBySlug(slug);
   if (!doc) notFound();
   
-  return <PDFViewerClient documentId={doc._id} title={doc.title} />;
+  return <PDFViewerWrapper documentId={doc._id} title={doc.title} />;
 }

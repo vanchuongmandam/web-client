@@ -36,24 +36,24 @@ function formatPrice(price: number): string {
 
 function DocumentCard({ doc }: { doc: MarketDocument }) {
   const theme = getBookCoverTheme(doc._id);
+  const coverImg = doc.coverImage?.trim() || 
+    (Array.isArray(doc.previewImages) && doc.previewImages.length > 0 ? doc.previewImages[0] : null) ||
+    (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
 
   return (
-    <Card className="overflow-hidden flex flex-col group h-full border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 hover:bg-[#fcf9f2] rounded-md hover:border-[#4c6b54]/60 transition-all duration-300 shadow-[2px_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[4px_4px_12px_rgba(76,107,84,0.08)]">
+    <Card className="overflow-hidden flex flex-col group h-full border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 hover:bg-[#fcf9f2] rounded-xl hover:border-[#4c6b54]/60 transition-all duration-300 shadow-xs">
       
       {/* Cover Image/Book container */}
-      <Link href={`/documents/${doc.slug}`} className="p-3 bg-[#f2ebd9]/40 border-b border-[#e6dfd3] relative flex justify-center h-40 md:h-44 items-center">
-        {doc.previewImages?.[0] ? (
-          // Flat preview image
-          <div className="relative aspect-[1/1.38] h-full overflow-hidden rounded border border-[#ebdcb9] bg-[#fcf9f2] p-1 shadow-sm">
-            <img 
-              src={doc.previewImages[0]} 
-              alt={doc.title} 
-              className="h-full w-full object-cover rounded" 
-            />
-          </div>
+      <Link href={`/documents/${doc.slug}`} className="relative w-full aspect-[4/3] overflow-hidden bg-[#f2ebd9]/40 border-b border-[#e6dfd3] block">
+        {coverImg ? (
+          <img 
+            src={coverImg} 
+            alt={doc.title} 
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
+          />
         ) : (
           // 3D book cover representation
-          <div className="relative aspect-[1/1.38] h-full overflow-hidden rounded shadow-[3px_3px_8px_rgba(0,0,0,0.15),-1px_0px_2px_rgba(0,0,0,0.08)] border border-[#2d2d2d]/10 transition-transform duration-300 group-hover:scale-[1.02]">
+          <div className="relative h-full w-full overflow-hidden transition-transform duration-300 group-hover:scale-105">
             <div className={`w-full h-full ${theme.bg} ${theme.text} flex flex-col p-2.5 justify-between relative`}>
               {/* Spine crease shadow */}
               <div className="absolute top-0 left-0 w-2.5 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>
@@ -149,7 +149,7 @@ export default function DocumentSuggestions({ documentId }: Props) {
         <section>
           <div className="flex items-center gap-2 mb-6">
             <Layers className="w-5 h-5 text-[#4c6b54]" />
-            <h2 className="text-xl font-bold text-[#483d31] font-serif">Tài liệu liên quan</h2>
+            <h2 className="text-xl font-bold text-[#483d31] font-sans">Tài liệu liên quan</h2>
           </div>
           
           {loadingRelated ? (
@@ -167,7 +167,7 @@ export default function DocumentSuggestions({ documentId }: Props) {
         <section>
           <div className="flex items-center gap-2 mb-6">
             <Sparkles className="w-5 h-5 text-amber-600" />
-            <h2 className="text-xl font-bold text-[#483d31] font-serif">Có thể bạn sẽ thích</h2>
+            <h2 className="text-xl font-bold text-[#483d31] font-sans">Có thể bạn sẽ thích</h2>
           </div>
           
           {loadingSuggestions ? (

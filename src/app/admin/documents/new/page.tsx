@@ -320,6 +320,7 @@ export default function NewDocumentPage() {
                             token,
                             "documents",
                             setFullUploadProgress,
+                            true,
                           );
                           handleChange("fullFile", media.url);
                           await applyDetectedMetadata(file);
@@ -398,6 +399,7 @@ export default function NewDocumentPage() {
                             token,
                             "documents",
                             setPreviewUploadProgress,
+                            true,
                           );
                           handleChange("previewFile", media.url);
                           toast({ title: "Tải lên thành công" });

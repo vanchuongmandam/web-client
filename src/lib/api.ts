@@ -530,8 +530,9 @@ export async function uploadFile(
   file: File,
   token: string,
   categoryPath: string,
+  isPrivate: boolean = false,
 ): Promise<Media> {
-  return uploadFileWithProgress(file, token, categoryPath);
+  return uploadFileWithProgress(file, token, categoryPath, undefined, isPrivate);
 }
 
 export async function uploadFileWithProgress(
@@ -539,10 +540,14 @@ export async function uploadFileWithProgress(
   token: string,
   categoryPath: string,
   onProgress?: (percent: number) => void,
+  isPrivate: boolean = false,
 ): Promise<Media> {
   const formData = new FormData();
   formData.append('mediaFile', file);
   formData.append('categoryPath', categoryPath);
+  if (isPrivate) {
+    formData.append('isPrivate', 'true');
+  }
 
   if (typeof XMLHttpRequest !== 'undefined') {
     return new Promise((resolve, reject) => {
@@ -633,6 +638,7 @@ export interface DocumentListParams {
   status?: string;
   grade?: string;
   tag?: string;
+  collection?: string;
 }
 
 export async function getDocuments(

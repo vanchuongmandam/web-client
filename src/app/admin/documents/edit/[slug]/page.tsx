@@ -146,8 +146,14 @@ export default function EditDocumentPage() {
         slug: doc.slug,
         description: normalizedDescription,
         author: doc.author,
-        category: typeof doc.category === "object" ? doc.category._id : (doc.category as string),
-        collections: (doc.collections || []).map(c => typeof c === 'object' ? c._id : c),
+        category: doc.category
+          ? typeof doc.category === "object"
+            ? doc.category._id
+            : (doc.category as string)
+          : "",
+        collections: (doc.collections || [])
+          .map((c) => (c && typeof c === "object" ? c._id : c))
+          .filter(Boolean) as string[],
         price: String(doc.price),
         originalPrice: doc.originalPrice ? String(doc.originalPrice) : "",
         isFree: doc.isFree ?? false,
@@ -348,6 +354,7 @@ export default function EditDocumentPage() {
                             token,
                             "documents",
                             setFullUploadProgress,
+                            true,
                           );
                           handleChange("fullFile", media.url);
                           await applyDetectedMetadata(file);
@@ -433,6 +440,7 @@ export default function EditDocumentPage() {
                             token,
                             "documents",
                             setPreviewUploadProgress,
+                            true,
                           );
                           handleChange("previewFile", media.url);
                           toast({ title: "Tải lên thành công" });

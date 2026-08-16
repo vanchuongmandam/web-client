@@ -34,7 +34,7 @@ export function FeaturedImageFallback({ initialImageUrl, title, priority = false
             borderBottom: '1px solid #e6e1d5'
           }}
         >
-          <h3 className="font-serif text-2xl md:text-4xl font-medium leading-tight">
+          <h3 className="font-sans text-2xl md:text-4xl font-medium leading-tight">
             {title}
           </h3>
         </div>

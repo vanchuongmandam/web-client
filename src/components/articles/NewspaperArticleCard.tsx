@@ -18,7 +18,7 @@ const NewspaperArticleCard = React.memo(({ article }: NewspaperArticleCardProps)
 
   return (
     <Link href={`/articles/${article.slug}`} className="group">
-      <Card className="overflow-hidden h-full transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
+      <Card className="overflow-hidden rounded-xl h-full transition-all duration-300 ease-in-out hover:-translate-y-1 border border-border bg-card shadow-xs hover:border-primary/50">
         <CardContent className="p-0">
           <div className="relative aspect-[3/4] w-full bg-muted overflow-hidden">
             {!showBanner ? (
@@ -26,12 +26,12 @@ const NewspaperArticleCard = React.memo(({ article }: NewspaperArticleCardProps)
                 src={initialImageUrl!} 
                 alt={article.title} 
                 fill 
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                className="object-cover transition-transform duration-300 group-hover:scale-105" 
                 onError={() => setImageError(true)}
               />
             ) : (
               <div 
-                className="absolute inset-0 flex items-center justify-center p-4 text-center shadow-inner transition-transform duration-300 group-hover:scale-105"
+                className="absolute inset-0 flex items-center justify-center p-4 text-center transition-transform duration-300 group-hover:scale-105"
                 style={{
                   backgroundColor: '#fdfbf7',
                   backgroundImage: 'url("https://www.transparenttextures.com/patterns/cardboard-flat.png")',
@@ -39,7 +39,7 @@ const NewspaperArticleCard = React.memo(({ article }: NewspaperArticleCardProps)
                   borderBottom: '1px solid #e6e1d5'
                 }}
               >
-                <h3 className="font-serif text-sm font-medium leading-tight line-clamp-4">
+                <h3 className="font-sans text-sm font-medium leading-tight line-clamp-4">
                   {article.title}
                 </h3>
               </div>

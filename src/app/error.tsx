@@ -16,7 +16,7 @@ export default function RootError({
 
   return (
     <div className="container mx-auto px-4 py-24 text-center">
-      <h1 className="font-serif text-5xl font-bold text-primary mb-4">
+      <h1 className="font-sans text-5xl font-bold text-primary mb-4">
         Đã xảy ra lỗi
       </h1>
       <p className="text-muted-foreground text-lg mb-8">

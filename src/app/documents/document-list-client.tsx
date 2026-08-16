@@ -432,8 +432,8 @@ export function DocumentListClient({
           {/* Header Controls for Main Grid */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4 font-sans border-b border-border/40 pb-4">
             <div>
-              <p className="text-sm text-[#7e7363] font-serif italic">
-                Tìm thấy <span className="font-bold text-foreground not-italic">{initialPagination.total}</span> tài liệu văn học
+              <p className="text-sm text-[#7e7363] font-sans">
+                Tìm thấy <span className="font-bold text-foreground">{initialPagination.total}</span> tài liệu văn học
               </p>
             </div>
 
@@ -442,13 +442,13 @@ export function DocumentListClient({
               <div className="lg:hidden">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" className="h-9 px-3.5 border-[#ebdcb9] hover:bg-[#ebdcb9]/30 text-[#635748] text-xs">
+                    <Button variant="outline" className="h-9 px-3.5 border-[#ebdcb9] hover:bg-[#ebdcb9]/30 text-[#635748] text-xs rounded-md">
                       <SlidersHorizontal className="mr-1.5 size-4" /> Bộ lọc
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="right" className="bg-[#fbf7ee] border-l-[#ebdcb9] w-80">
                     <SheetHeader className="mb-4">
-                      <SheetTitle className="font-serif text-[#4c6b54]">Tìm kiếm tài liệu</SheetTitle>
+                      <SheetTitle className="font-sans font-bold text-[#4c6b54]">Tìm kiếm tài liệu</SheetTitle>
                       <SheetDescription>Điều chỉnh các thông số để khám phá thư viện tài liệu.</SheetDescription>
                     </SheetHeader>
                     <div className="mt-4">
@@ -535,22 +535,26 @@ export function DocumentListClient({
                   const isHighlyRated = averageRating >= 4.7;
                   const isEditorChoice = doc.featured;
 
+                  const coverImg = doc.coverImage?.trim() || 
+                    (Array.isArray(doc.previewImages) && doc.previewImages.length > 0 ? doc.previewImages[0] : null) ||
+                    (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
+
                   return (
                     <Link
                       href={`/documents/${doc.slug}`}
                       key={doc._id}
                       className="block group h-full"
                     >
-                      <Card className="h-full flex flex-col border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 hover:bg-[#fcf9f2] rounded-md overflow-hidden hover:border-[#4c6b54]/60 transition-all duration-300 shadow-[2px_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[5px_5px_15px_rgba(76,107,84,0.1)] hover:-translate-y-0.5">
+                      <Card className="h-full flex flex-col border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 hover:bg-[#fcf9f2] rounded-xl overflow-hidden hover:border-[#4c6b54]/60 transition-all duration-300 shadow-xs hover:-translate-y-0.5">
 
-                        {/* 5A. BOOK COVER CONTAINER */}
-                        <div className="p-3 bg-[#f2ebd9]/40 border-b border-[#e6dfd3] relative flex justify-center h-44 sm:h-48 items-center">
+                        {/* 5A. BOOK COVER CONTAINER (FULL-BLEED) */}
+                        <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#f2ebd9]/40 border-b border-[#e6dfd3]">
 
                           {/* Bookmark button */}
                           <button
                             type="button"
                             onClick={(e) => toggleSaveDocument(doc._id, e)}
-                            className="absolute top-2 right-2 z-20 size-7 flex items-center justify-center rounded-full bg-[#fcf9f2]/90 backdrop-blur-sm border border-[#e6dfd3] hover:border-primary/50 text-[#8c7e6c] hover:text-[#4c6b54] transition-all hover:scale-105 shadow-sm"
+                            className="absolute top-2.5 right-2.5 z-20 size-7 flex items-center justify-center rounded-full bg-[#fcf9f2]/90 backdrop-blur-sm border border-[#e6dfd3] hover:border-primary/50 text-[#8c7e6c] hover:text-[#4c6b54] transition-all hover:scale-105 shadow-xs"
                           >
                             {isBookmarkLoading === doc._id ? (
                               <Loader2 className="size-3.5 animate-spin text-primary" />
@@ -559,72 +563,79 @@ export function DocumentListClient({
                             )}
                           </button>
 
-                          {/* Book Container with Aspect Ratio */}
-                          <div className="relative h-full aspect-[1/1.38] overflow-hidden rounded-md shadow-[3px_3px_10px_rgba(0,0,0,0.12),-1px_0px_2px_rgba(0,0,0,0.08)] border border-[#2d2d2d]/10 transition-transform duration-500 group-hover:scale-[1.025]">
+                          {/* Book Container with Cover Image or Fallback */}
+                          {coverImg ? (
+                            <img
+                              src={coverImg}
+                              alt={doc.title}
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="relative h-full w-full overflow-hidden transition-transform duration-500 group-hover:scale-105">
+                              {/* Inner Page Simulation wrapper */}
+                              <div className={`w-full h-full ${theme.bg} ${theme.text} flex flex-col p-3 justify-between relative`}>
 
-                            {/* Inner Page Simulation wrapper */}
-                            <div className={`w-full h-full ${theme.bg} ${theme.text} flex flex-col p-2.5 justify-between relative`}>
+                                {/* Left Crease/Spine Shadow Overlay */}
+                                <div className="absolute top-0 left-0 w-3.5 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>
+                                <div className="absolute top-0 left-0.5 w-[0.5px] h-full bg-white/10 z-10"></div>
 
-                              {/* Left Crease/Spine Shadow Overlay */}
-                              <div className="absolute top-0 left-0 w-3.5 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>
-                              <div className="absolute top-0 left-0.5 w-[0.5px] h-full bg-white/10 z-10"></div>
+                                {/* Header border/pattern of book cover */}
+                                <div className={`border border-current/15 rounded-md p-1.5 flex-1 flex flex-col justify-between items-center text-center relative`}>
 
-                              {/* Header border/pattern of book cover */}
-                              <div className={`border border-current/15 rounded p-1 flex-1 flex flex-col justify-between items-center text-center relative`}>
+                                  {/* Tiny category or brand label */}
+                                  <span className="text-[8px] uppercase tracking-[0.1em] font-semibold opacity-75 truncate max-w-full">
+                                    {doc.category?.name || 'VĂN CHƯƠNG'}
+                                  </span>
 
-                                {/* Tiny category or brand label */}
-                                <span className="text-[8px] uppercase tracking-[0.1em] font-semibold opacity-75 truncate max-w-full">
-                                  {doc.category?.name || 'VĂN CHƯƠNG'}
-                                </span>
+                                  {/* Center: Title and Divider */}
+                                  <div className="my-auto py-1">
+                                    <h3 className="font-bold text-[11px] sm:text-xs leading-tight line-clamp-2 text-center px-0.5">
+                                      {doc.title}
+                                    </h3>
 
-                                {/* Center: Title and Divider */}
-                                <div className="my-auto py-1">
-                                  <h3 className="font-bold text-[10px] sm:text-xs leading-tight line-clamp-3 text-center px-0.5">
-                                    {doc.title}
-                                  </h3>
+                                    {/* Vintage Decorative Book Ornament */}
+                                    <div className="w-8 h-[0.5px] bg-current opacity-30 mx-auto my-1.5 relative rounded-full">
+                                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-1 rotate-45 bg-[#fcf9f2] dark:bg-stone-900 border border-current"></div>
+                                    </div>
 
-                                  {/* Vintage Decorative Book Ornament */}
-                                  <div className="w-8 h-[0.5px] bg-current opacity-30 mx-auto my-1.5 relative rounded-full">
-                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-1 rotate-45 bg-[#fcf9f2] dark:bg-stone-900 border border-current"></div>
+                                    <p className="text-[9px] italic opacity-85 line-clamp-1">
+                                      {doc.author}
+                                    </p>
                                   </div>
 
-                                  <p className="text-[9px] italic opacity-85 line-clamp-1">
-                                    {doc.author}
-                                  </p>
-                                </div>
-
-                                {/* Book format details at bottom of cover */}
-                                <div className="w-full flex items-center justify-between text-[7px] opacity-75 font-sans pt-0.5 border-t border-current/10">
-                                  <span>{doc.fileFormat.toUpperCase()}</span>
-                                  {doc.pageCount && <span>{doc.pageCount} TRANG</span>}
+                                  {/* Book format details at bottom of cover */}
+                                  <div className="w-full flex items-center justify-between text-[7px] opacity-75 font-sans pt-0.5 border-t border-current/10">
+                                    <span>{doc.fileFormat.toUpperCase()}</span>
+                                    {doc.pageCount && <span>{doc.pageCount} TRANG</span>}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
+                          )}
                         </div>
 
                         {/* 5B. METADATA & CONTENT DETAILS */}
                         <CardContent className="p-3 flex-1 flex flex-col justify-between font-sans">
                           <div>
-                            {/* Trust Signals & Indicators */}
+                            {/* Standardized Shadcn Trust Signals & Indicators */}
                             <div className="flex flex-wrap gap-1 mb-1.5">
                               {isEditorChoice && (
-                                <Badge className="bg-[#ebf4ef] text-[#2d5c41] border border-[#d2e7dd] hover:bg-[#ebf4ef] rounded-md text-[9px] font-bold px-1 py-0.5">
-                                  Đề cử từ Admin
+                                <Badge variant="default" className="text-[10px] font-semibold px-2 py-0 rounded-full">
+                                  Đề cử
                                 </Badge>
                               )}
                               {isBestseller && (
-                                <Badge className="bg-[#f9ebeb] text-[#8e2929] border border-[#f3d7d7] hover:bg-[#f9ebeb] rounded-md text-[9px] font-bold px-1 py-0.5">
+                                <Badge variant="destructive" className="text-[10px] font-semibold px-2 py-0 rounded-full">
                                   Tải nhiều
                                 </Badge>
                               )}
                               {isHighlyRated && (
-                                <Badge className="bg-[#fdf7eb] text-[#845e1b] border border-[#f8eacf] hover:bg-[#fdf7eb] rounded-md text-[9px] font-bold px-1 py-0.5">
+                                <Badge variant="secondary" className="text-[10px] font-semibold px-2 py-0 rounded-full">
                                   Khuyên đọc
                                 </Badge>
                               )}
                               {doc.uploader && (
-                                <Badge className="bg-[#f1edf8] text-[#55298e] border border-[#e1d7f3] hover:bg-[#f1edf8] rounded-md text-[9px] font-bold px-1 py-0.5">
+                                <Badge variant="outline" className="text-[10px] font-semibold px-2 py-0 text-muted-foreground border-[#ebdcb9] rounded-full">
                                   Đã kiểm định
                                 </Badge>
                               )}

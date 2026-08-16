@@ -41,7 +41,7 @@ export default async function RelatedArticles({ currentArticleSlug, categorySlug
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {suggestions.map((article) => (
                     <Link key={article.slug} href={`/articles/${article.slug}`} className="group">
-                        <Card className="h-full overflow-hidden transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
+                        <Card className="h-full overflow-hidden rounded-xl border border-border bg-card shadow-xs transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-primary/50">
                             <CardHeader>
                                 <CardTitle className="font-headline text-lg leading-tight group-hover:text-primary transition-colors">
                                     {article.title}

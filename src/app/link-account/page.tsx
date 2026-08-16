@@ -62,7 +62,7 @@ function LinkAccountContent() {
   if (!idToken) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
-        <Card className="max-w-sm w-full shadow-lg border-muted">
+        <Card className="max-w-sm w-full rounded-xl shadow-xs border border-border">
           <CardHeader>
             <CardTitle className="text-2xl font-headline text-center text-destructive">Lỗi</CardTitle>
           </CardHeader>
@@ -79,7 +79,7 @@ function LinkAccountContent() {
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
-      <Card className="max-w-sm w-full shadow-lg border-muted">
+      <Card className="max-w-sm w-full rounded-xl shadow-xs border border-border">
         <CardHeader className="text-center">
           <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-4 flex items-center justify-center relative">
             <Chrome className="h-6 w-6 text-primary" />
