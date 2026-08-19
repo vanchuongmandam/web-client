@@ -200,7 +200,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
               {/* Left: Document Cover Frame */}
               <div className="w-full md:w-auto shrink-0 flex flex-col items-center">
-                <div 
+                <div
                   className="relative aspect-[1/1.38] w-48 sm:w-56 md:w-60 overflow-hidden rounded-lg border border-[#e6dfd3] bg-white group cursor-pointer"
                   onClick={() => {
                     if (allPreviewImages.length > 0) {
@@ -527,13 +527,13 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   <Button asChild className="w-full bg-[#4c6b54] hover:bg-[#3b5341] text-[#f7eaf0] font-bold" size="lg">
                     <Link href={`/documents/${doc.slug}/viewer`}>
                       <Eye className="mr-2 h-4 w-4" />
-                      Đọc Online bảo mật
+                      Xem tài liệu
                     </Link>
                   </Button>
                   {doc.allowDownload !== false && (
                     <Button variant="outline" className="w-full border-2 border-[#ebdcb9] hover:bg-[#ebdcb9]/20 font-bold" size="lg" onClick={handleDownload} disabled={downloading}>
                       <Download className="mr-2 h-4 w-4 text-[#8c7e6c]" />
-                      {downloading ? 'Đang chuẩn bị...' : 'Tải tài liệu gốc'}
+                      {downloading ? 'Đang chuẩn bị...' : 'Tải tài liệu'}
                     </Button>
                   )}
                   {doc.allowDownload === false && (
