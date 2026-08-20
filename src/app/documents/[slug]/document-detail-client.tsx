@@ -214,6 +214,8 @@ export function DocumentDetailClient({ document: doc }: Props) {
                       <img
                         src={primaryCoverImage}
                         alt={doc.title}
+                        loading="lazy"
+                        decoding="async"
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
@@ -445,6 +447,8 @@ export function DocumentDetailClient({ document: doc }: Props) {
                           <img
                             src={img}
                             alt={`Trang xem trước ${i + 1}`}
+                            loading="lazy"
+                            decoding="async"
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
@@ -510,112 +514,154 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
         {/* Right side (Payment CTA box) */}
         <div className="lg:col-span-4 lg:sticky lg:top-20">
-          <Card className="overflow-hidden border-2 border-[#e6dfd3] bg-[#fcf9f2] rounded-xl shadow-xs">
-            <CardHeader className="border-b border-[#e6dfd3] bg-gradient-to-br from-[#f6ecd9] to-[#ebdcb9]/40 p-5">
+          <Card className="overflow-hidden border border-[#e6dfd3] bg-[#fcf9f2] rounded-xl shadow-xs">
+            {/* Header: Pricing & Status */}
+            <CardHeader className="border-b border-[#e6dfd3] bg-[#f7f0e3]/70 p-5 space-y-2">
               {doc.originalPrice && doc.originalPrice > doc.price ? (
-                <p className="text-xs text-muted-foreground line-through font-medium">{formatPrice(doc.originalPrice)}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#8c7e6c] line-through font-medium">{formatPrice(doc.originalPrice)}</span>
+                  <Badge variant="outline" className="text-[10px] font-semibold text-emerald-800 bg-emerald-500/10 border-emerald-300/60 py-0 px-1.5 rounded-sm">
+                    Tiết kiệm {Math.round(((doc.originalPrice - doc.price) / doc.originalPrice) * 100)}%
+                  </Badge>
+                </div>
               ) : null}
-              <CardTitle className={`text-3xl font-black ${doc.isFree ? 'text-[#3c6b41]' : 'text-[#8e2929]'}`}>
-                {formatPrice(doc.price)}
-              </CardTitle>
-              <CardDescription className="text-xs text-[#7e7363] mt-1">Sở hữu vĩnh viễn, đọc online và tải file gốc không giới hạn.</CardDescription>
+
+              <div className="flex items-baseline justify-between gap-2">
+                <CardTitle className={`text-3xl font-extrabold tracking-tight ${doc.isFree ? 'text-[#3c6b41]' : 'text-[#8e2929]'}`}>
+                  {formatPrice(doc.price)}
+                </CardTitle>
+                <Badge variant="secondary" className="text-[11px] font-medium bg-[#ebdcb9]/60 text-[#5a5045] rounded-full border-0 px-2.5 py-0.5">
+                  {doc.isFree ? 'Tài liệu mở' : 'Bản quyền trọn đời'}
+                </Badge>
+              </div>
+
+              <CardDescription className="text-xs text-[#7e7363] flex items-center gap-1.5 pt-0.5">
+                <CheckCircle2 className="size-3.5 text-[#4c6b54] shrink-0" />
+                <span>Sở hữu vĩnh viễn, đọc online và tải file gốc</span>
+              </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-6 p-5">
-              {owned ? (
-                <div className="space-y-3">
-                  <Button asChild className="w-full bg-[#4c6b54] hover:bg-[#3b5341] text-[#f7eaf0] font-bold" size="lg">
-                    <Link href={`/documents/${doc.slug}/viewer`}>
-                      <Eye className="mr-2 h-4 w-4" />
-                      Xem tài liệu
-                    </Link>
-                  </Button>
-                  {doc.allowDownload !== false && (
-                    <Button variant="outline" className="w-full border-2 border-[#ebdcb9] hover:bg-[#ebdcb9]/20 font-bold" size="lg" onClick={handleDownload} disabled={downloading}>
-                      <Download className="mr-2 h-4 w-4 text-[#8c7e6c]" />
-                      {downloading ? 'Đang chuẩn bị...' : 'Tải tài liệu'}
+            {/* Content: Actions & Details */}
+            <CardContent className="space-y-5 p-5">
+              {/* Primary & Secondary Action Buttons */}
+              <div className="space-y-2.5">
+                {owned ? (
+                  <>
+                    <Button 
+                      asChild 
+                      className="w-full h-11 bg-[#4c6b54] hover:bg-[#3d5744] active:scale-[0.99] text-white font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
+                      size="lg"
+                    >
+                      <Link href={`/documents/${doc.slug}/viewer`}>
+                        <Eye className="size-4" />
+                        <span>Đọc tài liệu online</span>
+                      </Link>
                     </Button>
-                  )}
-                  {doc.allowDownload === false && (
-                    <p className="text-xs text-center text-muted-foreground pt-1 flex justify-center items-center gap-1.5">
-                      <Ban className="size-3 text-red-600" /> Tài liệu được thiết lập chỉ đọc online
-                    </p>
-                  )}
-                </div>
-              ) : doc.isFree ? (
-                <Button
-                  className="w-full bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] font-bold"
-                  size="lg"
-                  onClick={handleBuy}
-                >
-                  <Download className="mr-2 size-4" />
-                  Nhận miễn phí
-                </Button>
-              ) : (
-                <Button className="w-full bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] font-bold" size="lg" onClick={handleBuy}>
-                  <ShoppingCart className="mr-2 size-4" />
-                  Mua tác phẩm ngay
-                </Button>
-              )}
+                    {doc.allowDownload !== false && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full h-11 border border-[#ebdcb9] bg-[#fbf7ee] hover:bg-[#f3ead7] text-[#4a3f33] hover:text-[#3b5341] font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
+                        size="lg" 
+                        onClick={handleDownload} 
+                        disabled={downloading}
+                      >
+                        <Download className="size-4 text-[#4c6b54]" />
+                        <span>{downloading ? 'Đang chuẩn bị file...' : 'Tải tài liệu gốc'}</span>
+                      </Button>
+                    )}
+                    {doc.allowDownload === false && (
+                      <p className="text-xs text-center text-muted-foreground pt-1 flex justify-center items-center gap-1.5">
+                        <Ban className="size-3 text-red-600" /> Tài liệu được thiết lập chỉ đọc online
+                      </p>
+                    )}
+                  </>
+                ) : doc.isFree ? (
+                  <Button
+                    className="w-full h-12 bg-[#4c6b54] hover:bg-[#3d5744] active:scale-[0.99] text-white font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
+                    size="lg"
+                    onClick={handleBuy}
+                  >
+                    <Download className="size-4.5" />
+                    <span>Nhận miễn phí ngay</span>
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full h-12 bg-[#4c6b54] hover:bg-[#3d5744] active:scale-[0.99] text-white font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2 group" 
+                    size="lg" 
+                    onClick={handleBuy}
+                  >
+                    <ShoppingCart className="size-4.5 transition-transform group-hover:scale-110" />
+                    <span>Mua tác phẩm ngay</span>
+                  </Button>
+                )}
 
-              {!owned && allPreviewImages.length > 0 && (
-                <Button
-                  variant="outline"
-                  className="w-full border-2 border-[#ebdcb9] hover:bg-[#ebdcb9]/20 font-bold"
-                  size="lg"
-                  onClick={() => {
-                    setActiveTab("preview");
-                    const el = document.getElementById("doc-tabs");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
-                  <Eye className="mr-2 h-4 w-4 text-[#8c7e6c]" />
-                  Xem trước hình ảnh ({allPreviewImages.length} ảnh)
-                </Button>
-              )}
+                {/* Preview Button */}
+                {!owned && allPreviewImages.length > 0 && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 border border-[#ebdcb9] bg-[#fbf7ee] hover:bg-[#f3ead7] text-[#4a3f33] hover:text-[#3b5341] font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-between px-3.5"
+                    size="lg"
+                    onClick={() => {
+                      setActiveTab("preview");
+                      const el = document.getElementById("doc-tabs");
+                      if (el) el.scrollIntoView({ behavior: "smooth" });
+                    }}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Eye className="size-4 text-[#4c6b54]" />
+                      <span>Xem trước hình ảnh</span>
+                    </span>
+                    <span className="text-[11px] font-medium bg-[#ebdcb9]/70 text-[#5a5045] px-2.5 py-0.5 rounded-full">
+                      {allPreviewImages.length} ảnh
+                    </span>
+                  </Button>
+                )}
+              </div>
 
-              {/* Specs checklist */}
-              <div className="space-y-3 rounded-md border-2 border-[#ebdcb9]/50 bg-[#ebdcb9]/10 p-4 text-xs text-[#5a5045]">
+              {/* Specs & Metadata Breakdown */}
+              <div className="space-y-2 rounded-lg border border-[#e6dfd3] bg-[#f7f0e3]/40 p-3.5 text-xs text-[#5a5045]">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Tình trạng sở hữu</span>
-                  <Badge variant={owned ? 'default' : 'secondary'} className={owned ? 'bg-[#4c6b54] text-[#f7eaf0]' : 'bg-[#e6dfd3]/50 text-[#635748]'}>
+                  <span className="text-[#7e7363]">Tình trạng</span>
+                  <Badge variant={owned ? 'default' : 'secondary'} className={owned ? 'bg-[#4c6b54] text-white font-medium rounded-full py-0.5' : 'bg-[#ebdcb9]/60 text-[#5a5045] font-medium rounded-full border-0 py-0.5'}>
                     {checking ? 'Đang kiểm tra...' : owned ? 'Đã sở hữu' : 'Chưa sở hữu'}
                   </Badge>
                 </div>
+                <div className="h-[1px] bg-[#e6dfd3]/60" />
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Lượt tải</span>
-                  <span className="font-semibold">{doc.purchaseCount || 0} bản</span>
+                  <span className="text-[#7e7363]">Lượt tải</span>
+                  <span className="font-semibold text-[#483d31]">{doc.purchaseCount || 0} bản</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Lượt xem</span>
-                  <span className="font-semibold">{doc.viewCount || 0} lượt</span>
+                  <span className="text-[#7e7363]">Lượt xem</span>
+                  <span className="font-semibold text-[#483d31]">{doc.viewCount || 0} lượt</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Đánh giá trung bình</span>
-                  <span className="inline-flex items-center gap-1 font-semibold">
-                    <Star className="h-3 w-3 fill-[#cbb685] text-[#cbb685]" />
+                  <span className="text-[#7e7363]">Đánh giá trung bình</span>
+                  <span className="inline-flex items-center gap-1 font-semibold text-[#483d31]">
+                    <Star className="size-3 fill-[#cbb685] text-[#cbb685]" />
                     {doc.rating?.average > 0 ? doc.rating.average.toFixed(1) : 'Chưa có'}
                   </span>
                 </div>
               </div>
 
-              {/* Guarantees */}
-              <div className="space-y-2.5 rounded-md border-2 border-[#ebdcb9]/30 p-4 text-xs text-[#6e6353]">
-                <p className="font-bold text-[#483d31]">Quyền lợi sau mua</p>
+              {/* Ownership Guarantees */}
+              <div className="space-y-2 rounded-lg border border-[#e6dfd3]/60 bg-[#fcf9f2] p-3.5 text-xs text-[#6e6353]">
+                <p className="font-semibold text-[#483d31] text-[11px] uppercase tracking-wider">Quyền lợi khi sở hữu</p>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="mt-0.5 size-3.5 text-[#4c6b54] shrink-0" />
-                  <span>Mở khóa đọc online và tải xuống ngay lập tức.</span>
+                  <span>Mở khóa đọc online và tải file gốc ngay lập tức</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="mt-0.5 size-3.5 text-[#4c6b54] shrink-0" />
-                  <span>Lịch sử và tệp tin gốc lưu trữ an toàn trong tài khoản của bạn.</span>
+                  <span>Lưu trữ vĩnh viễn trong tủ sách tài khoản của bạn</span>
                 </div>
               </div>
 
+              {/* Related Article Link */}
               {doc.relatedArticle ? (
-                <Button asChild variant="outline" className="w-full border-2 border-[#ebdcb9] hover:bg-[#ebdcb9]/20 font-bold text-xs">
+                <Button asChild variant="outline" className="w-full h-9 border border-[#ebdcb9] bg-[#fbf7ee] hover:bg-[#f3ead7] text-[#4a3f33] hover:text-[#3b5341] font-medium text-xs rounded-md">
                   <Link href={`/articles/${doc.relatedArticle.slug}`}>
-                    <BookOpen className="mr-2 size-3.5 text-[#8c7e6c]" />
+                    <BookOpen className="mr-2 size-3.5 text-[#4c6b54]" />
                     Xem bài phân tích đính kèm
                   </Link>
                 </Button>

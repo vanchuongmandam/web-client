@@ -121,7 +121,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               <ZenModeToggle />
             </div>
           </div>
-          <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight text-primary break-words hyphens-auto">
+          <h1 className="font-sans text-4xl md:text-6xl font-extrabold tracking-tight text-primary break-words hyphens-auto">
             {article.title}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground break-words">

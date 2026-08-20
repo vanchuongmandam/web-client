@@ -87,7 +87,7 @@ function VerifyEmailContent() {
             {status === "error" && <XCircle className="h-8 w-8 text-destructive" />}
             {status === "pending" && <Mail className="h-8 w-8 text-primary" />}
           </div>
-          <CardTitle className="text-2xl font-headline">
+          <CardTitle className="text-2xl font-sans">
             {status === "loading" && "Đang xác minh email..."}
             {status === "success" && "Xác minh thành công!"}
             {status === "error" && "Xác minh thất bại"}

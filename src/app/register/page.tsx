@@ -47,7 +47,7 @@ export default function RegisterPage() {
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12">
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-headline">Đăng ký</CardTitle>
+          <CardTitle className="text-2xl font-sans">Đăng ký</CardTitle>
           <CardDescription>
             Tạo tài khoản để thảo luận và lưu lại các bài viết yêu thích.
           </CardDescription>

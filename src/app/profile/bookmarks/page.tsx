@@ -103,7 +103,7 @@ export default function BookmarksPage() {
               (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
 
             return (
-              <Card key={doc._id} className="overflow-hidden flex flex-col group border border-border bg-card/70 hover:bg-card rounded-xl overflow-hidden hover:border-primary/60 transition-all duration-300 shadow-[2px_2px_8px_rgba(0,0,0,0.02)]">
+              <Card key={doc._id} className="overflow-hidden flex flex-col group border border-border bg-card/70 hover:bg-card rounded-xl hover:border-primary/60 transition-all duration-300 shadow-xs">
                 
                 {/* Book Cover container */}
                 <Link href={`/documents/${doc.slug}`} className="relative w-full aspect-[4/3] overflow-hidden bg-muted/30 border-b border-border block">
@@ -111,6 +111,8 @@ export default function BookmarksPage() {
                     <img 
                       src={coverImg} 
                       alt={doc.title} 
+                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
                     />
                   ) : (

@@ -15,7 +15,7 @@ import ArticleCard from '@/components/articles/ArticleCard';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || '';
 
 async function fetchCategories(): Promise<Category[]> {
-    const res = await fetch(`${API_BASE}/categories`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE}/categories`, { cache: 'no-store' });
     if (!res.ok) throw new Error("Không thể tải danh sách danh mục.");
     const json = await res.json();
     return json.data ?? json;
@@ -143,7 +143,7 @@ const ArticlesView = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <header className="mb-8">
-                <h1 className="text-3xl font-headline font-bold text-primary capitalize">{currentCategoryName}</h1>
+                <h1 className="text-3xl font-sans font-bold text-primary capitalize">{currentCategoryName}</h1>
                 <p className="text-muted-foreground mt-2">Hãy chọn cho mình Chuyên mục yêu thích để cùng chúng tôi Mạn Đàm Văn Chương nhé!</p>
             </header>
 

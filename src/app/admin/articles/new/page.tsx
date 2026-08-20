@@ -226,7 +226,7 @@ export default function NewArticlePage() {
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     <header className="flex items-center justify-between mb-8">
-                        <div><h1 className="text-4xl font-headline font-bold text-primary">Tạo bài viết mới</h1><p className="text-muted-foreground mt-2">Điền thông tin chi tiết dưới đây.</p></div>
+                        <div><h1 className="text-4xl font-sans font-bold text-primary">Tạo bài viết mới</h1><p className="text-muted-foreground mt-2">Điền thông tin chi tiết dưới đây.</p></div>
                         <div className="flex gap-2">
                             <Button type="button" variant="outline" asChild><Link href="/admin/articles">Hủy</Link></Button>
                             <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Đăng bài viết</Button>

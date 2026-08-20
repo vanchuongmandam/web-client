@@ -16,10 +16,10 @@ import {
 import { LogIn, UserPlus, User, BookOpen, ShoppingBag, LayoutDashboard, LogOut, Landmark, Bookmark } from "lucide-react";
 
 export function AuthControls() {
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, isHydrated } = useAuth();
 
-  if (isLoading) {
-    return <div className="h-12 w-28 bg-muted rounded-md animate-pulse"></div>;
+  if (!isHydrated || isLoading) {
+    return <div className="h-10 w-28 bg-muted/60 rounded-md animate-pulse"></div>;
   }
 
   if (user) {

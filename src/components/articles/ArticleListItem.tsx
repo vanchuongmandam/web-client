@@ -21,7 +21,7 @@ const ArticleListItem = React.memo(({ article }: ArticleListItemProps) => {
       </div>
       <div className="col-span-2 p-4">
         <Badge variant="outline" className="mb-2 rounded-full">{article.category.name}</Badge>
-        <h3 className="font-headline text-lg font-bold leading-tight">
+        <h3 className="font-sans text-lg font-bold leading-tight">
           <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">{article.title}</Link>
         </h3>
         <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{article.excerpt}</p>

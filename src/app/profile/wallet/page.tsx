@@ -27,9 +27,17 @@ export default function WalletPage() {
 
   const initialBalanceRef = useRef<number | undefined>(undefined);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const resetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Quick select amounts
   const presetAmounts = [20000, 50000, 100000, 200000, 500000];
+
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (token) {
@@ -77,7 +85,8 @@ export default function WalletPage() {
         variant: "default",
       });
       // Reset after 5s
-      setTimeout(() => {
+      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+      resetTimeoutRef.current = setTimeout(() => {
         setQrCodeUrl(null);
         setIsSuccess(false);
         setAmount("");
@@ -197,7 +206,7 @@ export default function WalletPage() {
         {/* Right Col: QR Code */}
         <div className="w-full">
           {qrCodeUrl && (
-            <Card className="border border-primary bg-card shadow-md rounded-md overflow-hidden ring-4 ring-primary/10">
+            <Card className="border border-primary bg-card shadow-sm rounded-xl overflow-hidden ring-4 ring-primary/10">
               <CardHeader className="text-center pb-2 border-b border-border bg-muted/20">
                 <CardTitle className="text-base text-primary">Quét mã VietQR chuyển khoản</CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
@@ -215,10 +224,12 @@ export default function WalletPage() {
                   </div>
                 ) : (
                   <>
-                    <div className="bg-white p-3 rounded-md shadow-md border border-border flex items-center justify-center">
+                    <div className="bg-white p-3 rounded-md shadow-sm border border-border flex items-center justify-center">
                       <img 
                         src={qrCodeUrl} 
                         alt="QR Code Nạp tiền" 
+                        loading="lazy"
+                        decoding="async"
                         className="w-52 h-52 object-contain"
                       />
                     </div>

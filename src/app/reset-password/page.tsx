@@ -62,7 +62,7 @@ function ResetPasswordContent() {
       <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
         <Card className="max-w-sm w-full rounded-xl shadow-xs border border-border">
           <CardHeader>
-            <CardTitle className="text-2xl font-headline text-center text-destructive">Lỗi</CardTitle>
+            <CardTitle className="text-2xl font-sans text-center text-destructive">Lỗi</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
             <p className="mb-4">Liên kết đặt lại mật khẩu không hợp lệ hoặc bị thiếu.</p>
@@ -79,7 +79,7 @@ function ResetPasswordContent() {
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
       <Card className="max-w-sm w-full rounded-xl shadow-xs border border-border">
         <CardHeader>
-          <CardTitle className="text-2xl font-headline text-center">Đặt lại mật khẩu</CardTitle>
+          <CardTitle className="text-2xl font-sans text-center">Đặt lại mật khẩu</CardTitle>
           <CardDescription className="text-center">
             Nhập mật khẩu mới cho tài khoản của bạn.
           </CardDescription>

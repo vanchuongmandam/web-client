@@ -57,14 +57,19 @@ export function CustomVideoPlayer({ isActive = false, ...props }: CustomVideoPla
             hideControls();
         };
 
+        const handleMouseLeave = () => {
+            if (isPlaying) setAreControlsVisible(false);
+        };
+
         player.addEventListener('mousemove', handleMouseMove);
-        player.addEventListener('mouseleave', () => { if (isPlaying) setAreControlsVisible(false); });
+        player.addEventListener('mouseleave', handleMouseLeave);
         
         // Initial hide
         hideControls();
 
         return () => {
             player.removeEventListener('mousemove', handleMouseMove);
+            player.removeEventListener('mouseleave', handleMouseLeave);
             if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
         };
     }, [isPlaying]);

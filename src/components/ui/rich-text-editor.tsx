@@ -136,7 +136,7 @@ export default function RichTextEditor({
       attributes: {
         class: editable
           ? 'prose dark:prose-invert min-h-[250px] w-full rounded-b-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 whitespace-pre-wrap' // 👈 Thêm whitespace-pre-wrap
-          : `prose prose-lg dark:prose-invert max-w-none prose-headings:font-headline prose-headings:text-foreground prose-p:text-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-em:text-foreground prose-ul:space-y-1 prose-ol:space-y-1 prose-li:text-foreground break-words hyphens-auto whitespace-pre-wrap ${className}`, // 👈 Đã có whitespace-pre-wrap
+          : `prose prose-lg dark:prose-invert max-w-none prose-headings:font-sans prose-headings:text-foreground prose-p:text-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-em:text-foreground prose-ul:space-y-1 prose-ol:space-y-1 prose-li:text-foreground break-words hyphens-auto whitespace-pre-wrap ${className}`, // 👈 Đã có whitespace-pre-wrap
       },
     },
     onUpdate: editable && onChange ? ({ editor }) => {

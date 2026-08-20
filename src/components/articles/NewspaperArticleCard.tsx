@@ -46,7 +46,7 @@ const NewspaperArticleCard = React.memo(({ article }: NewspaperArticleCardProps)
             )}
           </div>
           <div className="p-3">
-            <h3 className="font-headline text-sm font-semibold leading-tight line-clamp-2">{article.title}</h3>
+            <h3 className="font-sans text-sm font-semibold leading-tight line-clamp-2">{article.title}</h3>
             <p className="text-xs text-muted-foreground mt-1">{article.author}</p>
           </div>
         </CardContent>

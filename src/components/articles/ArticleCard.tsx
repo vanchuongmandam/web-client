@@ -49,7 +49,7 @@ const ArticleCard = React.memo(({ article }: ArticleCardProps) => {
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <Badge variant="secondary" className="mb-2 rounded-full">{article.category.name}</Badge>
-        <CardTitle className="font-headline text-xl leading-tight mb-2">
+        <CardTitle className="font-sans text-xl leading-tight mb-2">
           <Link href={`/articles/${article.slug}`} className="hover:text-primary transition-colors">{article.title}</Link>
         </CardTitle>
         <p className="text-sm text-muted-foreground line-clamp-2">{article.excerpt}</p>

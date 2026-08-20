@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
       <Card className="max-w-sm w-full rounded-xl shadow-xs border border-border">
         <CardHeader>
-          <CardTitle className="text-2xl font-headline text-center">Quên mật khẩu</CardTitle>
+          <CardTitle className="text-2xl font-sans text-center">Quên mật khẩu</CardTitle>
           <CardDescription className="text-center">
             Nhập email của bạn và chúng tôi sẽ gửi liên kết đặt lại mật khẩu.
           </CardDescription>

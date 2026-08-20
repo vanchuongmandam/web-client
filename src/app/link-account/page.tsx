@@ -64,7 +64,7 @@ function LinkAccountContent() {
       <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12 px-4">
         <Card className="max-w-sm w-full rounded-xl shadow-xs border border-border">
           <CardHeader>
-            <CardTitle className="text-2xl font-headline text-center text-destructive">Lỗi</CardTitle>
+            <CardTitle className="text-2xl font-sans text-center text-destructive">Lỗi</CardTitle>
           </CardHeader>
           <CardContent className="text-center">
             <p className="mb-4">Không tìm thấy phiên đăng nhập Google.</p>
@@ -85,7 +85,7 @@ function LinkAccountContent() {
             <Chrome className="h-6 w-6 text-primary" />
             <LinkIcon className="h-4 w-4 absolute -bottom-1 -right-1 text-muted-foreground bg-background rounded-full" />
           </div>
-          <CardTitle className="text-2xl font-headline">Tài khoản đã tồn tại</CardTitle>
+          <CardTitle className="text-2xl font-sans">Tài khoản đã tồn tại</CardTitle>
           <CardDescription>
             Email từ tài khoản Google này đã được đăng ký trước đó. Vui lòng nhập mật khẩu cũ để liên kết tài khoản Google của bạn.
           </CardDescription>

@@ -596,7 +596,7 @@ export default function CheckoutPage() {
                   {order.qrCodeUrl ? (
                     <div className="flex flex-col items-center shrink-0">
                       <div className="bg-[#fcf9f2] border-2 border-[#ebdcb9] p-3 rounded-lg shadow-xs">
-                        <img src={order.qrCodeUrl} alt="QR Code" className="h-56 w-56 object-contain" />
+                        <img src={order.qrCodeUrl} alt="QR Code" loading="lazy" decoding="async" className="h-56 w-56 object-contain" />
                       </div>
                       <span className="text-[10px] text-muted-foreground uppercase tracking-widest mt-2 font-semibold">VietQR / Napas</span>
                     </div>
@@ -713,9 +713,9 @@ export default function CheckoutPage() {
               <div className="flex gap-3.5 items-start">
                 
                 {/* Book cover (thumbnail size) */}
-                <div className="relative w-16 aspect-[1/1.38] shrink-0 overflow-hidden rounded shadow-[2px_2px_5px_rgba(0,0,0,0.12)] border border-[#2d2d2d]/10 bg-[#fcf9f2]">
+                <div className="relative w-16 aspect-[1/1.38] shrink-0 overflow-hidden rounded-md shadow-xs border border-[#2d2d2d]/10 bg-[#fcf9f2]">
                   {doc.previewImages?.[0] ? (
-                    <img src={doc.previewImages[0]} alt={doc.title} className="w-full h-full object-cover" />
+                    <img src={doc.previewImages[0]} alt={doc.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   ) : (
                     <div className={`w-full h-full ${getBookCoverTheme(doc._id).bg} ${getBookCoverTheme(doc._id).text} flex flex-col p-1.5 justify-between relative`}>
                       <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>

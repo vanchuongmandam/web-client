@@ -60,12 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('authUser');
     document.cookie = "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
     
-    if (session) {
+    try {
       await nextAuthSignOut({ redirect: false });
+    } catch {
+      // Ignore if session was already terminated
     }
     
     router.push('/login');
-  }, [router, session]);
+  }, [router]);
 
   // Sync with NextAuth session
   useEffect(() => {

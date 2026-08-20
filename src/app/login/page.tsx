@@ -59,7 +59,7 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12">
       <Card className="mx-auto max-w-sm w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-headline">Đăng nhập</CardTitle>
+          <CardTitle className="text-2xl font-sans">Đăng nhập</CardTitle>
           <CardDescription>
             Nhập tên người dùng và mật khẩu của bạn để truy cập
           </CardDescription>

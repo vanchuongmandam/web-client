@@ -365,7 +365,7 @@ export function DocumentListClient({
 
       {/* 2. POWERFUL SEARCH AREA */}
       <div className="mb-8 font-sans max-w-4xl mx-auto">
-        <form onSubmit={handleFormSearch} className="relative flex items-center w-full shadow-sm hover:shadow-md transition-shadow rounded-md overflow-hidden border-2 border-[#ebdcb9] focus-within:border-primary/60 bg-[#fcf9f2]">
+        <form onSubmit={handleFormSearch} className="relative flex items-center w-full shadow-sm hover:shadow-sm transition-shadow rounded-md overflow-hidden border-2 border-[#ebdcb9] focus-within:border-primary/60 bg-[#fcf9f2]">
           <div className="pointer-events-none absolute inset-y-0 text-muted-foreground left-0 pl-4 flex items-center">
             <Search className="size-5 text-[#8c7e6c]" />
           </div>
@@ -568,6 +568,8 @@ export function DocumentListClient({
                             <img
                               src={coverImg}
                               alt={doc.title}
+                              loading="lazy"
+                              decoding="async"
                               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                           ) : (

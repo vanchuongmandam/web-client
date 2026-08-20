@@ -93,7 +93,7 @@ async function CategorySections({
       <div className="lg:col-span-2 space-y-12">
         {leftColumnSections.map((section) => section.articles.length > 0 && (
           <section key={section.slug}>
-            <h2 className="font-headline text-3xl font-bold mb-6">{section.name}</h2>
+            <h2 className="font-sans text-3xl font-bold mb-6">{section.name}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {section.articles.slice(0, 4).map((article) => (
                 <ArticleCard key={article.slug} article={article} />
@@ -105,7 +105,7 @@ async function CategorySections({
       <aside>
         {rightColumnSections.map((section) => section.articles.length > 0 && (
           <section key={section.slug} className="sticky top-8">
-            <h2 className="font-headline text-3xl font-bold mb-6">{section.name}</h2>
+            <h2 className="font-sans text-3xl font-bold mb-6">{section.name}</h2>
             <div className="grid grid-cols-2 gap-4">
               {section.articles.slice(0, 4).map((article) => (
                 <NewspaperArticleCard key={article.slug} article={article} />
@@ -120,7 +120,7 @@ async function CategorySections({
 
 export default async function Home() {
   const [allArticles, categories] = await Promise.all([
-    fetchAllArticles({ limit: 100 }).catch(() => [] as Article[]),
+    fetchAllArticles({ limit: 24 }).catch(() => [] as Article[]),
     getCategories().catch(() => [] as Category[]),
   ]);
 
@@ -156,7 +156,7 @@ export default async function Home() {
             />
             <div className="p-8 flex flex-col justify-center">
               <Badge variant="secondary" className="mb-2 w-fit rounded-full">{featuredArticle.category.name}</Badge>
-              <h1 className="font-headline text-4xl md:text-5xl font-bold mb-4 text-primary">
+              <h1 className="font-sans text-4xl md:text-5xl font-bold mb-4 text-primary">
                 <Link href={`/articles/${featuredArticle.slug}`} className="hover:underline">{featuredArticle.title}</Link>
               </h1>
               <p className="text-muted-foreground mb-4">{featuredArticle.author}</p>
@@ -172,7 +172,7 @@ export default async function Home() {
       {/* === TRENDING SECTION (Full-width, above the grid) === */}
       {trendingArticles.length > 0 && (
         <section className="mb-12">
-          <h2 className="font-headline text-3xl font-bold mb-6">Xu hướng</h2>
+          <h2 className="font-sans text-3xl font-bold mb-6">Xu hướng</h2>
           <TrendingCarousel articles={trendingArticles} />
         </section>
       )}

@@ -51,7 +51,7 @@ export default function ReadingSuggestions({ currentSlug, categoryId }: ReadingS
     <section>
       <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-xs font-sans">
         <CardHeader className="pb-3 border-b border-[#e6dfd3]">
-          <CardTitle className="flex items-center gap-3 font-headline text-xl text-[#4c6b54]">
+          <CardTitle className="flex items-center gap-3 font-sans text-xl text-[#4c6b54]">
             <Lightbulb className="h-6 w-6 text-amber-600 animate-pulse" />
             <span>Gợi ý đọc thêm</span>
           </CardTitle>

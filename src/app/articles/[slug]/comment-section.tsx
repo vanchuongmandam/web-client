@@ -230,7 +230,7 @@ export default function CommentSection({ articleId }: { articleId: string }) {
 
     return (
         <section className="mt-12">
-            <h2 className="font-headline text-3xl font-bold mb-6">Thảo luận ({comments.length})</h2>
+            <h2 className="font-sans text-3xl font-bold mb-6">Thảo luận ({comments.length})</h2>
             <div className="mb-6">
                 {user ? (
                     <form onSubmit={handleCommentSubmit} className="space-y-4">

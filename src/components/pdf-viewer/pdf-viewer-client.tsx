@@ -481,7 +481,7 @@ export default function PDFViewerClient({
         <nav
           aria-label="Điều hướng trang tài liệu"
           className={cn(
-            "absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-3 px-4 py-2 rounded-full border shadow-lg backdrop-blur-md transition-all duration-300",
+            "absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-3 px-4 py-2 rounded-full border shadow-sm backdrop-blur-md transition-all duration-300",
             currentTheme.toolbar,
             isZenMode ? "translate-y-[150%] opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
           )}
@@ -590,7 +590,7 @@ export default function PDFViewerClient({
           <Button
             size="sm"
             onClick={() => setIsZenMode(false)}
-            className="fixed top-5 right-5 z-40 rounded-full shadow-lg gap-1.5 text-xs font-sans bg-stone-900/90 text-stone-100 hover:bg-stone-900 border border-stone-700"
+            className="fixed top-5 right-5 z-40 rounded-full shadow-sm gap-1.5 text-xs font-sans bg-stone-900/90 text-stone-100 hover:bg-stone-900 border border-stone-700"
           >
             <EyeOff className="w-3.5 h-3.5" />
             <span>Thoát tập trung (Z)</span>
