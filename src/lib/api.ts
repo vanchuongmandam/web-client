@@ -56,7 +56,9 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
       // body is not JSON
     }
     console.error(`[apiFetch] ${res.status} ${res.statusText} — ${url}`, body.slice(0, 200));
-    throw new Error(message);
+    const error: Error & { status?: number } = new Error(message);
+    error.status = res.status;
+    throw error;
   }
   return res.json();
 }

@@ -3,7 +3,9 @@
 import type { PublicProfile, MarketDocument } from '@/lib/types';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FileText, Eye, Star, BookOpen, Trophy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Eye, Star, BookOpen, Trophy, Calendar } from "lucide-react";
+import { format } from "date-fns";
 import Link from "next/link";
 import Image from "next/image";
 

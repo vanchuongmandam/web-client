@@ -69,6 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Sync with NextAuth session
   useEffect(() => {
+    if (session?.error === "RefreshAccessTokenError") {
+      logout();
+      return;
+    }
     if (sessionStatus === "authenticated" && session?.backendToken && session?.user) {
       setToken(session.backendToken);
       setIsOAuth(true);
@@ -140,10 +144,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('authUser', JSON.stringify(updatedUser));
         return updatedUser;
       });
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to refresh profile:", e);
+      if (
+        e?.status === 401 ||
+        e?.status === 403 ||
+        (e instanceof Error && (
+          e.message.includes('401') ||
+          e.message.includes('403') ||
+          e.message.includes('Unauthorized') ||
+          e.message.includes('expired') ||
+          e.message.includes('disabled') ||
+          e.message.includes('Invalid')
+        ))
+      ) {
+        logout();
+      }
     }
-  }, [token]);
+  }, [token, logout]);
 
   useEffect(() => {
     if (token) {
