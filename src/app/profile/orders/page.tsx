@@ -20,7 +20,7 @@ const getStatusBadgeClass = (status: string) => {
   switch (status) {
     case 'paid':
     case 'confirmed':
-      return 'bg-[#3c6b41] text-white hover:bg-[#3c6b41] border-none font-bold text-[10px] px-2 py-0.5 rounded';
+      return 'bg-forest-bright text-white hover:bg-forest-bright border-none font-bold text-[10px] px-2 py-0.5 rounded';
     case 'pending':
       return 'bg-amber-600 text-white hover:bg-amber-600 border-none font-bold text-[10px] px-2 py-0.5 rounded';
     case 'cancelled':
@@ -28,7 +28,7 @@ const getStatusBadgeClass = (status: string) => {
     case 'expired':
       return 'bg-stone-100 text-stone-500 border border-stone-200 hover:bg-stone-100 font-bold text-[10px] px-2 py-0.5 rounded';
     default:
-      return 'bg-[#ebdcb9] text-[#635748] hover:bg-[#ebdcb9] border-none font-bold text-[10px] px-2 py-0.5 rounded';
+      return 'bg-sand text-earth-muted hover:bg-sand border-none font-bold text-[10px] px-2 py-0.5 rounded';
   }
 };
 
@@ -143,7 +143,7 @@ export default function OrdersPage() {
                     <div className="flex flex-col items-end sm:self-center">
                       <div className="flex items-baseline gap-1">
                         <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Tổng thanh toán:</span>
-                        <span className="font-extrabold text-[#8e2929] text-base">{formatPrice(order.totalAmount - (order.discountAmount || 0))}</span>
+                        <span className="font-extrabold text-category-red text-base">{formatPrice(order.totalAmount - (order.discountAmount || 0))}</span>
                       </div>
                       {order.discountAmount !== undefined && order.discountAmount > 0 && (
                         <span className="text-[10px] text-emerald-600 font-semibold leading-none mt-0.5">

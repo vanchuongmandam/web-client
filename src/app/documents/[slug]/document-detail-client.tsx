@@ -53,7 +53,7 @@ function formatPrice(price: number): string {
 }
 
 const RichTextEditor = dynamic(() => import("@/components/ui/rich-text-editor"), {
-  loading: () => <div className="animate-pulse bg-[#fcf9f2] h-40 rounded border border-[#ebdcb9]" />,
+  loading: () => <div className="animate-pulse bg-warm-cream h-40 rounded border border-sand" />,
   ssr: false
 });
 
@@ -69,11 +69,11 @@ const getBookCoverTheme = (docId: string) => {
     sum += docId.charCodeAt(i);
   }
   const themes = [
-    { bg: 'bg-[#5c3e35]', text: 'text-[#f4eae1]', border: 'border-[#432d27]', tagBg: 'bg-[#432d27]/40 text-[#f4eae1]/90', lineBg: 'bg-[#a37055]' }, // Warm Mahogany
-    { bg: 'bg-[#2b3a32]', text: 'text-[#e9f1e8]', border: 'border-[#1d2722]', tagBg: 'bg-[#1d2722]/40 text-[#e9f1e8]/90', lineBg: 'bg-[#526f5c]' }, // Forest Moss
-    { bg: 'bg-[#3b2b3a]', text: 'text-[#f5eaf4]', border: 'border-[#261c25]', tagBg: 'bg-[#261c25]/40 text-[#f5eaf4]/90', lineBg: 'bg-[#7a5879]' }, // Dark Aubergine
-    { bg: 'bg-[#1f2d3d]', text: 'text-[#e9f1f6]', border: 'border-[#131b25]', tagBg: 'bg-[#131b25]/40 text-[#e9f1f6]/90', lineBg: 'bg-[#4f6b8c]' }, // Slate Ocean
-    { bg: 'bg-[#e2d6c5]', text: 'text-[#3e342a]', border: 'border-[#ccbfae]', tagBg: 'bg-[#3e342a]/15 text-[#3e342a]/95', lineBg: 'bg-[#bca68d]' }, // Vintage Parchment
+    { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' }, // Warm Mahogany
+    { bg: 'bg-forest-deepest', text: 'text-pastel-green', border: 'border-forest-night', tagBg: 'bg-forest-night/40 text-pastel-green/90', lineBg: 'bg-forest' }, // Forest Moss
+    { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' }, // Dark Aubergine
+    { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' }, // Slate Ocean
+    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-sand-muted' }, // Vintage Parchment
   ];
   return themes[sum % themes.length];
 };
@@ -177,7 +177,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage className="max-w-[220px] truncate font-semibold text-[#483d31] sm:max-w-xs">
+              <BreadcrumbPage className="max-w-[220px] truncate font-semibold text-earth sm:max-w-xs">
                 {doc.title}
               </BreadcrumbPage>
             </BreadcrumbItem>
@@ -186,7 +186,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
         <Link
           href="/documents"
-          className="inline-flex items-center gap-2 rounded-md border-2 border-[#ebdcb9] bg-[#fcf9f2] px-3.5 py-1.5 text-xs font-semibold text-[#635748] transition-colors hover:bg-[#ebdcb9]/20"
+          className="inline-flex items-center gap-2 rounded-md border-2 border-sand bg-warm-cream px-3.5 py-1.5 text-xs font-semibold text-earth-muted transition-colors hover:bg-sand/20"
         >
           <ArrowLeft className="size-3.5" />
           Quay lại kho
@@ -198,13 +198,13 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
         {/* Left main area (Document info & Tabs) */}
         <div className="space-y-8 lg:col-span-8">
-          <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-sm">
+          <Card className="border-2 border-sand-light bg-warm-cream/70 rounded-xl overflow-hidden shadow-sm">
             <CardContent className="p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start">
 
               {/* Left: Document Cover Frame */}
               <div className="w-full md:w-auto shrink-0 flex flex-col items-center">
                 <div
-                  className="relative aspect-[1/1.38] w-48 sm:w-56 md:w-60 overflow-hidden rounded-lg border border-[#e6dfd3] bg-white group cursor-pointer"
+                  className="relative aspect-[1/1.38] w-48 sm:w-56 md:w-60 overflow-hidden rounded-lg border border-sand-light bg-white group cursor-pointer"
                   onClick={() => {
                     if (allPreviewImages.length > 0) {
                       setSelectedImageIndex(0);
@@ -244,7 +244,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                             {doc.title}
                           </h3>
                           <div className="w-8 h-px bg-current opacity-35 mx-auto my-2 relative">
-                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-1.5 rotate-45 bg-[#ebdcb9] dark:bg-stone-900 border border-current"></div>
+                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-1.5 rotate-45 bg-sand dark:bg-stone-900 border border-current"></div>
                           </div>
                           <p className="text-[10px] italic opacity-85 line-clamp-1">
                             {doc.author}
@@ -280,7 +280,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 {/* Category & Status Badges */}
                 <div className="flex flex-wrap items-center gap-2">
                   {doc.category && (
-                    <Badge variant="secondary" className="text-xs font-semibold px-2.5 py-0.5 border-[#ebdcb9]">
+                    <Badge variant="secondary" className="text-xs font-semibold px-2.5 py-0.5 border-sand">
                       {doc.category.name}
                     </Badge>
                   )}
@@ -296,13 +296,13 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
                 {/* Main Title & Bookmark Button */}
                 <div className="flex items-start justify-between gap-4">
-                  <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-[#483d31]">
+                  <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-earth">
                     {doc.title}
                   </h1>
                   <Button
                     variant={bookmarked ? "default" : "outline"}
                     size="icon"
-                    className="shrink-0 rounded-full border-[#ebdcb9] hover:bg-[#ebdcb9]/20 h-10 w-10"
+                    className="shrink-0 rounded-full border-sand hover:bg-sand/20 h-10 w-10"
                     onClick={handleBookmark}
                     disabled={isBookmarkLoading}
                     title={bookmarked ? "Bỏ lưu tài liệu" : "Lưu tài liệu"}
@@ -310,15 +310,15 @@ export function DocumentDetailClient({ document: doc }: Props) {
                     {isBookmarkLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin text-primary" />
                     ) : bookmarked ? (
-                      <BookmarkCheck className="w-5 h-5 text-[#4c6b54] fill-[#4c6b54]" />
+                      <BookmarkCheck className="w-5 h-5 text-forest fill-forest" />
                     ) : (
-                      <Bookmark className="w-5 h-5 text-[#8c7e6c]" />
+                      <Bookmark className="w-5 h-5 text-earth-lighter" />
                     )}
                   </Button>
                 </div>
 
                 {/* Author & Stats Line */}
-                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-[#635748]">
+                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-earth-muted">
                   <div className="flex items-center gap-1.5">
                     <BookOpen className="size-4 text-muted-foreground" />
                     <span>Tác giả: <strong className="text-foreground font-semibold">{doc.author || 'Khuyết danh'}</strong></span>
@@ -344,16 +344,16 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
                 {/* File Specs Mini Chips */}
                 <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <Badge variant="outline" className="border-[#ebdcb9] bg-[#fcf9f2] text-[#635748] text-xs font-mono">
+                  <Badge variant="outline" className="border-sand bg-warm-cream text-earth-muted text-xs font-mono">
                     ĐỊNH DẠNG: {doc.fileFormat.toUpperCase()}
                   </Badge>
                   {doc.pageCount && (
-                    <Badge variant="outline" className="border-[#ebdcb9] bg-[#fcf9f2] text-[#635748] text-xs">
+                    <Badge variant="outline" className="border-sand bg-warm-cream text-earth-muted text-xs">
                       {doc.pageCount} trang
                     </Badge>
                   )}
                   {doc.fileSize && (
-                    <Badge variant="outline" className="border-[#ebdcb9] bg-[#fcf9f2] text-[#635748] text-xs">
+                    <Badge variant="outline" className="border-sand bg-warm-cream text-earth-muted text-xs">
                       {doc.fileSize >= 1024 ? (doc.fileSize / 1024).toFixed(1) + ' MB' : doc.fileSize + ' KB'}
                     </Badge>
                   )}
@@ -362,11 +362,11 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 {/* Tags */}
                 {doc.tags?.length ? (
                   <>
-                    <Separator className="bg-[#e6dfd3]/60 my-1" />
+                    <Separator className="bg-warm-sand/60 my-1" />
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <Tag className="size-3.5 text-[#8c7e6c] mr-1" />
+                      <Tag className="size-3.5 text-earth-lighter mr-1" />
                       {doc.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 bg-[#ebdcb9]/30 text-[#635748] border-none">
+                        <Badge key={tag} variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 bg-sand/30 text-earth-muted border-none">
                           {tag}
                         </Badge>
                       ))}
@@ -380,41 +380,41 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
           {/* Tab kẹp giấy Navigation panel */}
           <Tabs value={activeTab} onValueChange={setActiveTab} id="doc-tabs" className="w-full">
-            <TabsList className="w-full justify-start overflow-x-auto bg-transparent border-b-2 border-[#ebdcb9] h-auto p-0 gap-1 rounded-none">
+            <TabsList className="w-full justify-start overflow-x-auto bg-transparent border-b-2 border-sand h-auto p-0 gap-1 rounded-none">
               <TabsTrigger
                 value="description"
-                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-[#ebdcb9] data-[state=active]:bg-[#fcf9f2] data-[state=active]:text-[#4c6b54] data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
+                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Mô tả chi tiết
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
-                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-[#ebdcb9] data-[state=active]:bg-[#fcf9f2] data-[state=active]:text-[#4c6b54] data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
+                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Hình ảnh xem trước
               </TabsTrigger>
               <TabsTrigger
                 value="meta"
-                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-[#ebdcb9] data-[state=active]:bg-[#fcf9f2] data-[state=active]:text-[#4c6b54] data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
+                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Thông tin kỹ thuật
               </TabsTrigger>
               <TabsTrigger
                 value="reviews"
-                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-[#ebdcb9] data-[state=active]:bg-[#fcf9f2] data-[state=active]:text-[#4c6b54] data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
+                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Nhận xét & Đánh giá
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="description" className="mt-4 focus-visible:outline-none">
-              <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-xs">
+              <Card className="border-2 border-sand-light bg-warm-cream/70 rounded-xl overflow-hidden shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base font-bold text-[#483d31]">Nội dung tóm tắt</CardTitle>
+                  <CardTitle className="text-base font-bold text-earth">Nội dung tóm tắt</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">Giá trị sử dụng và tóm lược nội dung của ấn phẩm.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="w-full text-[#5a5045] text-sm">
+                  <div className="w-full text-earth-muted text-sm">
                     {doc.description ? (
                       <RichTextEditor
                         content={doc.description as unknown as Record<string, unknown>}
@@ -430,14 +430,14 @@ export function DocumentDetailClient({ document: doc }: Props) {
             </TabsContent>
 
             <TabsContent value="preview" className="mt-4 focus-visible:outline-none">
-              <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-xs">
+              <Card className="border-2 border-sand-light bg-warm-cream/70 rounded-xl overflow-hidden shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base font-bold text-[#483d31]">Hình ảnh xem trước</CardTitle>
+                  <CardTitle className="text-base font-bold text-earth">Hình ảnh xem trước</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">Tham khảo các trang mẫu được trích xuất từ tài liệu.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {allPreviewImages.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 rounded-lg overflow-hidden border-2 border-[#ebdcb9] bg-[#ebdcb9]/10 p-2">
+                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 rounded-lg overflow-hidden border-2 border-sand bg-sand/10 p-2">
                       {allPreviewImages.map((img, i) => (
                         <div
                           key={i}
@@ -470,15 +470,15 @@ export function DocumentDetailClient({ document: doc }: Props) {
             </TabsContent>
 
             <TabsContent value="meta" className="mt-4 focus-visible:outline-none">
-              <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-xs">
+              <Card className="border-2 border-sand-light bg-warm-cream/70 rounded-xl overflow-hidden shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base font-bold text-[#483d31]">Thông số tệp tin</CardTitle>
+                  <CardTitle className="text-base font-bold text-earth">Thông số tệp tin</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">Thông số kỹ thuật định dạng số của tài liệu.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3.5 text-xs text-[#5a5045]">
+                <CardContent className="space-y-3.5 text-xs text-earth-muted">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Định dạng file</span>
-                    <Badge variant="outline" className="border-[#ebdcb9] uppercase font-bold text-[10px] rounded-md">{doc.fileFormat}</Badge>
+                    <Badge variant="outline" className="border-sand uppercase font-bold text-[10px] rounded-md">{doc.fileFormat}</Badge>
                   </div>
                   {doc.pageCount !== undefined && doc.pageCount !== null ? (
                     <div className="flex items-center justify-between">
@@ -499,7 +499,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Điểm đánh giá</span>
                     <div className="flex items-center gap-1">
-                      <Star className="h-3.5 w-3.5 fill-[#cbb685] text-[#cbb685]" />
+                      <Star className="h-3.5 w-3.5 fill-gold text-gold" />
                       <span className="font-semibold">
                         {doc.rating?.average > 0 ? doc.rating.average.toFixed(1) : 'Chưa có'}
                       </span>
@@ -517,12 +517,12 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
         {/* Right side (Payment CTA box) */}
         <div className="lg:col-span-4 lg:sticky lg:top-20">
-          <Card className="overflow-hidden border border-[#e6dfd3] bg-[#fcf9f2] rounded-xl shadow-xs">
+          <Card className="overflow-hidden border border-sand-light bg-warm-cream rounded-xl shadow-xs">
             {/* Header: Pricing & Status */}
-            <CardHeader className="border-b border-[#e6dfd3] bg-[#f7f0e3]/70 p-5 space-y-2">
+            <CardHeader className="border-b border-sand-light bg-warm-ivory/70 p-5 space-y-2">
               {doc.originalPrice && doc.originalPrice > doc.price ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#8c7e6c] line-through font-medium">{formatPrice(doc.originalPrice)}</span>
+                  <span className="text-xs text-earth-lighter line-through font-medium">{formatPrice(doc.originalPrice)}</span>
                   <Badge variant="outline" className="text-[10px] font-semibold text-emerald-800 bg-emerald-500/10 border-emerald-300/60 py-0 px-1.5 rounded-sm">
                     Tiết kiệm {Math.round(((doc.originalPrice - doc.price) / doc.originalPrice) * 100)}%
                   </Badge>
@@ -530,16 +530,16 @@ export function DocumentDetailClient({ document: doc }: Props) {
               ) : null}
 
               <div className="flex items-baseline justify-between gap-2">
-                <CardTitle className={`text-3xl font-extrabold tracking-tight ${doc.isFree ? 'text-[#3c6b41]' : 'text-[#8e2929]'}`}>
+                <CardTitle className={`text-3xl font-extrabold tracking-tight ${doc.isFree ? 'text-forest-bright' : 'text-category-red'}`}>
                   {formatPrice(doc.price)}
                 </CardTitle>
-                <Badge variant="secondary" className="text-[11px] font-medium bg-[#ebdcb9]/60 text-[#5a5045] rounded-full border-0 px-2.5 py-0.5">
+                <Badge variant="secondary" className="text-[11px] font-medium bg-sand/60 text-earth-muted rounded-full border-0 px-2.5 py-0.5">
                   {doc.isFree ? 'Tài liệu mở' : 'Bản quyền trọn đời'}
                 </Badge>
               </div>
 
-              <CardDescription className="text-xs text-[#7e7363] flex items-center gap-1.5 pt-0.5">
-                <CheckCircle2 className="size-3.5 text-[#4c6b54] shrink-0" />
+              <CardDescription className="text-xs text-earth-light flex items-center gap-1.5 pt-0.5">
+                <CheckCircle2 className="size-3.5 text-forest shrink-0" />
                 <span>Sở hữu vĩnh viễn, đọc online và tải file gốc</span>
               </CardDescription>
             </CardHeader>
@@ -552,7 +552,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   <>
                     <Button 
                       asChild 
-                      className="w-full h-11 bg-[#4c6b54] hover:bg-[#3d5744] active:scale-[0.99] text-white font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
+                      className="w-full h-11 bg-forest hover:bg-forest-dark active:scale-[0.99] text-white font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
                       size="lg"
                     >
                       <Link href={`/documents/${doc.slug}/viewer`}>
@@ -563,12 +563,12 @@ export function DocumentDetailClient({ document: doc }: Props) {
                     {doc.allowDownload !== false && (
                       <Button 
                         variant="outline" 
-                        className="w-full h-11 border border-[#ebdcb9] bg-[#fbf7ee] hover:bg-[#f3ead7] text-[#4a3f33] hover:text-[#3b5341] font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
+                        className="w-full h-11 border border-sand bg-warm-cream hover:bg-warm-linen text-earth hover:text-forest-dark font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
                         size="lg" 
                         onClick={handleDownload} 
                         disabled={downloading}
                       >
-                        <Download className="size-4 text-[#4c6b54]" />
+                        <Download className="size-4 text-forest" />
                         <span>{downloading ? 'Đang chuẩn bị file...' : 'Tải tài liệu gốc'}</span>
                       </Button>
                     )}
@@ -580,7 +580,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   </>
                 ) : doc.isFree ? (
                   <Button
-                    className="w-full h-12 bg-[#4c6b54] hover:bg-[#3d5744] active:scale-[0.99] text-white font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
+                    className="w-full h-12 bg-forest hover:bg-forest-dark active:scale-[0.99] text-white font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
                     size="lg"
                     onClick={handleBuy}
                   >
@@ -589,7 +589,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   </Button>
                 ) : (
                   <Button 
-                    className="w-full h-12 bg-[#4c6b54] hover:bg-[#3d5744] active:scale-[0.99] text-white font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2 group" 
+                    className="w-full h-12 bg-forest hover:bg-forest-dark active:scale-[0.99] text-white font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2 group" 
                     size="lg" 
                     onClick={handleBuy}
                   >
@@ -602,7 +602,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 {!owned && allPreviewImages.length > 0 && (
                   <Button
                     variant="outline"
-                    className="w-full h-11 border border-[#ebdcb9] bg-[#fbf7ee] hover:bg-[#f3ead7] text-[#4a3f33] hover:text-[#3b5341] font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-between px-3.5"
+                    className="w-full h-11 border border-sand bg-warm-cream hover:bg-warm-linen text-earth hover:text-forest-dark font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-between px-3.5"
                     size="lg"
                     onClick={() => {
                       setActiveTab("preview");
@@ -611,10 +611,10 @@ export function DocumentDetailClient({ document: doc }: Props) {
                     }}
                   >
                     <span className="flex items-center gap-2">
-                      <Eye className="size-4 text-[#4c6b54]" />
+                      <Eye className="size-4 text-forest" />
                       <span>Xem trước hình ảnh</span>
                     </span>
-                    <span className="text-[11px] font-medium bg-[#ebdcb9]/70 text-[#5a5045] px-2.5 py-0.5 rounded-full">
+                    <span className="text-[11px] font-medium bg-sand/70 text-earth-muted px-2.5 py-0.5 rounded-full">
                       {allPreviewImages.length} ảnh
                     </span>
                   </Button>
@@ -622,49 +622,49 @@ export function DocumentDetailClient({ document: doc }: Props) {
               </div>
 
               {/* Specs & Metadata Breakdown */}
-              <div className="space-y-2 rounded-lg border border-[#e6dfd3] bg-[#f7f0e3]/40 p-3.5 text-xs text-[#5a5045]">
+              <div className="space-y-2 rounded-lg border border-sand-light bg-warm-ivory/40 p-3.5 text-xs text-earth-muted">
                 <div className="flex items-center justify-between">
-                  <span className="text-[#7e7363]">Tình trạng</span>
-                  <Badge variant={owned ? 'default' : 'secondary'} className={owned ? 'bg-[#4c6b54] text-white font-medium rounded-full py-0.5' : 'bg-[#ebdcb9]/60 text-[#5a5045] font-medium rounded-full border-0 py-0.5'}>
+                  <span className="text-earth-light">Tình trạng</span>
+                  <Badge variant={owned ? 'default' : 'secondary'} className={owned ? 'bg-forest text-white font-medium rounded-full py-0.5' : 'bg-sand/60 text-earth-muted font-medium rounded-full border-0 py-0.5'}>
                     {checking ? 'Đang kiểm tra...' : owned ? 'Đã sở hữu' : 'Chưa sở hữu'}
                   </Badge>
                 </div>
-                <div className="h-[1px] bg-[#e6dfd3]/60" />
+                <div className="h-[1px] bg-warm-sand/60" />
                 <div className="flex items-center justify-between">
-                  <span className="text-[#7e7363]">Lượt tải</span>
-                  <span className="font-semibold text-[#483d31]">{doc.purchaseCount || 0} bản</span>
+                  <span className="text-earth-light">Lượt tải</span>
+                  <span className="font-semibold text-earth">{doc.purchaseCount || 0} bản</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#7e7363]">Lượt xem</span>
-                  <span className="font-semibold text-[#483d31]">{doc.viewCount || 0} lượt</span>
+                  <span className="text-earth-light">Lượt xem</span>
+                  <span className="font-semibold text-earth">{doc.viewCount || 0} lượt</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#7e7363]">Đánh giá trung bình</span>
-                  <span className="inline-flex items-center gap-1 font-semibold text-[#483d31]">
-                    <Star className="size-3 fill-[#cbb685] text-[#cbb685]" />
+                  <span className="text-earth-light">Đánh giá trung bình</span>
+                  <span className="inline-flex items-center gap-1 font-semibold text-earth">
+                    <Star className="size-3 fill-gold text-gold" />
                     {doc.rating?.average > 0 ? doc.rating.average.toFixed(1) : 'Chưa có'}
                   </span>
                 </div>
               </div>
 
               {/* Ownership Guarantees */}
-              <div className="space-y-2 rounded-lg border border-[#e6dfd3]/60 bg-[#fcf9f2] p-3.5 text-xs text-[#6e6353]">
-                <p className="font-semibold text-[#483d31] text-[11px] uppercase tracking-wider">Quyền lợi khi sở hữu</p>
+              <div className="space-y-2 rounded-lg border border-sand-light/60 bg-warm-cream p-3.5 text-xs text-earth-muted">
+                <p className="font-semibold text-earth text-[11px] uppercase tracking-wider">Quyền lợi khi sở hữu</p>
                 <div className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 size-3.5 text-[#4c6b54] shrink-0" />
+                  <CheckCircle2 className="mt-0.5 size-3.5 text-forest shrink-0" />
                   <span>Mở khóa đọc online và tải file gốc ngay lập tức</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 size-3.5 text-[#4c6b54] shrink-0" />
+                  <CheckCircle2 className="mt-0.5 size-3.5 text-forest shrink-0" />
                   <span>Lưu trữ vĩnh viễn trong tủ sách tài khoản của bạn</span>
                 </div>
               </div>
 
               {/* Related Article Link */}
               {doc.relatedArticle ? (
-                <Button asChild variant="outline" className="w-full h-9 border border-[#ebdcb9] bg-[#fbf7ee] hover:bg-[#f3ead7] text-[#4a3f33] hover:text-[#3b5341] font-medium text-xs rounded-md">
+                <Button asChild variant="outline" className="w-full h-9 border border-sand bg-warm-cream hover:bg-warm-linen text-earth hover:text-forest-dark font-medium text-xs rounded-md">
                   <Link href={`/articles/${doc.relatedArticle.slug}`}>
-                    <BookOpen className="mr-2 size-3.5 text-[#4c6b54]" />
+                    <BookOpen className="mr-2 size-3.5 text-forest" />
                     Xem bài phân tích đính kèm
                   </Link>
                 </Button>

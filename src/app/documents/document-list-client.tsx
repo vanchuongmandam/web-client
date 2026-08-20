@@ -87,11 +87,11 @@ const getBookCoverTheme = (docId: string) => {
     sum += docId.charCodeAt(i);
   }
   const themes = [
-    { bg: 'bg-[#5c3e35]', text: 'text-[#f4eae1]', border: 'border-[#432d27]', tagBg: 'bg-[#432d27]/40 text-[#f4eae1]/90', lineBg: 'bg-[#a37055]' }, // Warm Mahogany
-    { bg: 'bg-[#2b3a32]', text: 'text-[#e9f1e8]', border: 'border-[#1d2722]', tagBg: 'bg-[#1d2722]/40 text-[#e9f1e8]/90', lineBg: 'bg-[#526f5c]' }, // Forest Moss
-    { bg: 'bg-[#3b2b3a]', text: 'text-[#f5eaf4]', border: 'border-[#261c25]', tagBg: 'bg-[#261c25]/40 text-[#f5eaf4]/90', lineBg: 'bg-[#7a5879]' }, // Dark Aubergine
-    { bg: 'bg-[#1f2d3d]', text: 'text-[#e9f1f6]', border: 'border-[#131b25]', tagBg: 'bg-[#131b25]/40 text-[#e9f1f6]/90', lineBg: 'bg-[#4f6b8c]' }, // Slate Ocean
-    { bg: 'bg-[#e2d6c5]', text: 'text-[#3e342a]', border: 'border-[#ccbfae]', tagBg: 'bg-[#3e342a]/15 text-[#3e342a]/95', lineBg: 'bg-[#bca68d]' }, // Vintage Parchment
+    { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' }, // Warm Mahogany
+    { bg: 'bg-forest-deepest', text: 'text-pastel-green', border: 'border-forest-night', tagBg: 'bg-forest-night/40 text-pastel-green/90', lineBg: 'bg-forest' }, // Forest Moss
+    { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' }, // Dark Aubergine
+    { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' }, // Slate Ocean
+    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-sand-muted' }, // Vintage Parchment
   ];
   return themes[sum % themes.length];
 };
@@ -237,11 +237,11 @@ export function DocumentListClient({
   const FilterPanel = () => (
     <div className="flex flex-col gap-5 font-sans">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-[#4c6b54] flex items-center gap-2">
+        <h3 className="text-lg font-bold text-forest flex items-center gap-2">
           <SlidersHorizontal className="size-4" /> Tinh chỉnh kết quả
         </h3>
         {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs text-[#8e2929] hover:text-[#8e2929]/80 hover:bg-transparent p-0 h-auto">
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs text-category-red hover:text-category-red/80 hover:bg-transparent p-0 h-auto">
             <FilterX className="mr-1 size-3.5" /> Xóa lọc
           </Button>
         )}
@@ -251,17 +251,17 @@ export function DocumentListClient({
 
       {/* Categories Filter */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-[#5a5045] flex items-center gap-1.5">
-          <Layers className="size-3.5 text-[#888072]" /> Chuyên mục tài liệu
+        <label className="text-sm font-semibold text-earth-muted flex items-center gap-1.5">
+          <Layers className="size-3.5 text-earth-lighter" /> Chuyên mục tài liệu
         </label>
         <Select
           value={currentCategory || 'all'}
           onValueChange={(v) => updateFilter('category', v === 'all' ? undefined : v)}
         >
-          <SelectTrigger className="w-full bg-[#fcf9f2] border-2 border-[#ebdcb9] hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
+          <SelectTrigger className="w-full bg-warm-cream border-2 border-sand hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
             <SelectValue placeholder="Tất cả chuyên mục" />
           </SelectTrigger>
-          <SelectContent className="bg-[#fcf9f2] border-[#ebdcb9]">
+          <SelectContent className="bg-warm-cream border-sand">
             <SelectItem value="all">Tất cả chuyên mục</SelectItem>
             {categories.map((cat) => (
               <SelectItem key={cat._id} value={cat._id}>
@@ -274,17 +274,17 @@ export function DocumentListClient({
 
       {/* Collections Filter */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-[#5a5045] flex items-center gap-1.5">
-          <Sparkles className="size-3.5 text-[#888072]" /> Bộ sưu tập đề thi
+        <label className="text-sm font-semibold text-earth-muted flex items-center gap-1.5">
+          <Sparkles className="size-3.5 text-earth-lighter" /> Bộ sưu tập đề thi
         </label>
         <Select
           value={currentTag || 'all'}
           onValueChange={(v) => updateFilter('tag', v === 'all' ? undefined : v)}
         >
-          <SelectTrigger className="w-full bg-[#fcf9f2] border-2 border-[#ebdcb9] hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
+          <SelectTrigger className="w-full bg-warm-cream border-2 border-sand hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
             <SelectValue placeholder="Tất cả chuyên đề thi" />
           </SelectTrigger>
-          <SelectContent className="bg-[#fcf9f2] border-[#ebdcb9]">
+          <SelectContent className="bg-warm-cream border-sand">
             <SelectItem value="all">Tất cả chuyên đề thi</SelectItem>
             {collections.map((col) => (
               <SelectItem key={col.slug} value={col.slug}>
@@ -308,31 +308,31 @@ export function DocumentListClient({
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage className="text-[#483d31] font-semibold">Tủ sách Tài liệu</BreadcrumbPage>
+              <BreadcrumbPage className="text-earth font-semibold">Tủ sách Tài liệu</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
       </div>
 
       {/* 1. LITERARY HERO SECTION */}
-      <div className="mb-10 text-center md:text-left relative py-8 px-6 md:px-10 rounded-md bg-gradient-to-br from-[#f6ecd9] to-[#ebdcb9] border-2 border-[#e6d0a7]/60 overflow-hidden shadow-sm">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#ebdcb9] opacity-30 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="mb-10 text-center md:text-left relative py-8 px-6 md:px-10 rounded-md bg-gradient-to-br from-warm-linen to-sand border-2 border-sand/60 overflow-hidden shadow-sm">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-sand opacity-30 rounded-full blur-3xl pointer-events-none"></div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-[#4c6b54] leading-tight">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-forest leading-tight">
               Tủ Sách Tài Liệu
             </h1>
-            <p className="mt-3 text-[#6e6353] font-medium italic text-base leading-relaxed">
+            <p className="mt-3 text-earth-muted font-medium italic text-base leading-relaxed">
               &ldquo;Nơi gìn giữ và chia sẻ những ấn phẩm văn chương chọn lọc, chuyên đề lý luận chuyên sâu cùng các đề thi tốt nghiệp, học sinh giỏi quốc gia đạt chuẩn học thuật.&rdquo;
             </p>
 
             {/* Quick Collections Chips */}
             <div className="mt-6 flex flex-wrap justify-center md:justify-start items-center gap-2 font-sans">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#8c7e6c] mr-1">Bộ sưu tập:</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-earth-lighter mr-1">Bộ sưu tập:</span>
               <Button
                 size="sm"
                 variant={!currentTag ? "default" : "outline"}
-                className={`h-7 px-3 text-xs rounded-md border border-primary/20 ${!currentTag ? 'bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341]' : 'bg-[#fcf9f2] text-foreground hover:bg-[#ebdcb9]/40'}`}
+                className={`h-7 px-3 text-xs rounded-md border border-primary/20 ${!currentTag ? 'bg-forest text-pastel-pink hover:bg-forest-dark' : 'bg-warm-cream text-foreground hover:bg-sand/40'}`}
                 onClick={() => updateFilter('tag', undefined)}
               >
                 Tất cả
@@ -342,7 +342,7 @@ export function DocumentListClient({
                   key={tag.slug}
                   size="sm"
                   variant={currentTag === tag.slug ? "default" : "outline"}
-                  className={`h-7 px-3 text-xs rounded-md border border-primary/20 transition-all ${currentTag === tag.slug ? 'bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] font-semibold' : 'bg-[#fcf9f2] text-foreground hover:bg-[#ebdcb9]/40'}`}
+                  className={`h-7 px-3 text-xs rounded-md border border-primary/20 transition-all ${currentTag === tag.slug ? 'bg-forest text-pastel-pink hover:bg-forest-dark font-semibold' : 'bg-warm-cream text-foreground hover:bg-sand/40'}`}
                   onClick={() => updateFilter('tag', currentTag === tag.slug ? undefined : tag.slug)}
                 >
                   {tag.name}
@@ -352,14 +352,14 @@ export function DocumentListClient({
           </div>
 
           {/* Elegant Stats Card */}
-          <div className="flex flex-row md:flex-col gap-4 shrink-0 bg-[#fbf7ee] p-5 rounded-md border border-[#ebdcb9] shadow-sm font-sans w-full md:w-auto">
+          <div className="flex flex-row md:flex-col gap-4 shrink-0 bg-warm-cream p-5 rounded-md border border-sand shadow-sm font-sans w-full md:w-auto">
             <div className="flex-1 text-center md:text-left min-w-[100px]">
-              <p className="text-2xl font-black text-[#4c6b54] tracking-tight">{initialPagination.total || 0}</p>
+              <p className="text-2xl font-black text-forest tracking-tight">{initialPagination.total || 0}</p>
               <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mt-0.5">Tác phẩm</p>
             </div>
             <div className="hidden md:block border-t border-border/60 my-1"></div>
             <div className="flex-1 text-center md:text-left min-w-[100px]">
-              <p className="text-2xl font-black text-[#a06b4c] tracking-tight">12.4K+</p>
+              <p className="text-2xl font-black text-category-copper tracking-tight">12.4K+</p>
               <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mt-0.5">Lượt tải</p>
             </div>
           </div>
@@ -368,31 +368,31 @@ export function DocumentListClient({
 
       {/* 2. POWERFUL SEARCH AREA */}
       <div className="mb-8 font-sans max-w-4xl mx-auto">
-        <form onSubmit={handleFormSearch} className="relative flex items-center w-full shadow-sm hover:shadow-sm transition-shadow rounded-md overflow-hidden border-2 border-[#ebdcb9] focus-within:border-primary/60 bg-[#fcf9f2]">
+        <form onSubmit={handleFormSearch} className="relative flex items-center w-full shadow-sm hover:shadow-sm transition-shadow rounded-md overflow-hidden border-2 border-sand focus-within:border-primary/60 bg-warm-cream">
           <div className="pointer-events-none absolute inset-y-0 text-muted-foreground left-0 pl-4 flex items-center">
-            <Search className="size-5 text-[#8c7e6c]" />
+            <Search className="size-5 text-earth-lighter" />
           </div>
           <Input
             placeholder="Tìm kiếm tác phẩm, tác giả hoặc chuyên đề ôn thi bạn cần..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            className="pl-12 pr-28 h-14 text-base rounded-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#a69888]"
+            className="pl-12 pr-28 h-14 text-base rounded-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-earth-lighter"
           />
-          <Button type="submit" className="absolute right-1.5 h-11 px-5 rounded-md font-bold bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] transition-colors">
+          <Button type="submit" className="absolute right-1.5 h-11 px-5 rounded-md font-bold bg-forest text-pastel-pink hover:bg-forest-dark transition-colors">
             Tìm kiếm
           </Button>
         </form>
 
         {/* History and Popular Words */}
-        <div className="mt-3.5 flex flex-col gap-2 px-1 text-xs text-[#7e7363]">
+        <div className="mt-3.5 flex flex-col gap-2 px-1 text-xs text-earth-light">
           {recentSearches.length > 0 && (
             <div className="flex items-center flex-wrap gap-1.5">
-              <span className="flex items-center gap-1 font-semibold text-[#8c7e6c] uppercase tracking-wider text-[10px]">
+              <span className="flex items-center gap-1 font-semibold text-earth-lighter uppercase tracking-wider text-[10px]">
                 <History className="size-3" /> Đã tìm gần đây:
               </span>
               {recentSearches.map((s, idx) => (
-                <div key={idx} className="inline-flex items-center bg-[#f2e9d7] hover:bg-[#ebdcb9] rounded-md px-2 py-0.5 transition-colors">
-                  <button type="button" onClick={() => { setSearchValue(s); handleSearchSubmit(s); }} className="text-[#5a5045]">
+                <div key={idx} className="inline-flex items-center bg-warm-linen hover:bg-sand rounded-md px-2 py-0.5 transition-colors">
+                  <button type="button" onClick={() => { setSearchValue(s); handleSearchSubmit(s); }} className="text-earth-muted">
                     {s}
                   </button>
                 </div>
@@ -404,7 +404,7 @@ export function DocumentListClient({
           )}
 
           <div className="flex items-center flex-wrap gap-1.5 mt-1">
-            <span className="font-semibold text-[#8c7e6c] uppercase tracking-wider text-[10px] flex items-center gap-1">
+            <span className="font-semibold text-earth-lighter uppercase tracking-wider text-[10px] flex items-center gap-1">
               <Sparkles className="size-3" /> Từ khóa gợi ý:
             </span>
             {['Học sinh giỏi', 'Lý luận văn học', 'Nghị luận xã hội', 'Trần Đình Sử', 'Hà Tĩnh'].map((kw) => (
@@ -412,7 +412,7 @@ export function DocumentListClient({
                 key={kw}
                 type="button"
                 onClick={() => { setSearchValue(kw); handleSearchSubmit(kw); }}
-                className="bg-[#ebdcb9]/40 hover:bg-[#ebdcb9]/80 border border-[#e6d8c4] rounded-md px-2.5 py-0.5 text-[#635748] transition-colors"
+                className="bg-sand/40 hover:bg-sand/80 border border-sand-light rounded-md px-2.5 py-0.5 text-earth-muted transition-colors"
               >
                 {kw}
               </button>
@@ -425,7 +425,7 @@ export function DocumentListClient({
       <div className="flex flex-col lg:flex-row gap-8 items-start">
 
         {/* 3. SIDEBAR FILTERS (Desktop) */}
-        <aside className="hidden lg:block w-72 shrink-0 lg:sticky lg:top-20 bg-[#fbf7ee] rounded-md p-5 border-2 border-[#ebdcb9] shadow-sm">
+        <aside className="hidden lg:block w-72 shrink-0 lg:sticky lg:top-20 bg-warm-cream rounded-md p-5 border-2 border-sand shadow-sm">
           <FilterPanel />
         </aside>
 
@@ -435,7 +435,7 @@ export function DocumentListClient({
           {/* Header Controls for Main Grid */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4 font-sans border-b border-border/40 pb-4">
             <div>
-              <p className="text-sm text-[#7e7363] font-sans">
+              <p className="text-sm text-earth-light font-sans">
                 Tìm thấy <span className="font-bold text-foreground">{initialPagination.total}</span> tài liệu văn học
               </p>
             </div>
@@ -445,13 +445,13 @@ export function DocumentListClient({
               <div className="lg:hidden">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" className="h-9 px-3.5 border-[#ebdcb9] hover:bg-[#ebdcb9]/30 text-[#635748] text-xs rounded-md">
+                    <Button variant="outline" className="h-9 px-3.5 border-sand hover:bg-sand/30 text-earth-muted text-xs rounded-md">
                       <SlidersHorizontal className="mr-1.5 size-4" /> Bộ lọc
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="right" className="bg-[#fbf7ee] border-l-[#ebdcb9] w-80">
+                  <SheetContent side="right" className="bg-warm-cream border-l-sand w-80">
                     <SheetHeader className="mb-4">
-                      <SheetTitle className="font-sans font-bold text-[#4c6b54]">Tìm kiếm tài liệu</SheetTitle>
+                      <SheetTitle className="font-sans font-bold text-forest">Tìm kiếm tài liệu</SheetTitle>
                       <SheetDescription>Điều chỉnh các thông số để khám phá thư viện tài liệu.</SheetDescription>
                     </SheetHeader>
                     <div className="mt-4">
@@ -465,10 +465,10 @@ export function DocumentListClient({
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap hidden sm:inline">Sắp xếp:</span>
                 <Select value={currentSort || '-createdAt'} onValueChange={(v) => updateFilter('sort', v)}>
-                  <SelectTrigger className="w-[170px] bg-[#fcf9f2] border-2 border-[#ebdcb9] hover:border-primary/45 rounded-md h-9 text-xs">
+                  <SelectTrigger className="w-[170px] bg-warm-cream border-2 border-sand hover:border-primary/45 rounded-md h-9 text-xs">
                     <SelectValue placeholder="Mới nhất" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#fcf9f2] border-[#ebdcb9] text-xs">
+                  <SelectContent className="bg-warm-cream border-sand text-xs">
                     {sortOptions.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
@@ -485,20 +485,20 @@ export function DocumentListClient({
             <div className="mb-6 flex flex-wrap gap-2 items-center font-sans">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Lọc hiện tại:</span>
               {currentCategory && (
-                <Badge variant="secondary" className="bg-[#ebdcb9] text-[#635748] border-none flex items-center gap-1 text-xs">
+                <Badge variant="secondary" className="bg-sand text-earth-muted border-none flex items-center gap-1 text-xs">
                   Chuyên mục: {categories.find(c => c._id === currentCategory)?.name || currentCategory}
                   <button onClick={() => updateFilter('category', undefined)} className="font-bold hover:text-red-700 ml-1">×</button>
                 </Badge>
               )}
 
               {currentTag && (
-                <Badge variant="secondary" className="bg-[#ebdcb9] text-[#635748] border-none flex items-center gap-1 text-xs">
+                <Badge variant="secondary" className="bg-sand text-earth-muted border-none flex items-center gap-1 text-xs">
                   Thẻ: {currentTag}
                   <button onClick={() => updateFilter('tag', undefined)} className="font-bold hover:text-red-700 ml-1">×</button>
                 </Badge>
               )}
               {currentSearch && (
-                <Badge variant="secondary" className="bg-[#ebdcb9] text-[#635748] border-none flex items-center gap-1 text-xs">
+                <Badge variant="secondary" className="bg-sand text-earth-muted border-none flex items-center gap-1 text-xs">
                   Từ khóa: &ldquo;{currentSearch}&rdquo;
                   <button onClick={() => updateFilter('search', undefined)} className="font-bold hover:text-red-700 ml-1">×</button>
                 </Badge>
@@ -512,15 +512,15 @@ export function DocumentListClient({
           {/* 5. MARKETPLACE GRID */}
           {initialDocuments.length === 0 ? (
             /* EMPTY STATES */
-            <div className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-[#ebdcb9] rounded-md bg-[#ebdcb9]/10 max-w-2xl mx-auto font-sans">
-              <div className="bg-[#fcf9f2] border border-[#ebdcb9] p-5 rounded-md mb-4 shadow-sm text-stone-500">
+            <div className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-sand rounded-md bg-sand/10 max-w-2xl mx-auto font-sans">
+              <div className="bg-warm-cream border border-sand p-5 rounded-md mb-4 shadow-sm text-stone-500">
                 <BookOpen className="size-10 opacity-75" />
               </div>
-              <h3 className="text-xl font-bold text-[#4c6b54] mb-2">Trang Sách Trống Trơn</h3>
-              <p className="text-[#7e7363] italic max-w-md leading-relaxed mb-6">
+              <h3 className="text-xl font-bold text-forest mb-2">Trang Sách Trống Trơn</h3>
+              <p className="text-earth-light italic max-w-md leading-relaxed mb-6">
                 Rất tiếc, không tìm thấy tài liệu nào khớp với các bộ lọc hiện tại của bạn. Hãy thử thay đổi từ khóa tìm kiếm hoặc bấm nút bên dưới để xem toàn bộ tác phẩm.
               </p>
-              <Button onClick={clearFilters} className="font-semibold bg-[#4c6b54] text-[#f7eaf0] hover:bg-[#3b5341] h-10 px-5 rounded-md shadow-sm">
+              <Button onClick={clearFilters} className="font-semibold bg-forest text-pastel-pink hover:bg-forest-dark h-10 px-5 rounded-md shadow-sm">
                 Xem toàn bộ Tủ sách
               </Button>
             </div>
@@ -548,21 +548,21 @@ export function DocumentListClient({
                       key={doc._id}
                       className="block group h-full"
                     >
-                      <Card className="h-full flex flex-col border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 hover:bg-[#fcf9f2] rounded-xl overflow-hidden hover:border-[#4c6b54]/60 transition-all duration-300 shadow-xs hover:-translate-y-0.5">
+                      <Card className="h-full flex flex-col border-2 border-sand-light bg-warm-cream/70 hover:bg-warm-cream rounded-xl overflow-hidden hover:border-forest/60 transition-all duration-300 shadow-xs hover:-translate-y-0.5">
 
                         {/* 5A. BOOK COVER CONTAINER (FULL-BLEED) */}
-                        <div className="relative w-full aspect-[4/3] overflow-hidden bg-[#f2ebd9]/40 border-b border-[#e6dfd3]">
+                        <div className="relative w-full aspect-[4/3] overflow-hidden bg-warm-linen/40 border-b border-sand-light">
 
                           {/* Bookmark button */}
                           <button
                             type="button"
                             onClick={(e) => toggleSaveDocument(doc._id, e)}
-                            className="absolute top-2.5 right-2.5 z-20 size-7 flex items-center justify-center rounded-full bg-[#fcf9f2]/90 backdrop-blur-sm border border-[#e6dfd3] hover:border-primary/50 text-[#8c7e6c] hover:text-[#4c6b54] transition-all hover:scale-105 shadow-xs"
+                            className="absolute top-2.5 right-2.5 z-20 size-7 flex items-center justify-center rounded-full bg-warm-cream/90 backdrop-blur-sm border border-sand-light hover:border-primary/50 text-earth-lighter hover:text-forest transition-all hover:scale-105 shadow-xs"
                           >
                             {isBookmarkLoading === doc._id ? (
                               <Loader2 className="size-3.5 animate-spin text-primary" />
                             ) : (
-                              <Bookmark className={`size-3.5 ${isSaved ? 'fill-[#4c6b54] text-[#4c6b54]' : ''}`} />
+                              <Bookmark className={`size-3.5 ${isSaved ? 'fill-forest text-forest' : ''}`} />
                             )}
                           </button>
 
@@ -600,7 +600,7 @@ export function DocumentListClient({
 
                                     {/* Vintage Decorative Book Ornament */}
                                     <div className="w-8 h-[0.5px] bg-current opacity-30 mx-auto my-1.5 relative rounded-full">
-                                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-1 rotate-45 bg-[#fcf9f2] dark:bg-stone-900 border border-current"></div>
+                                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-1 rotate-45 bg-warm-cream dark:bg-stone-900 border border-current"></div>
                                     </div>
 
                                     <p className="text-[9px] italic opacity-85 line-clamp-1">
@@ -640,14 +640,14 @@ export function DocumentListClient({
                                 </Badge>
                               )}
                               {doc.uploader && (
-                                <Badge variant="outline" className="text-[10px] font-semibold px-2 py-0 text-muted-foreground border-[#ebdcb9] rounded-full">
+                                <Badge variant="outline" className="text-[10px] font-semibold px-2 py-0 text-muted-foreground border-sand rounded-full">
                                   Đã kiểm định
                                 </Badge>
                               )}
                             </div>
 
                             {/* Book Title text display */}
-                            <h4 className="font-bold text-sm text-[#483d31] leading-snug line-clamp-2 group-hover:text-primary transition-colors mb-1">
+                            <h4 className="font-bold text-sm text-earth leading-snug line-clamp-2 group-hover:text-primary transition-colors mb-1">
                               {doc.title}
                             </h4>
                             <p className="text-[11px] text-muted-foreground italic mb-2">Tác giả: {doc.author}</p>
@@ -655,10 +655,10 @@ export function DocumentListClient({
 
                           {/* Stats and Meta details */}
                           <div className="mt-auto">
-                            <div className="flex items-center justify-between text-[10px] text-[#8c7e6c] border-t border-[#e6dfd3]/60 pt-2">
+                            <div className="flex items-center justify-between text-[10px] text-earth-lighter border-t border-sand-light/60 pt-2">
                               <span className="flex items-center gap-0.5">
-                                <Star className="h-3 w-3 fill-[#cbb685] text-[#cbb685]" />
-                                <strong className="text-[#5a5045]">{averageRating > 0 ? averageRating.toFixed(1) : 'Chưa có'}</strong>
+                                <Star className="h-3 w-3 fill-gold text-gold" />
+                                <strong className="text-earth-muted">{averageRating > 0 ? averageRating.toFixed(1) : 'Chưa có'}</strong>
                                 {doc.rating?.count > 0 && `(${doc.rating.count})`}
                               </span>
 
@@ -676,7 +676,7 @@ export function DocumentListClient({
                         </CardContent>
 
                         {/* 5C. PRICE & DOWNLOAD BUTTON */}
-                        <CardFooter className="p-3 pt-0 border-t border-[#e6dfd3]/40 bg-[#fcf9f2]/40">
+                        <CardFooter className="p-3 pt-0 border-t border-sand-light/40 bg-warm-cream/40">
                           <div className="w-full pt-2 flex items-center justify-between">
                             <span className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">Ấn phí</span>
                             <div className="flex items-baseline">
@@ -685,7 +685,7 @@ export function DocumentListClient({
                                   {formatPrice(doc.originalPrice)}
                                 </span>
                               )}
-                              <span className={`text-sm font-extrabold tracking-tight ${doc.isFree ? 'text-[#3c6b41]' : 'text-[#8e2929]'}`}>
+                              <span className={`text-sm font-extrabold tracking-tight ${doc.isFree ? 'text-forest-bright' : 'text-category-red'}`}>
                                 {formatPrice(doc.price)}
                               </span>
                             </div>

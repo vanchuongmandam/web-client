@@ -36,7 +36,7 @@ export function QuoteCardGenerator({ initialText = "", author = "Văn Chương M
     const themes = {
         light: "bg-white text-gray-900 border-gray-200",
         dark: "bg-slate-900 text-white border-slate-800",
-        paper: "bg-[#fdfbf7] text-[#4a4a4a] border-[#e6e1d5] bg-[url('https://www.transparenttextures.com/patterns/cardboard-flat.png')]",
+        paper: "bg-warm-cream text-earth-muted border-sand-light bg-[url('https://www.transparenttextures.com/patterns/cardboard-flat.png')]",
     };
 
     return (

@@ -533,7 +533,7 @@ export default function NewDocumentPage() {
                     {form.previewImages.map((imgUrl, idx) => {
                       const isCover = form.coverImage === imgUrl;
                       return (
-                        <div key={idx} className={`relative aspect-[1/1.38] rounded-xl border-2 overflow-hidden bg-[#fcf9f2] p-1 shadow-sm transition-all group ${isCover ? 'border-[#4c6b54] ring-2 ring-[#4c6b54]/20' : 'border-zinc-200'}`}>
+                        <div key={idx} className={`relative aspect-[1/1.38] rounded-xl border-2 overflow-hidden bg-warm-cream p-1 shadow-sm transition-all group ${isCover ? 'border-forest ring-2 ring-forest/20' : 'border-zinc-200'}`}>
                           <img 
                             src={imgUrl} 
                             alt={`Preview ${idx + 1}`} 
@@ -564,7 +564,7 @@ export default function NewDocumentPage() {
                               type="button"
                               variant={isCover ? "default" : "secondary"}
                               size="sm"
-                              className="w-full font-bold text-xs h-7 bg-[#4c6b54] text-white hover:bg-[#3b5341]"
+                              className="w-full font-bold text-xs h-7 bg-forest text-white hover:bg-forest-dark"
                               onClick={() => handleChange("coverImage", imgUrl)}
                             >
                               {isCover ? "Ảnh bìa chính" : "Chọn làm ảnh bìa"}
@@ -573,7 +573,7 @@ export default function NewDocumentPage() {
                           
                           {/* Banner Indicator badge when not hovered */}
                           {isCover && (
-                            <Badge className="absolute top-2 left-2 bg-[#4c6b54] text-white border-none text-[9px] font-bold py-0.5 px-1.5 shadow-sm">
+                            <Badge className="absolute top-2 left-2 bg-forest text-white border-none text-[9px] font-bold py-0.5 px-1.5 shadow-sm">
                               Ảnh bìa chính
                             </Badge>
                           )}

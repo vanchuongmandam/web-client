@@ -262,7 +262,7 @@ export function ArticleImageGallery({ media, articleId, articleTitle }: ArticleM
 
   return (
     <>
-      <div className="rounded-xl overflow-hidden my-6 border border-[#e6dfd3] shadow-xs">
+      <div className="rounded-xl overflow-hidden my-6 border border-sand-light shadow-xs">
         {renderGrid()}
       </div>
 

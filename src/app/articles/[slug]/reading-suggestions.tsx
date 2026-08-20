@@ -49,9 +49,9 @@ export default function ReadingSuggestions({ currentSlug, categoryId }: ReadingS
 
   return (
     <section>
-      <Card className="border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 rounded-xl overflow-hidden shadow-xs font-sans">
-        <CardHeader className="pb-3 border-b border-[#e6dfd3]">
-          <CardTitle className="flex items-center gap-3 font-sans text-xl text-[#4c6b54]">
+      <Card className="border-2 border-sand-light bg-warm-cream/70 rounded-xl overflow-hidden shadow-xs font-sans">
+        <CardHeader className="pb-3 border-b border-sand-light">
+          <CardTitle className="flex items-center gap-3 font-sans text-xl text-forest">
             <Lightbulb className="h-6 w-6 text-amber-600 animate-pulse" />
             <span>Gợi ý đọc thêm</span>
           </CardTitle>
@@ -61,9 +61,9 @@ export default function ReadingSuggestions({ currentSlug, categoryId }: ReadingS
         </CardHeader>
         <CardContent className="pt-5">
           {!isLoading && !hasFetched && suggestions.length === 0 && (
-             <div className="flex flex-col items-center justify-center text-center p-6 border-dashed border-2 border-[#e6dfd3] rounded-lg bg-white/50">
+             <div className="flex flex-col items-center justify-center text-center p-6 border-dashed border-2 border-sand-light rounded-lg bg-white/50">
                 <p className="text-muted-foreground text-sm mb-4">Nhấn nút để nhận đề xuất các bài đọc liên quan.</p>
-                <Button onClick={handleGetSuggestions} disabled={isLoading} className="bg-[#4c6b54] hover:bg-[#3d5643] text-white rounded-md">
+                <Button onClick={handleGetSuggestions} disabled={isLoading} className="bg-forest hover:bg-forest-dark text-white rounded-md">
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Tìm kiếm gợi ý
                 </Button>
@@ -72,15 +72,15 @@ export default function ReadingSuggestions({ currentSlug, categoryId }: ReadingS
 
           {isLoading && (
             <div className="flex flex-col items-center justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-[#4c6b54] mb-2" />
+              <Loader2 className="h-8 w-8 animate-spin text-forest mb-2" />
               <span className="text-muted-foreground text-sm">Đang tìm kiếm gợi ý đọc thêm...</span>
             </div>
           )}
 
           {!isLoading && error && (
-            <div className="text-center p-6 bg-white/50 border border-[#e6dfd3] rounded-lg">
+            <div className="text-center p-6 bg-white/50 border border-sand-light rounded-lg">
               <p className="text-destructive text-sm mb-3">{error}</p>
-              <Button onClick={handleGetSuggestions} variant="outline" className="border-[#4c6b54] text-[#4c6b54] hover:bg-[#fcf9f2] rounded-md">Thử lại</Button>
+              <Button onClick={handleGetSuggestions} variant="outline" className="border-forest text-forest hover:bg-warm-cream rounded-md">Thử lại</Button>
             </div>
           )}
 
@@ -89,9 +89,9 @@ export default function ReadingSuggestions({ currentSlug, categoryId }: ReadingS
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {suggestions.map((article) => (
                   <Link key={article.slug} href={`/articles/${article.slug}`}>
-                    <Card className="h-full border border-[#e6dfd3] bg-white rounded-lg hover:border-[#4c6b54] shadow-xs transition-all group duration-300">
+                    <Card className="h-full border border-sand-light bg-white rounded-lg hover:border-forest shadow-xs transition-all group duration-300">
                       <CardHeader className="p-4 pb-2">
-                        <CardTitle className="text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-[#4c6b54] transition-colors leading-snug">
+                        <CardTitle className="text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-forest transition-colors leading-snug">
                           {article.title}
                         </CardTitle>
                       </CardHeader>
@@ -108,7 +108,7 @@ export default function ReadingSuggestions({ currentSlug, categoryId }: ReadingS
                   </Link>
                 ))}
               </div>
-              <Button onClick={handleGetSuggestions} variant="link" className="mt-4 text-[#4c6b54] hover:text-[#3d5643] text-xs p-0 font-bold">
+              <Button onClick={handleGetSuggestions} variant="link" className="mt-4 text-forest hover:text-forest-dark text-xs p-0 font-bold">
                 Tải lại gợi ý khác
               </Button>
             </div>

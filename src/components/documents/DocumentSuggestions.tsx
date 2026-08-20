@@ -20,11 +20,11 @@ const getBookCoverTheme = (docId: string) => {
     sum += docId.charCodeAt(i);
   }
   const themes = [
-    { bg: 'bg-[#5c3e35]', text: 'text-[#f4eae1]', border: 'border-[#432d27]', tagBg: 'bg-[#432d27]/40 text-[#f4eae1]/90', lineBg: 'bg-[#a37055]' }, // Warm Mahogany
-    { bg: 'bg-[#2b3a32]', text: 'text-[#e9f1e8]', border: 'border-[#1d2722]', tagBg: 'bg-[#1d2722]/40 text-[#e9f1e8]/90', lineBg: 'bg-[#526f5c]' }, // Forest Moss
-    { bg: 'bg-[#3b2b3a]', text: 'text-[#f5eaf4]', border: 'border-[#261c25]', tagBg: 'bg-[#261c25]/40 text-[#f5eaf4]/90', lineBg: 'bg-[#7a5879]' }, // Dark Aubergine
-    { bg: 'bg-[#1f2d3d]', text: 'text-[#e9f1f6]', border: 'border-[#131b25]', tagBg: 'bg-[#131b25]/40 text-[#e9f1f6]/90', lineBg: 'bg-[#4f6b8c]' }, // Slate Ocean
-    { bg: 'bg-[#e2d6c5]', text: 'text-[#3e342a]', border: 'border-[#ccbfae]', tagBg: 'bg-[#3e342a]/15 text-[#3e342a]/95', lineBg: 'bg-[#bca68d]' }, // Vintage Parchment
+    { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' }, // Warm Mahogany
+    { bg: 'bg-forest-deepest', text: 'text-pastel-green', border: 'border-forest-night', tagBg: 'bg-forest-night/40 text-pastel-green/90', lineBg: 'bg-forest' }, // Forest Moss
+    { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' }, // Dark Aubergine
+    { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' }, // Slate Ocean
+    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-sand-muted' }, // Vintage Parchment
   ];
   return themes[sum % themes.length];
 };
@@ -41,10 +41,10 @@ function DocumentCard({ doc }: { doc: MarketDocument }) {
     (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
 
   return (
-    <Card className="overflow-hidden flex flex-col group h-full border-2 border-[#e6dfd3] bg-[#fcf9f2]/70 hover:bg-[#fcf9f2] rounded-xl hover:border-[#4c6b54]/60 transition-all duration-300 shadow-xs">
+    <Card className="overflow-hidden flex flex-col group h-full border-2 border-sand-light bg-warm-cream/70 hover:bg-warm-cream rounded-xl hover:border-forest/60 transition-all duration-300 shadow-xs">
       
       {/* Cover Image/Book container */}
-      <Link href={`/documents/${doc.slug}`} className="relative w-full aspect-[4/3] overflow-hidden bg-[#f2ebd9]/40 border-b border-[#e6dfd3] block">
+      <Link href={`/documents/${doc.slug}`} className="relative w-full aspect-[4/3] overflow-hidden bg-warm-linen/40 border-b border-sand-light block">
         {coverImg ? (
           <img 
             src={coverImg} 
@@ -89,28 +89,28 @@ function DocumentCard({ doc }: { doc: MarketDocument }) {
       <CardContent className="p-3 flex-1 flex flex-col justify-between">
         <div>
           <Link href={`/documents/${doc.slug}`}>
-            <h3 className="font-bold text-sm text-[#483d31] line-clamp-2 hover:text-primary transition-colors leading-snug mb-1" title={doc.title}>
+            <h3 className="font-bold text-sm text-earth line-clamp-2 hover:text-primary transition-colors leading-snug mb-1" title={doc.title}>
               {doc.title}
             </h3>
           </Link>
           <p className="text-[11px] text-muted-foreground italic mt-0.5 line-clamp-1">Tác giả: {doc.author || 'Khuyết danh'}</p>
         </div>
         
-        <div className="mt-2.5 flex items-center justify-between text-[10px] text-[#8c7e6c] border-t border-[#e6dfd3]/60 pt-2">
+        <div className="mt-2.5 flex items-center justify-between text-[10px] text-earth-lighter border-t border-sand-light/60 pt-2">
           <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" /> {doc.viewCount || 0}</span>
           <span className="flex items-center gap-0.5">
-            <Star className="w-3 h-3 fill-[#cbb685] text-[#cbb685]" /> 
-            <strong className="text-[#5a5045]">{doc.rating?.average > 0 ? doc.rating.average.toFixed(1) : 'Chưa có'}</strong>
+            <Star className="w-3 h-3 fill-gold text-gold" /> 
+            <strong className="text-earth-muted">{doc.rating?.average > 0 ? doc.rating.average.toFixed(1) : 'Chưa có'}</strong>
           </span>
           <span className="flex items-center gap-0.5"><Download className="w-3 h-3" /> {doc.purchaseCount || 0}</span>
         </div>
       </CardContent>
 
       {/* Card Footer pricing */}
-      <CardFooter className="p-3 pt-0 border-t border-[#e6dfd3]/40 bg-[#fcf9f2]/40 text-xs">
+      <CardFooter className="p-3 pt-0 border-t border-sand-light/40 bg-warm-cream/40 text-xs">
         <div className="w-full pt-2 flex items-center justify-between">
           <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Ấn phí</span>
-          <span className={`text-sm font-extrabold tracking-tight ${doc.isFree ? 'text-[#3c6b41]' : 'text-[#8e2929]'}`}>
+          <span className={`text-sm font-extrabold tracking-tight ${doc.isFree ? 'text-forest-bright' : 'text-category-red'}`}>
             {formatPrice(doc.price)}
           </span>
         </div>
@@ -144,14 +144,14 @@ export default function DocumentSuggestions({ documentId }: Props) {
   }
 
   return (
-    <div className="space-y-10 py-8 mt-10 border-t border-[#e6dfd3]">
+    <div className="space-y-10 py-8 mt-10 border-t border-sand-light">
       
       {/* Related Documents */}
       {(loadingRelated || related.length > 0) && (
         <section>
           <div className="flex items-center gap-2 mb-6">
-            <Layers className="w-5 h-5 text-[#4c6b54]" />
-            <h2 className="text-xl font-bold text-[#483d31] font-sans">Tài liệu liên quan</h2>
+            <Layers className="w-5 h-5 text-forest" />
+            <h2 className="text-xl font-bold text-earth font-sans">Tài liệu liên quan</h2>
           </div>
           
           {loadingRelated ? (
@@ -169,7 +169,7 @@ export default function DocumentSuggestions({ documentId }: Props) {
         <section>
           <div className="flex items-center gap-2 mb-6">
             <Sparkles className="w-5 h-5 text-amber-600" />
-            <h2 className="text-xl font-bold text-[#483d31] font-sans">Có thể bạn sẽ thích</h2>
+            <h2 className="text-xl font-bold text-earth font-sans">Có thể bạn sẽ thích</h2>
           </div>
           
           {loadingSuggestions ? (
