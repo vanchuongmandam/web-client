@@ -1,5 +1,8 @@
 // src/app/profile/security/page.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -101,10 +104,10 @@ export default function SecurityPage() {
         title: "Đã đổi mật khẩu",
         description: "Mật khẩu tài khoản của bạn đã được cập nhật thành công."
       });
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Lỗi đổi mật khẩu",
-        description: err.message || "Vui lòng thử lại sau",
+        description: toErrorMessage(err, "Vui lòng thử lại sau"),
         variant: "destructive"
       });
     } finally {

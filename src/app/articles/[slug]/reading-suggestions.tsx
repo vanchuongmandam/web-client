@@ -34,7 +34,7 @@ export default function ReadingSuggestions({ currentSlug, categoryId }: ReadingS
         setError("Không tìm thấy gợi ý nào phù hợp.");
       }
       setHasFetched(true);
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
       setError("Đã có lỗi xảy ra khi lấy gợi ý. Vui lòng thử lại.");
       toast({

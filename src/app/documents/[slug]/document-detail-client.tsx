@@ -1,5 +1,8 @@
 // src/app/documents/[slug]/document-detail-client.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -103,7 +106,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
   useEffect(() => {
     if (user?.bookmarkedDocuments) {
-      const isBookmarked = user.bookmarkedDocuments.some((b: any) =>
+      const isBookmarked = user.bookmarkedDocuments.some((b: string | MarketDocument) =>
         typeof b === 'string' ? b === doc._id : b._id === doc._id
       );
       setBookmarked(isBookmarked);
@@ -131,8 +134,8 @@ export function DocumentDetailClient({ document: doc }: Props) {
       toast({
         title: res.bookmarked ? 'Đã lưu tài liệu' : 'Đã bỏ lưu tài liệu',
       });
-    } catch (e: any) {
-      toast({ title: 'Lỗi', description: e.message, variant: 'destructive' });
+    } catch (e) {
+      toast({ title: 'Lỗi', description: toErrorMessage(e), variant: 'destructive' });
     } finally {
       setIsBookmarkLoading(false);
     }
@@ -147,7 +150,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
     } catch (err: unknown) {
       toast({
         title: 'Lỗi',
-        description: err instanceof Error ? err.message : 'Không thể tải tài liệu',
+        description: err instanceof Error ? toErrorMessage(err) : 'Không thể tải tài liệu',
         variant: 'destructive',
       });
     } finally {
@@ -414,7 +417,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   <div className="w-full text-[#5a5045] text-sm">
                     {doc.description ? (
                       <RichTextEditor
-                        content={doc.description as any}
+                        content={doc.description as unknown as Record<string, unknown>}
                         editable={false}
                         className="w-full overflow-hidden bg-transparent border-none p-0"
                       />

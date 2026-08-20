@@ -5,6 +5,7 @@ import { useState, useEffect, FormEvent, useCallback } from 'react';
 import type { Category } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { getCategories, createCategory, deleteCategory } from '@/lib/api';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,39 +26,6 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateSlug } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
-
-// --- API Functions ---
-async function getCategories(): Promise<Category[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`, { cache: 'no-store' });
-  if (!res.ok) throw new Error("Failed to fetch categories");
-  const json = await res.json();
-  return json.data ?? json;
-}
-
-async function createCategory(data: { name: string, slug: string, parentId?: string }, token: string): Promise<Category> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || "Failed to create category");
-  }
-  const json = await res.json();
-  return json.data ?? json;
-}
-
-async function deleteCategoryById(id: string, token: string): Promise<void> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/categories/${id}`, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || 'Failed to delete category');
-  }
-}
 
 // Subcomponent to render category list recursively
 const CategoryItem = ({ category, level = 0, onDelete }: { category: Category; level?: number; onDelete: (id: string) => void; }) => {
@@ -120,7 +88,7 @@ export default function AdminCategoriesPage() {
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await getCategories();
+      const data = await getCategories({ cache: 'no-store' });
       setCategories(data);
     } catch (error) {
       toast({ variant: "destructive", title: "Lỗi", description: (error as Error).message });
@@ -162,7 +130,7 @@ export default function AdminCategoriesPage() {
   const handleDelete = async (idToDelete: string) => {
     if (!token) return;
     try {
-      await deleteCategoryById(idToDelete, token);
+      await deleteCategory(idToDelete, token);
       await fetchCategories(); // Reload tree
       toast({ title: "Thành công!", description: "Danh mục đã được xóa." });
     } catch (error: unknown) {

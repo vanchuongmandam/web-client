@@ -1,5 +1,8 @@
 // src/app/profile/page.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -212,10 +215,10 @@ export default function ProfilePage() {
       
       // Reload profile properties
       window.location.reload();
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Lỗi",
-        description: err.message || "Không thể lưu thông tin",
+        description: toErrorMessage(err, "Không thể lưu thông tin"),
         variant: "destructive",
       });
     } finally {
@@ -234,10 +237,10 @@ export default function ProfilePage() {
         title: "Nạp tiền thành công",
         description: "Đã cộng thêm 200.000đ test vào tài khoản của bạn.",
       });
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Lỗi nạp tiền",
-        description: err.message || "Không thể thực hiện nạp tiền thử nghiệm.",
+        description: toErrorMessage(err, "Không thể thực hiện nạp tiền thử nghiệm."),
         variant: "destructive",
       });
     } finally {
@@ -440,7 +443,7 @@ export default function ProfilePage() {
                   <Label className="text-xs font-semibold text-muted-foreground/80">Vai trò diễn đàn</Label>
                   <Select
                     value={form.subRole}
-                    onValueChange={(val: any) => setForm({ ...form, subRole: val })}
+                    onValueChange={(val) => setForm({ ...form, subRole: val as typeof form.subRole })}
                   >
                     <SelectTrigger className="h-9 bg-background/50 border-border/60 text-foreground focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm">
                       <SelectValue placeholder="Chọn vai trò" />

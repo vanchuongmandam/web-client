@@ -1,4 +1,5 @@
 "use client";
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
@@ -234,7 +235,7 @@ export default function PDFViewerClient({
     if (!rootRef.current) return;
     if (!document.fullscreenElement) {
       rootRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch((err) => {
-        toast({ title: "Lỗi toàn màn hình", description: err.message, variant: "destructive" });
+        toast({ title: "Lỗi toàn màn hình", description: toErrorMessage(err), variant: "destructive" });
       });
     } else {
       document.exitFullscreen().then(() => setIsFullscreen(false));
@@ -270,9 +271,9 @@ export default function PDFViewerClient({
         if (active) {
           setPdfData(blob);
         }
-      } catch (e: any) {
+      } catch (e) {
         if (active) {
-          toast({ title: "Lỗi tải tài liệu", description: e.message, variant: "destructive" });
+          toast({ title: "Lỗi tải tài liệu", description: toErrorMessage(e), variant: "destructive" });
           if (!isInline) router.back();
         }
       } finally {

@@ -1,5 +1,8 @@
 // src/app/documents/document-list-client.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -220,10 +223,10 @@ export function DocumentListClient({
           description: "Tài liệu đã được xóa khỏi tủ sách cá nhân.",
         });
       }
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Thất bại",
-        description: err.message || "Đã xảy ra lỗi khi lưu tài liệu.",
+        description: toErrorMessage(err, "Đã xảy ra lỗi khi lưu tài liệu."),
         variant: "destructive",
       });
     } finally {

@@ -12,6 +12,10 @@ declare module "next-auth" {
     backendToken: string
     error?: string
   }
+  interface Account {
+    backendToken?: string
+    backendUser?: { _id: string; username: string; role: string }
+  }
 }
 import { type JWT } from "@auth/core/jwt"
 
@@ -28,6 +32,22 @@ declare module "@auth/core/jwt" {
   }
 }
 
+interface GoogleAuthResponse {
+  data?: {
+    token?: string
+    user?: { _id: string; username: string; role: string }
+    needsLinking?: boolean
+  }
+  message?: string
+}
+
+interface TokenShape {
+  backendToken?: string
+  backendTokenExpires?: number
+  user?: { _id: string; username: string; role: string }
+  error?: string
+}
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -38,7 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     })
   ],
   callbacks: {
-    async signIn({ account, profile }) {
+    async signIn({ account }) {
       if (account?.provider === "google") {
         try {
           const res = await fetch(`${API_BASE}/auth/google`, {
@@ -47,8 +67,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             body: JSON.stringify({ idToken: account.id_token })
           })
 
-          const data = await res.json()
-          
+          const data: GoogleAuthResponse = await res.json()
+
           if (!res.ok) {
             console.error("Backend Google Auth Error:", data)
             // Redirect to link-account if email exists
@@ -63,10 +83,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           // Store backend data in the account object temporarily so jwt callback can access it
-          const anyAccount = account as any
-          if (anyAccount) {
-            anyAccount.backendToken = data.data.token
-            anyAccount.backendUser = data.data.user
+          if (account && data.data?.token && data.data?.user) {
+            account.backendToken = data.data.token
+            account.backendUser = data.data.user
           }
           return true
         } catch (error) {
@@ -77,41 +96,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true
     },
     async jwt({ token, account }) {
-      const anyAccount = account as any
-      const anyToken = token as any
       // Initial sign in
-      if (anyAccount && anyAccount.backendToken && anyAccount.backendUser) {
-        const decoded = jwtDecode<{ exp: number }>(anyAccount.backendToken as string)
+      if (account?.backendToken && account?.backendUser) {
+        const decoded = jwtDecode<{ exp: number }>(account.backendToken)
         return {
           ...token,
-          backendToken: anyAccount.backendToken as string,
+          backendToken: account.backendToken,
           backendTokenExpires: decoded.exp * 1000,
-          user: anyAccount.backendUser as any
+          user: account.backendUser
         }
       }
 
+      const t = token as unknown as TokenShape
+
       // Return previous token if the backend token has not expired yet
       // Refresh token if it's going to expire in the next 1 hour
-      if (anyToken.backendTokenExpires && Date.now() < anyToken.backendTokenExpires - 60 * 60 * 1000) {
+      if (t.backendTokenExpires && Date.now() < t.backendTokenExpires - 60 * 60 * 1000) {
         return token
       }
 
-      // TODO: Implement refresh token logic if needed. 
+      // TODO: Implement refresh token logic if needed.
       // For now, if expired, we'll let it expire and client will handle logout.
-      if (anyToken.backendTokenExpires && Date.now() >= anyToken.backendTokenExpires) {
+      if (t.backendTokenExpires && Date.now() >= t.backendTokenExpires) {
         return { ...token, error: "RefreshAccessTokenError" }
       }
 
       return token
     },
     async session({ session, token }) {
-      const anyToken = token as any
-      session.backendToken = anyToken.backendToken
+      const t = token as unknown as TokenShape
+      session.backendToken = t.backendToken ?? ''
       session.user = {
         ...session.user,
-        ...anyToken.user
-      }
-      session.error = anyToken.error
+        ...(t.user ?? {}),
+      } as typeof session.user
+      session.error = t.error
       return session
     }
   },

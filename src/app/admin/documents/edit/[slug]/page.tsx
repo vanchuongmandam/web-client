@@ -1,5 +1,8 @@
 // src/app/admin/documents/edit/[slug]/page.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -242,7 +245,7 @@ export default function EditDocumentPage() {
     } catch (err: unknown) {
       toast({
         title: "Lỗi cập nhật",
-        description: err instanceof Error ? err.message : "Đã xảy ra lỗi",
+        description: err instanceof Error ? toErrorMessage(err) : "Đã xảy ra lỗi",
         variant: "destructive",
       });
     } finally {
@@ -359,10 +362,10 @@ export default function EditDocumentPage() {
                           handleChange("fullFile", media.url);
                           await applyDetectedMetadata(file);
                           toast({ title: "Tải lên thành công" });
-                        } catch (err: any) {
+                        } catch (err) {
                           toast({
                             title: "Cảnh báo",
-                            description: err.message,
+                            description: toErrorMessage(err),
                             variant: "destructive",
                           });
                         } finally {
@@ -444,8 +447,8 @@ export default function EditDocumentPage() {
                           );
                           handleChange("previewFile", media.url);
                           toast({ title: "Tải lên thành công" });
-                        } catch (err: any) {
-                          toast({ title: "Lỗi", description: err.message, variant: "destructive" });
+                        } catch (err) {
+                          toast({ title: "Lỗi", description: toErrorMessage(err), variant: "destructive" });
                         } finally {
                           setIsPreviewUploading(false);
                           e.target.value = "";
@@ -533,8 +536,8 @@ export default function EditDocumentPage() {
                           );
                           newUrls.push(media.url);
                           uploadedCount++;
-                        } catch (err: any) {
-                          toast({ title: "Lỗi tải ảnh", description: err.message, variant: "destructive" });
+                        } catch (err) {
+                          toast({ title: "Lỗi tải ảnh", description: toErrorMessage(err), variant: "destructive" });
                         }
                       }
                       

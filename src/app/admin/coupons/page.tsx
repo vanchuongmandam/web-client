@@ -1,4 +1,5 @@
 "use client";
+import { toErrorMessage } from "@/lib/errors";
 
 import { useEffect, useState } from "react";
 import { 
@@ -8,7 +9,7 @@ import {
   deleteAdminCoupon,
 } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Coupon } from "@/lib/types";
+import { Coupon, PaginationMeta } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -30,6 +31,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -48,8 +50,7 @@ export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCoupons, setTotalCoupons] = useState(0);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
 
   // Form State
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -71,12 +72,11 @@ export default function AdminCouponsPage() {
     try {
       const res = await getAdminCoupons({ page, limit: 10 }, token);
       setCoupons(res.data);
-      setTotalPages(res.pagination.totalPages);
-      setTotalCoupons(res.pagination.total);
-    } catch (err: any) {
+      setPagination(res.pagination);
+    } catch (err) {
       toast({
         title: "Lỗi",
-        description: err.message || "Không thể tải danh sách mã giảm giá.",
+        description: toErrorMessage(err, "Không thể tải danh sách mã giảm giá."),
         variant: "destructive",
       });
     } finally {
@@ -139,8 +139,8 @@ export default function AdminCouponsPage() {
       }
       setIsDialogOpen(false);
       fetchCoupons();
-    } catch (err: any) {
-      toast({ title: "Lỗi", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Lỗi", description: toErrorMessage(err), variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
@@ -152,8 +152,8 @@ export default function AdminCouponsPage() {
       await deleteAdminCoupon(id, token);
       toast({ title: "Thành công", description: "Đã xóa mã giảm giá." });
       fetchCoupons();
-    } catch (err: any) {
-      toast({ title: "Lỗi", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Lỗi", description: toErrorMessage(err), variant: "destructive" });
     }
   };
 
@@ -165,7 +165,7 @@ export default function AdminCouponsPage() {
             <Tag className="h-6 w-6 text-primary animate-pulse" /> Quản lý Mã giảm giá
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Tổng cộng: {totalCoupons} mã giảm giá hiện có trong hệ thống.
+            Tổng cộng: {pagination?.total ?? 0} mã giảm giá hiện có trong hệ thống.
           </p>
         </div>
         <Button onClick={() => handleOpenDialog()} size="sm" className="h-9 text-xs font-bold shadow-sm">
@@ -272,27 +272,9 @@ export default function AdminCouponsPage() {
       </div>
 
       <div className="flex items-center justify-between py-1">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => setPage(p => Math.max(1, p - 1))}
-          disabled={page === 1 || loading}
-          className="h-8 text-xs font-bold"
-        >
-          Trang trước
-        </Button>
-        <span className="text-xs font-bold text-muted-foreground">
-          Trang {page} / {totalPages || 1}
-        </span>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-          disabled={page === totalPages || loading || totalPages === 0}
-          className="h-8 text-xs font-bold"
-        >
-          Trang tiếp
-        </Button>
+        {pagination && (
+          <PaginationControls pagination={pagination} onPageChange={setPage} isLoading={loading} unit="mã" />
+        )}
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -1,4 +1,5 @@
 "use client";
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -53,9 +54,9 @@ function LinkAccountContent() {
       setStatus("success");
       // Force reload to let AuthContext pick up the new token
       window.location.href = '/';
-    } catch (err: any) {
+    } catch (err) {
       setStatus("error");
-      setErrorMessage(err.message || "Mật khẩu không đúng. Không thể liên kết tài khoản.");
+      setErrorMessage(toErrorMessage(err, "Mật khẩu không đúng. Không thể liên kết tài khoản."));
     }
   };
 

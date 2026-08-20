@@ -1,5 +1,8 @@
 // src/app/profile/wallet/page.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -113,10 +116,10 @@ export default function WalletPage() {
       const order = await createDepositOrder(numAmount, token);
       setQrCodeUrl(order.qrCodeUrl);
       setOrderCode(order.orderCode);
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Lỗi tạo đơn nạp tiền",
-        description: err.message,
+        description: toErrorMessage(err),
         variant: "destructive",
       });
     } finally {

@@ -1,4 +1,5 @@
 "use client";
+import { toErrorMessage } from "@/lib/errors";
 
 import { useEffect, useState } from "react";
 import { 
@@ -8,7 +9,7 @@ import {
   adjustAdminUserBalance 
 } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { AdminUser, PaginatedResponse } from "@/lib/types";
+import { AdminUser, PaginationMeta } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   Table,
@@ -39,6 +40,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 export default function AdminUsersPage() {
   const { token } = useAuth();
@@ -48,8 +50,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalUsers, setTotalUsers] = useState(0);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
 
   // Balance Dialog State
   const [balanceDialogOpen, setBalanceDialogOpen] = useState(false);
@@ -64,12 +65,11 @@ export default function AdminUsersPage() {
     try {
       const res = await getAdminUsers({ page, limit: 10, search }, token);
       setUsers(res.data);
-      setTotalPages(res.pagination.totalPages);
-      setTotalUsers(res.pagination.total);
-    } catch (err: any) {
+      setPagination(res.pagination);
+    } catch (err) {
       toast({
         title: "Lỗi",
-        description: err.message || "Không thể tải danh sách người dùng.",
+        description: toErrorMessage(err, "Không thể tải danh sách người dùng."),
         variant: "destructive",
       });
     } finally {
@@ -93,8 +93,8 @@ export default function AdminUsersPage() {
       await updateAdminUserStatus(user._id, !user.isActive, token);
       setUsers(users.map(u => u._id === user._id ? { ...u, isActive: !u.isActive } : u));
       toast({ title: "Thành công", description: `Đã ${user.isActive ? 'khóa' : 'mở khóa'} tài khoản.` });
-    } catch (err: any) {
-      toast({ title: "Lỗi", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Lỗi", description: toErrorMessage(err), variant: "destructive" });
     }
   };
 
@@ -105,8 +105,8 @@ export default function AdminUsersPage() {
       await updateAdminUserRole(user._id, newRole, token);
       setUsers(users.map(u => u._id === user._id ? { ...u, role: newRole } : u));
       toast({ title: "Thành công", description: `Đã đổi quyền thành ${newRole}.` });
-    } catch (err: any) {
-      toast({ title: "Lỗi", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Lỗi", description: toErrorMessage(err), variant: "destructive" });
     }
   };
 
@@ -131,8 +131,8 @@ export default function AdminUsersPage() {
       setUsers(users.map(u => u._id === selectedUser._id ? { ...u, balance: res.user.balance } : u));
       setBalanceDialogOpen(false);
       toast({ title: "Thành công", description: "Đã cập nhật số dư." });
-    } catch (err: any) {
-      toast({ title: "Lỗi", description: err.message, variant: "destructive" });
+    } catch (err) {
+      toast({ title: "Lỗi", description: toErrorMessage(err), variant: "destructive" });
     } finally {
       setIsAdjusting(false);
     }
@@ -146,7 +146,7 @@ export default function AdminUsersPage() {
             <Users className="h-6 w-6 text-primary" /> Quản lý Người dùng
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Tổng cộng: {totalUsers} người dùng đăng ký hệ thống.
+            Tổng cộng: {pagination?.total ?? 0} người dùng đăng ký hệ thống.
           </p>
         </div>
         <form onSubmit={handleSearchSubmit} className="flex gap-2 w-full md:w-auto">
@@ -264,27 +264,9 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="flex items-center justify-between py-1">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => setPage(p => Math.max(1, p - 1))}
-          disabled={page === 1 || loading}
-          className="h-8 text-xs font-bold"
-        >
-          Trang trước
-        </Button>
-        <span className="text-xs font-bold text-muted-foreground">
-          Trang {page} / {totalPages || 1}
-        </span>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-          disabled={page === totalPages || loading || totalPages === 0}
-          className="h-8 text-xs font-bold"
-        >
-          Trang tiếp
-        </Button>
+        {pagination && (
+          <PaginationControls pagination={pagination} onPageChange={setPage} isLoading={loading} unit="người dùng" />
+        )}
       </div>
 
       <Dialog open={balanceDialogOpen} onOpenChange={setBalanceDialogOpen}>

@@ -1,5 +1,8 @@
 // src/app/profile/purchases/page.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -68,10 +71,10 @@ export default function PurchasesPage() {
     try {
       const info = await getDocumentDownload(documentId, token);
       window.open(info.downloadUrl, "_blank");
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Lỗi",
-        description: err.message || "Không thể tải tài liệu",
+        description: toErrorMessage(err, "Không thể tải tài liệu"),
         variant: "destructive",
       });
     }
@@ -109,10 +112,10 @@ export default function PurchasesPage() {
       toast({ title: "Đã lưu đánh giá", description: "Cảm ơn bạn đã chia sẻ nhận xét." });
       setEditingPurchaseId(null);
       setReviewDraft("");
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Lỗi",
-        description: err.message || "Không thể gửi đánh giá",
+        description: toErrorMessage(err, "Không thể gửi đánh giá"),
         variant: "destructive",
       });
     } finally {

@@ -1,5 +1,8 @@
 // src/app/login/page.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -42,10 +45,10 @@ export default function LoginPage() {
         description: "Vui lòng kiểm tra hộp thư của bạn.",
       });
       clearError();
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Lỗi",
-        description: err.message || "Không thể gửi lại email",
+        description: toErrorMessage(err, "Không thể gửi lại email"),
         variant: "destructive",
       });
     } finally {

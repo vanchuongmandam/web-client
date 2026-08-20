@@ -1,4 +1,5 @@
 "use client";
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -25,9 +26,9 @@ export default function ForgotPasswordPage() {
     try {
       await forgotPassword(email);
       setStatus("success");
-    } catch (err: any) {
+    } catch (err) {
       setStatus("error");
-      setErrorMessage(err.message || "Đã xảy ra lỗi khi gửi email.");
+      setErrorMessage(toErrorMessage(err, "Đã xảy ra lỗi khi gửi email."));
     }
   };
 

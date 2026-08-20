@@ -15,9 +15,10 @@ interface PaginationControlsProps {
   pagination: PaginationMeta;
   onPageChange: (page: number) => void;
   isLoading?: boolean;
+  unit?: string;
 }
 
-export function PaginationControls({ pagination, onPageChange, isLoading }: PaginationControlsProps) {
+export function PaginationControls({ pagination, onPageChange, isLoading, unit = 'bài' }: PaginationControlsProps) {
   const { page, totalPages, total, hasPrevPage, hasNextPage } = pagination;
 
   if (totalPages <= 1) return null;
@@ -38,7 +39,7 @@ export function PaginationControls({ pagination, onPageChange, isLoading }: Pagi
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-12 w-full">
       <div className="text-sm text-muted-foreground flex-shrink-0">
-        Hiển thị trang <span className="font-medium text-foreground">{page}</span> / {totalPages} (Tổng: {total} bài)
+        Hiển thị trang <span className="font-medium text-foreground">{page}</span> / {totalPages} (Tổng: {total} {unit})
       </div>
 
       <Pagination className="justify-end w-auto mx-0">

@@ -1,5 +1,8 @@
 // src/app/profile/bookmarks/page.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -49,8 +52,8 @@ export default function BookmarksPage() {
       setLoading(true);
       const res = await getBookmarks(token!, { limit: 50 });
       setDocuments(res.data);
-    } catch (e: any) {
-      toast({ title: "Lỗi", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Lỗi", description: toErrorMessage(e), variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -63,8 +66,8 @@ export default function BookmarksPage() {
       setDocuments(prev => prev.filter(d => d._id !== documentId));
       refreshProfile(); // update context
       toast({ title: "Đã bỏ lưu tài liệu" });
-    } catch (e: any) {
-      toast({ title: "Lỗi", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Lỗi", description: toErrorMessage(e), variant: "destructive" });
     }
   };
 

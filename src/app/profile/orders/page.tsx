@@ -1,5 +1,8 @@
 // src/app/profile/orders/page.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -79,10 +82,10 @@ export default function OrdersPage() {
         prev.map((o) => (o.orderCode === orderCode ? { ...o, status: "cancelled" as const } : o))
       );
       toast({ title: "Đã hủy", description: "Đơn hàng đã được hủy thành công." });
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Lỗi",
-        description: err.message || "Không thể hủy đơn hàng",
+        description: toErrorMessage(err, "Không thể hủy đơn hàng"),
         variant: "destructive",
       });
     }

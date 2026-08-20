@@ -1,5 +1,8 @@
 // src/app/articles/[slug]/article-pdf-section.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -117,10 +120,10 @@ function PdfItem({ pdf, idx, articleId, articleTitle }: PdfItemProps) {
                               });
                               setIsUnlockConfirmOpen(false);
                               handleRequestSuccess();
-                            } catch (err: any) {
+                            } catch (err) {
                               toast({
                                 title: "Lỗi mở khóa",
-                                description: err.message || "Không thể mở khóa tài liệu này.",
+                                description: toErrorMessage(err, "Không thể mở khóa tài liệu này."),
                                 variant: "destructive",
                               });
                             } finally {

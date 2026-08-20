@@ -1,4 +1,5 @@
 "use client";
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -51,9 +52,9 @@ function ResetPasswordContent() {
       setTimeout(() => {
         router.push("/login");
       }, 3000);
-    } catch (err: any) {
+    } catch (err) {
       setStatus("error");
-      setErrorMessage(err.message || "Đã xảy ra lỗi khi đặt lại mật khẩu.");
+      setErrorMessage(toErrorMessage(err, "Đã xảy ra lỗi khi đặt lại mật khẩu."));
     }
   };
 

@@ -1,4 +1,5 @@
 "use client";
+import { toErrorMessage } from "@/lib/errors";
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -40,9 +41,9 @@ function VerifyEmailContent() {
         setTimeout(() => {
           router.push("/login");
         }, 3000);
-      } catch (err: any) {
+      } catch (err) {
         setStatus("error");
-        setErrorMessage(err.message || "Xác minh email thất bại.");
+        setErrorMessage(toErrorMessage(err, "Xác minh email thất bại."));
       }
     };
 
@@ -66,10 +67,10 @@ function VerifyEmailContent() {
         title: "Đã gửi lại email",
         description: "Vui lòng kiểm tra hộp thư của bạn.",
       });
-    } catch (err: any) {
+    } catch (err) {
       toast({
         title: "Lỗi",
-        description: err.message || "Không thể gửi lại email",
+        description: toErrorMessage(err, "Không thể gửi lại email"),
         variant: "destructive",
       });
     } finally {

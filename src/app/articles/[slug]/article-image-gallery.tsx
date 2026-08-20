@@ -1,4 +1,5 @@
 "use client";
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -114,10 +115,10 @@ const MediaItem = ({
                             });
                             setIsUnlockConfirmOpen(false);
                             onRequestSuccess();
-                          } catch (err: any) {
+                          } catch (err) {
                             toast({
                               title: "Lỗi mở khóa",
-                              description: err.message || "Không thể mở khóa nội dung này.",
+                              description: toErrorMessage(err, "Không thể mở khóa nội dung này."),
                               variant: "destructive",
                             });
                           } finally {

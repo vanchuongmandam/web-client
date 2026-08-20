@@ -1,5 +1,8 @@
 // src/components/documents/ReviewSection.tsx
+
 "use client";
+
+import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -47,7 +50,7 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
       setLoading(true);
       const res = await getReviews(documentId, { limit: 10, sort: '-createdAt' });
       setReviews(res.data);
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
@@ -64,8 +67,8 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
       setContent("");
       setRating(5);
       toast({ title: "Đánh giá thành công!" });
-    } catch (e: any) {
-      toast({ title: "Lỗi đánh giá", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Lỗi đánh giá", description: toErrorMessage(e), variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -79,8 +82,8 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
     try {
       const updated = await upvoteReview(reviewId, token);
       setReviews(prev => prev.map(r => r._id === reviewId ? updated : r));
-    } catch (e: any) {
-      toast({ title: "Lỗi", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Lỗi", description: toErrorMessage(e), variant: "destructive" });
     }
   };
 

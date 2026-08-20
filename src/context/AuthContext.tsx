@@ -3,9 +3,11 @@
 
 import { createContext, useState, useContext, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { jwtDecode } from 'jwt-decode';
 import { login as apiLogin, register as apiRegister } from '@/lib/api';
+import { ApiError, toErrorMessage } from '@/lib/errors';
+import { storeToken, storeUser, clearAuthStorage, readStoredAuth, isTokenExpired } from '@/lib/auth-storage';
 import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react";
+import type { MarketDocument } from '@/lib/types';
 
 interface User {
   _id: string;
@@ -13,16 +15,7 @@ interface User {
   role: string;
   isOAuth?: boolean;
   balance?: number;
-  bookmarkedDocuments?: any[];
-}
-
-interface DecodedToken {
-  user: {
-    id: string;
-    role: string;
-  };
-  iat: number;
-  exp: number;
+  bookmarkedDocuments?: Array<string | MarketDocument>;
 }
 
 interface AuthContextType {
@@ -42,11 +35,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function mergeUser(incoming: User, prev: User | null): User {
+  const merged: User = { ...incoming, ...(prev ?? {}) };
+  if (prev && prev.balance !== undefined) {
+    merged.balance = prev.balance;
+  }
+  return merged;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isHydrated, setIsHydrated] = useState(false);
   const [isOAuth, setIsOAuth] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -56,72 +56,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setToken(null);
     setIsOAuth(false);
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
-    document.cookie = "authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
-    
+    clearAuthStorage();
+
     try {
       await nextAuthSignOut({ redirect: false });
     } catch {
       // Ignore if session was already terminated
     }
-    
+
     router.push('/login');
   }, [router]);
 
-  // Sync with NextAuth session
+  // Sync with NextAuth session or a locally stored JWT.
   useEffect(() => {
     if (session?.error === "RefreshAccessTokenError") {
       logout();
       return;
     }
+
     if (sessionStatus === "authenticated" && session?.backendToken && session?.user) {
       setToken(session.backendToken);
       setIsOAuth(true);
-      localStorage.setItem('authToken', session.backendToken);
-      document.cookie = `authToken=${session.backendToken}; path=/; max-age=604800; SameSite=Lax`;
-      
+      storeToken(session.backendToken);
       setUser((prev) => {
-        const merged = { ...session.user, ...prev } as User;
-        // Explicitly preserve balance if present in previous state
-        if (prev && prev.balance !== undefined) {
-          merged.balance = prev.balance;
-        }
-        localStorage.setItem('authUser', JSON.stringify(merged));
+        const merged = mergeUser(session.user as unknown as User, prev);
+        storeUser(merged);
         return merged;
       });
     } else if (sessionStatus === "unauthenticated") {
-      // Only check localStorage if not logged in via NextAuth
-      const storedToken = localStorage.getItem('authToken');
+      const { token: storedToken, user: storedUser } = readStoredAuth();
       if (storedToken) {
-        try {
-          const decoded: DecodedToken = jwtDecode(storedToken);
-          if (decoded.exp * 1000 < Date.now()) {
-            logout();
-          } else {
-            setToken(storedToken);
-            const storedUser = localStorage.getItem('authUser');
-            if (storedUser && storedUser !== 'undefined') {
-              const parsedUser = JSON.parse(storedUser);
-              setUser((prev) => {
-                const merged = { ...parsedUser, ...prev } as User;
-                if (prev && prev.balance !== undefined) {
-                  merged.balance = prev.balance;
-                }
-                return merged;
-              });
-            }
-          }
-        } catch (e) {
-          console.error("Invalid token:", e);
+        if (isTokenExpired(storedToken)) {
           logout();
+        } else {
+          setToken(storedToken);
+          if (storedUser) {
+            setUser((prev) => mergeUser(storedUser as unknown as User, prev));
+          }
         }
       }
     }
-    
+
     if (sessionStatus !== "loading") {
       setIsLoading(false);
-      setIsHydrated(true);
     }
   }, [session, sessionStatus, logout]);
 
@@ -143,23 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           displayName: profile.displayName,
           email: profile.email,
         };
-        localStorage.setItem('authUser', JSON.stringify(updatedUser));
+        storeUser(updatedUser);
         return updatedUser;
       });
-    } catch (e: any) {
+    } catch (e) {
       console.error("Failed to refresh profile:", e);
-      if (
-        e?.status === 401 ||
-        e?.status === 403 ||
-        (e instanceof Error && (
-          e.message.includes('401') ||
-          e.message.includes('403') ||
-          e.message.includes('Unauthorized') ||
-          e.message.includes('expired') ||
-          e.message.includes('disabled') ||
-          e.message.includes('Invalid')
-        ))
-      ) {
+      if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
         logout();
       }
     }
@@ -181,13 +147,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(data.token);
       setUser(data.user);
       setIsOAuth(false);
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('authUser', JSON.stringify(data.user));
-      document.cookie = `authToken=${data.token}; path=/; max-age=604800; SameSite=Lax`;
+      storeToken(data.token);
+      storeUser(data.user);
       router.push('/');
-    } catch (err: unknown) {
-      if (err instanceof Error) { setError(err.message); }
-      else { setError("Đã có lỗi không xác định xảy ra"); }
+    } catch (err) {
+      setError(toErrorMessage(err));
       throw err;
     } finally {
       setIsLoading(false);
@@ -199,9 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       await nextAuthSignIn('google');
-    } catch (err: unknown) {
-      if (err instanceof Error) { setError(err.message); }
-      else { setError("Đã có lỗi không xác định xảy ra"); }
+    } catch (err) {
+      setError(toErrorMessage(err));
       setIsLoading(false);
     }
   }, []);
@@ -211,14 +174,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       await apiRegister(username, password, email);
-    } catch (err: unknown) {
-      if (err instanceof Error) { setError(err.message); }
-      else { setError("Đã có lỗi không xác định xảy ra"); }
+    } catch (err) {
+      setError(toErrorMessage(err));
       throw err;
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const isHydrated = !isLoading;
 
   const value = useMemo(() => ({
     user,
