@@ -18,10 +18,28 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Chrome } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+// Quy tắc username: 3-30 ký tự, chỉ chữ cái Latinh không dấu, số, `_`, `-`, `.`, không khoảng trắng.
+const USERNAME_REGEX = /^[a-zA-Z0-9_.-]{3,30}$/;
+
+function validateUsername(value: string): string | null {
+  if (!value) return "Tên người dùng không được để trống.";
+  if (value.length < 3 || value.length > 30) {
+    return "Tên người dùng phải từ 3 đến 30 ký tự.";
+  }
+  if (/\s/.test(value)) {
+    return "Tên người dùng không được chứa khoảng trắng.";
+  }
+  if (!USERNAME_REGEX.test(value)) {
+    return "Tên người dùng chỉ được chứa chữ cái không dấu, chữ số, dấu gạch dưới (_), gạch ngang (-) hoặc dấu chấm (.).";
+  }
+  return null;
+}
+
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [usernameError, setUsernameError] = useState<string | null>(null);
   const { register, loginWithGoogle, isLoading, error, clearError } = useAuthStore();
   const router = useRouter();
 
@@ -32,8 +50,18 @@ export default function RegisterPage() {
     };
   }, [clearError]);
 
+  const handleUsernameChange = (value: string) => {
+    setUsername(value);
+    if (usernameError) setUsernameError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const fieldError = validateUsername(username);
+    if (fieldError) {
+      setUsernameError(fieldError);
+      return;
+    }
     try {
       await register(username, password, email);
       router.push('/verify-email?pending=true');
@@ -79,9 +107,19 @@ export default function RegisterPage() {
                 placeholder="nguyenvan_a"
                 required
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => handleUsernameChange(e.target.value)}
                 disabled={isLoading}
+                aria-invalid={!!usernameError}
+                aria-describedby={usernameError ? "username-error" : undefined}
               />
+              {usernameError && (
+                <p id="username-error" className="text-sm text-destructive">
+                  {usernameError}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                3–30 ký tự, không dấu, không khoảng trắng. Cho phép chữ, số, _ - .
+              </p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Mật khẩu</Label>
