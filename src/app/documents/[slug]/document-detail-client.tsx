@@ -24,7 +24,9 @@ import {
   FileBox,
   FileText,
   Scaling,
+  ShoppingBag,
   ShoppingCart,
+  Sparkles,
   Star,
   Tag,
   Bookmark,
@@ -161,10 +163,10 @@ export function DocumentDetailClient({ document: doc }: Props) {
   const theme = getBookCoverTheme(doc._id);
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8 bg-background font-sans">
+    <div className="container mx-auto max-w-7xl px-4 py-6 sm:py-8 bg-background font-sans w-full min-w-0">
 
       {/* Navigation & Breadcrumbs */}
-      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-6 sm:mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center w-full">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -181,7 +183,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
         <Link
           href="/documents"
-          className="inline-flex items-center gap-2 rounded-md border-2 border-sand bg-warm-cream px-3.5 py-1.5 text-xs font-semibold text-earth-muted transition-colors hover:bg-sand/20"
+          className="inline-flex items-center gap-2 rounded-md border-2 border-sand bg-warm-cream px-3.5 py-1.5 text-xs font-semibold text-earth-muted transition-colors hover:bg-sand/20 w-fit"
         >
           <ArrowLeft className="size-3.5" />
           Quay lại kho
@@ -189,17 +191,17 @@ export function DocumentDetailClient({ document: doc }: Props) {
       </div>
 
       {/* Main Grid */}
-      <div className="grid items-start gap-8 lg:grid-cols-12">
+      <div className="grid items-start gap-8 lg:grid-cols-12 w-full min-w-0">
 
         {/* Left main area (Document info & Tabs) */}
-        <div className="space-y-8 lg:col-span-8">
-          <Card className="border-2 border-sand-light bg-warm-cream/70 rounded-xl overflow-hidden shadow-sm">
-            <CardContent className="p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start">
+        <div className="w-full min-w-0 space-y-6 sm:space-y-8 lg:col-span-8">
+          <Card className="w-full border-2 border-sand-light bg-warm-cream/70 rounded-xl overflow-hidden shadow-xs">
+            <CardContent className="p-5 sm:p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-stretch w-full">
 
               {/* Left: Document Cover Frame */}
-              <div className="w-full md:w-auto shrink-0 flex flex-col items-center">
+              <div className="w-full md:w-auto shrink-0 flex flex-col items-center justify-between">
                 <div
-                  className="relative aspect-[1/1.38] w-48 sm:w-56 md:w-60 overflow-hidden rounded-lg border border-sand-light bg-white group cursor-pointer"
+                  className="relative aspect-[1/1.38] w-48 sm:w-52 md:w-56 overflow-hidden rounded-md border border-sand-light bg-white group cursor-pointer shadow-xs transition-transform duration-300 hover:border-sand"
                   onClick={() => {
                     if (allPreviewImages.length > 0) {
                       setSelectedImageIndex(0);
@@ -216,9 +218,9 @@ export function DocumentDetailClient({ document: doc }: Props) {
                         decoding="async"
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/75 text-white text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 backdrop-blur-xs">
-                          <Eye className="w-3.5 h-3.5" /> Phóng to
+                          <Eye className="size-3.5" /> Phóng to
                         </span>
                       </div>
                     </>
@@ -256,117 +258,131 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 </div>
 
                 {allPreviewImages.length > 0 && (
-                  <button
-                    type="button"
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       setSelectedImageIndex(0);
                       setIsLightboxOpen(true);
                     }}
-                    className="mt-3 text-xs text-muted-foreground hover:text-primary flex items-center gap-1.5 transition-colors font-medium"
+                    className="mt-3 w-full max-w-[220px] h-8 text-xs font-medium border-sand bg-warm-cream hover:bg-sand/20 text-earth-muted gap-1.5 rounded-md transition-colors"
                   >
-                    <Eye className="w-3.5 h-3.5" /> Xem trước ({allPreviewImages.length} ảnh)
-                  </button>
+                    <Eye className="size-3.5 text-forest" />
+                    <span>Xem trước ({allPreviewImages.length} ảnh)</span>
+                  </Button>
                 )}
               </div>
 
               {/* Right: Document Details & Metadata */}
-              <div className="flex-1 min-w-0 flex flex-col gap-4">
+              <div className="w-full flex-1 min-w-0 flex flex-col  gap-4">
 
-                {/* Category & Status Badges */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {doc.category && (
-                    <Badge variant="secondary" className="text-xs font-semibold px-2.5 py-0.5 border-sand">
-                      {doc.category.name}
-                    </Badge>
-                  )}
-                  {doc.featured && (
-                    <Badge variant="default" className="text-xs font-semibold px-2.5 py-0.5">
-                      Đề cử
-                    </Badge>
-                  )}
-                  <Badge variant={doc.isFree ? "default" : "destructive"} className="text-xs font-semibold px-2.5 py-0.5">
-                    {doc.isFree ? 'Miễn phí' : 'Có phí'}
-                  </Badge>
-                </div>
+                {/* Top: Category, Badges & Bookmark */}
+                <div className="space-y-2.5">
+                  <div className="flex items-start justify-between gap-3 w-full">
+                    <div className="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
+                      {doc.category && (
+                        <Badge variant="outline" className="rounded-sm border-sand bg-warm-sand/40 text-earth-dark font-semibold text-xs px-2.5 py-0.5 max-w-full whitespace-normal break-words text-left leading-relaxed">
+                          {doc.category.name}
+                        </Badge>
+                      )}
+                      {doc.featured && (
+                        <Badge variant="default" className="rounded-sm bg-forest hover:bg-forest text-white text-[11px] font-semibold px-2 py-0.5 flex items-center gap-1">
+                          <Sparkles className="size-3" /> Đề cử
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className="rounded-sm bg-sand/40 text-earth-muted text-[11px] font-medium px-2 py-0.5 border-0">
+                        {doc.isFree ? 'Tài liệu mở' : 'Bản quyền'}
+                      </Badge>
+                    </div>
 
-                {/* Main Title & Bookmark Button */}
-                <div className="flex items-start justify-between gap-4">
-                  <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-earth">
+                    <Button
+                      variant={bookmarked ? "default" : "outline"}
+                      size="sm"
+                      className={`shrink-0 h-8 px-2.5 text-xs gap-1.5 rounded-md border-sand font-medium transition-all ${bookmarked
+                        ? "bg-forest hover:bg-forest-dark text-white shadow-xs"
+                        : "bg-warm-cream hover:bg-sand/20 text-earth-muted"
+                        }`}
+                      onClick={handleBookmark}
+                      disabled={isBookmarkLoading}
+                      title={bookmarked ? "Bỏ lưu tài liệu" : "Lưu vào bộ sưu tập"}
+                    >
+                      {isBookmarkLoading ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : bookmarked ? (
+                        <BookmarkCheck className="size-3.5 fill-current" />
+                      ) : (
+                        <Bookmark className="size-3.5" />
+                      )}
+                      <span className="hidden sm:inline">{bookmarked ? "Đã lưu" : "Lưu"}</span>
+                    </Button>
+                  </div>
+
+                  {/* Main Title */}
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-earth break-words leading-snug">
                     {doc.title}
                   </h1>
-                  <Button
-                    variant={bookmarked ? "default" : "outline"}
-                    size="icon"
-                    className="shrink-0 rounded-full border-sand hover:bg-sand/20 h-10 w-10"
-                    onClick={handleBookmark}
-                    disabled={isBookmarkLoading}
-                    title={bookmarked ? "Bỏ lưu tài liệu" : "Lưu tài liệu"}
-                  >
-                    {isBookmarkLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                    ) : bookmarked ? (
-                      <BookmarkCheck className="w-5 h-5 text-forest fill-forest" />
-                    ) : (
-                      <Bookmark className="w-5 h-5 text-earth-lighter" />
+
+                  {/* Author & Rating Line */}
+                  <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs text-earth-muted">
+                    <span className="inline-flex items-center gap-1.5 font-medium bg-sand/25 px-2.5 py-1 rounded-md border border-sand-light/60">
+                      <BookOpen className="size-3.5 text-forest shrink-0" />
+                      <span>Tác giả: <strong className="text-earth font-semibold">{doc.author || 'Khuyết danh'}</strong></span>
+                    </span>
+                    {doc.rating?.average > 0 && (
+                      <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-900 border border-amber-300/40 px-2 py-1 rounded-md font-medium text-xs">
+                        <Star className="size-3 fill-amber-500 text-amber-500" />
+                        <strong>{doc.rating.average.toFixed(1)}</strong>
+                      </span>
                     )}
-                  </Button>
-                </div>
-
-                {/* Author & Stats Line */}
-                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-earth-muted">
-                  <div className="flex items-center gap-1.5">
-                    <BookOpen className="size-4 text-muted-foreground" />
-                    <span>Tác giả: <strong className="text-foreground font-semibold">{doc.author || 'Khuyết danh'}</strong></span>
                   </div>
+                </div>
 
-                  <span className="text-muted-foreground">•</span>
-
-                  <div className="flex items-center gap-1.5">
-                    <Eye className="size-4 text-muted-foreground" />
-                    <span><strong className="text-foreground font-semibold">{doc.viewCount || 0}</strong> lượt xem</span>
+                {/* Middle: Quick Specs Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 rounded-lg border border-sand-light/80 bg-warm-ivory/60 p-3 text-xs text-earth-muted">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase font-semibold tracking-wider text-earth-light/80">Định dạng</span>
+                    <span className="font-bold text-earth font-mono text-xs">{doc.fileFormat.toUpperCase()}</span>
                   </div>
-
-                  {doc.purchaseCount !== undefined && (
-                    <>
-                      <span className="text-muted-foreground">•</span>
-                      <div className="flex items-center gap-1.5">
-                        <Download className="size-4 text-muted-foreground" />
-                        <span><strong className="text-foreground font-semibold">{doc.purchaseCount}</strong> lượt tải</span>
-                      </div>
-                    </>
-                  )}
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase font-semibold tracking-wider text-earth-light/80">Dung lượng</span>
+                    <span className="font-semibold text-earth">
+                      {doc.fileSize ? (doc.fileSize >= 1024 ? (doc.fileSize / 1024).toFixed(1) + ' MB' : doc.fileSize + ' KB') : '—'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase font-semibold tracking-wider text-earth-light/80">Số trang</span>
+                    <span className="font-semibold text-earth">{doc.pageCount ? `${doc.pageCount} trang` : '—'}</span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[10px] uppercase font-semibold tracking-wider text-earth-light/80">Lượt xem</span>
+                    <span className="font-semibold text-earth flex items-center gap-1">
+                      <Eye className="size-3 text-muted-foreground" />
+                      {doc.viewCount || 0}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5 col-span-2 sm:col-span-1">
+                    <span className="text-[10px] uppercase font-semibold tracking-wider text-earth-light/80">{doc.isFree ? 'Lượt nhận' : 'Lượt mua'}</span>
+                    <span className="font-semibold text-earth flex items-center gap-1">
+                      {doc.isFree ? (
+                        <Download className="size-3 text-muted-foreground" />
+                      ) : (
+                        <ShoppingBag className="size-3 text-muted-foreground" />
+                      )}
+                      {doc.purchaseCount || 0}
+                    </span>
+                  </div>
                 </div>
 
-                {/* File Specs Mini Chips */}
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <Badge variant="outline" className="border-sand bg-warm-cream text-earth-muted text-xs font-mono">
-                    ĐỊNH DẠNG: {doc.fileFormat.toUpperCase()}
-                  </Badge>
-                  {doc.pageCount && (
-                    <Badge variant="outline" className="border-sand bg-warm-cream text-earth-muted text-xs">
-                      {doc.pageCount} trang
-                    </Badge>
-                  )}
-                  {doc.fileSize && (
-                    <Badge variant="outline" className="border-sand bg-warm-cream text-earth-muted text-xs">
-                      {doc.fileSize >= 1024 ? (doc.fileSize / 1024).toFixed(1) + ' MB' : doc.fileSize + ' KB'}
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Tags */}
+                {/* Bottom: Tags */}
                 {doc.tags?.length ? (
-                  <>
-                    <Separator className="bg-warm-sand/60 my-1" />
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <Tag className="size-3.5 text-earth-lighter mr-1" />
-                      {doc.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-[11px] font-medium px-2.5 py-0.5 bg-sand/30 text-earth-muted border-none">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </>
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <Tag className="size-3.5 text-earth-lighter mr-1" />
+                    {doc.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-[11px] font-medium px-2 py-0.5 bg-sand/30 hover:bg-sand/50 text-earth-muted border-none rounded-sm transition-colors">
+                        #{tag}
+                      </Badge>
+                    ))}
+                  </div>
                 ) : null}
 
               </div>
@@ -375,28 +391,28 @@ export function DocumentDetailClient({ document: doc }: Props) {
 
           {/* Tab kẹp giấy Navigation panel */}
           <Tabs value={activeTab} onValueChange={setActiveTab} id="doc-tabs" className="w-full">
-            <TabsList className="w-full justify-start overflow-x-auto bg-transparent border-b-2 border-sand h-auto p-0 gap-1 rounded-none">
+            <TabsList className="flex flex-nowrap w-full justify-start overflow-x-auto no-scrollbar bg-transparent border-b-2 border-sand h-auto p-0 gap-1 rounded-none">
               <TabsTrigger
                 value="description"
-                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
+                className="whitespace-nowrap shrink-0 rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Mô tả chi tiết
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
-                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
+                className="whitespace-nowrap shrink-0 rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Hình ảnh xem trước
               </TabsTrigger>
               <TabsTrigger
                 value="meta"
-                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
+                className="whitespace-nowrap shrink-0 rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Thông tin kỹ thuật
               </TabsTrigger>
               <TabsTrigger
                 value="reviews"
-                className="rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
+                className="whitespace-nowrap shrink-0 rounded-t-md border-x-2 border-t-2 border-transparent data-[state=active]:border-sand data-[state=active]:bg-warm-cream data-[state=active]:text-forest data-[state=active]:shadow-none px-4 py-2 text-xs md:text-sm font-bold transition-all rounded-b-none hover:text-primary"
               >
                 Nhận xét & Đánh giá
               </TabsTrigger>
@@ -488,7 +504,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                     </div>
                   ) : null}
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Lượt tải xuống</span>
+                    <span className="text-muted-foreground">{doc.isFree ? 'Lượt nhận / tải' : 'Lượt mua'}</span>
                     <span className="font-semibold">{doc.purchaseCount || 0} lượt</span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -511,8 +527,8 @@ export function DocumentDetailClient({ document: doc }: Props) {
         </div>
 
         {/* Right side (Payment CTA box) */}
-        <div className="lg:col-span-4 lg:sticky lg:top-20">
-          <Card className="overflow-hidden border border-sand-light bg-warm-cream rounded-xl shadow-xs">
+        <div className="w-full min-w-0 lg:col-span-4 lg:sticky lg:top-20">
+          <Card className="w-full overflow-hidden border border-sand-light bg-warm-cream rounded-xl shadow-xs">
             {/* Header: Pricing & Status */}
             <CardHeader className="border-b border-sand-light bg-warm-ivory/70 p-5 space-y-2">
               {doc.originalPrice && doc.originalPrice > doc.price ? (
@@ -550,8 +566,8 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   </div>
                 ) : owned ? (
                   <>
-                    <Button 
-                      asChild 
+                    <Button
+                      asChild
                       className="w-full h-11 bg-forest hover:bg-forest-dark active:scale-[0.99] text-white font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
                       size="lg"
                     >
@@ -561,11 +577,11 @@ export function DocumentDetailClient({ document: doc }: Props) {
                       </Link>
                     </Button>
                     {doc.allowDownload !== false && (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full h-11 border border-sand bg-warm-cream hover:bg-warm-linen text-earth hover:text-forest-dark font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
-                        size="lg" 
-                        onClick={handleDownload} 
+                        size="lg"
+                        onClick={handleDownload}
                         disabled={downloading}
                       >
                         <Download className="size-4 text-forest" />
@@ -588,9 +604,9 @@ export function DocumentDetailClient({ document: doc }: Props) {
                     <span>Nhận miễn phí ngay</span>
                   </Button>
                 ) : (
-                  <Button 
-                    className="w-full h-12 bg-forest hover:bg-forest-dark active:scale-[0.99] text-white font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2 group" 
-                    size="lg" 
+                  <Button
+                    className="w-full h-12 bg-forest hover:bg-forest-dark active:scale-[0.99] text-white font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2 group"
+                    size="lg"
                     onClick={handleBuy}
                   >
                     <ShoppingCart className="size-4.5 transition-transform group-hover:scale-110" />
@@ -631,8 +647,8 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 </div>
                 <div className="h-[1px] bg-warm-sand/60" />
                 <div className="flex items-center justify-between">
-                  <span className="text-earth-light">Lượt tải</span>
-                  <span className="font-semibold text-earth">{doc.purchaseCount || 0} bản</span>
+                  <span className="text-earth-light">{doc.isFree ? 'Lượt nhận / tải' : 'Lượt mua'}</span>
+                  <span className="font-semibold text-earth">{doc.purchaseCount || 0} lượt</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-earth-light">Lượt xem</span>

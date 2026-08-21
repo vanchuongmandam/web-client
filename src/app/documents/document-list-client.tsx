@@ -21,6 +21,7 @@ import {
   Star,
   Eye,
   Download,
+  ShoppingBag,
   Search,
   FilterX,
   SlidersHorizontal,
@@ -72,7 +73,7 @@ function formatPrice(price: number): string {
 
 const sortOptions = [
   { value: '-createdAt', label: 'Ấn bản mới nhất' },
-  { value: '-purchaseCount', label: 'Tải nhiều nhất' },
+  { value: '-purchaseCount', label: 'Mua nhiều nhất' },
   { value: '-rating.average', label: 'Đánh giá cao nhất' },
   { value: 'price', label: 'Giá từ thấp đến cao' },
   { value: '-price', label: 'Giá từ cao đến thấp' },
@@ -611,7 +612,7 @@ export function DocumentListClient({
                               )}
                               {isBestseller && (
                                 <Badge variant="destructive" className="text-[10px] font-semibold px-2 py-0 rounded-full">
-                                  Tải nhiều
+                                  Bán chạy
                                 </Badge>
                               )}
                               {isHighlyRated && (
@@ -648,8 +649,17 @@ export function DocumentListClient({
                               </span>
 
                               <span className="flex items-center gap-0.5">
-                                <Download className="h-3 w-3" />
-                                {purchaseCount} tải
+                                {doc.isFree ? (
+                                  <>
+                                    <Download className="h-3 w-3" />
+                                    {purchaseCount} nhận
+                                  </>
+                                ) : (
+                                  <>
+                                    <ShoppingBag className="h-3 w-3" />
+                                    {purchaseCount} mua
+                                  </>
+                                )}
                               </span>
                             </div>
                           </div>

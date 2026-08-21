@@ -6,7 +6,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { getRelatedDocuments, getSuggestions } from "@/lib/api";
 import type { MarketDocument } from "@/lib/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Loader2, BookOpen, Star, Sparkles, Layers, Eye, Download } from "lucide-react";
+import { Loader2, BookOpen, Star, Sparkles, Layers, Eye, Download, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 
 interface Props {
@@ -102,7 +102,17 @@ function DocumentCard({ doc }: { doc: MarketDocument }) {
             <Star className="w-3 h-3 fill-gold text-gold" /> 
             <strong className="text-earth-muted">{doc.rating?.average > 0 ? doc.rating.average.toFixed(1) : 'Chưa có'}</strong>
           </span>
-          <span className="flex items-center gap-0.5"><Download className="w-3 h-3" /> {doc.purchaseCount || 0}</span>
+          <span className="flex items-center gap-0.5">
+            {doc.isFree ? (
+              <>
+                <Download className="w-3 h-3" /> {doc.purchaseCount || 0} nhận
+              </>
+            ) : (
+              <>
+                <ShoppingBag className="w-3 h-3" /> {doc.purchaseCount || 0} mua
+              </>
+            )}
+          </span>
         </div>
       </CardContent>
 
