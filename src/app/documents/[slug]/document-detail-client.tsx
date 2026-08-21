@@ -545,7 +545,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   {formatPrice(doc.price)}
                 </CardTitle>
                 <Badge variant="secondary" className="text-[11px] font-medium bg-sand/60 text-earth-muted rounded-full border-0 px-2.5 py-0.5">
-                  {doc.isFree ? 'Tài liệu mở' : 'Bản quyền trọn đời'}
+                  {doc.isFree ? 'Tài liệu mở' : 'Sở hữu trọn đời'}
                 </Badge>
               </div>
 

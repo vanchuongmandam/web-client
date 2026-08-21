@@ -225,14 +225,13 @@ export default function CheckoutPage() {
               <div key={s.key} className="flex-1 flex items-center last:flex-initial">
                 {/* Step node */}
                 <div className="flex flex-col items-center relative z-10 shrink-0">
-                  <div 
-                    className={`size-9 rounded-full flex items-center justify-center border-2 transition-all duration-300 text-sm font-bold ${
-                      isCompleted 
-                        ? 'bg-forest border-forest text-warm-cream' 
-                        : isActive 
-                          ? 'bg-warm-cream border-forest text-forest ring-4 ring-forest/10' 
+                  <div
+                    className={`size-9 rounded-full flex items-center justify-center border-2 transition-all duration-300 text-sm font-bold ${isCompleted
+                        ? 'bg-forest border-forest text-warm-cream'
+                        : isActive
+                          ? 'bg-warm-cream border-forest text-forest ring-4 ring-forest/10'
                           : 'bg-warm-cream border-sand-light text-stone-400'
-                    }`}
+                      }`}
                   >
                     {isCompleted ? (
                       <Check className="size-4 stroke-[3px]" />
@@ -240,22 +239,20 @@ export default function CheckoutPage() {
                       <span>{i + 1}</span>
                     )}
                   </div>
-                  <span 
-                    className={`mt-2 text-xs font-bold whitespace-nowrap absolute top-9 left-1/2 -translate-x-1/2 transition-colors ${
-                      isActive ? 'text-forest' : 'text-stone-500'
-                    }`}
+                  <span
+                    className={`mt-2 text-xs font-bold whitespace-nowrap absolute top-9 left-1/2 -translate-x-1/2 transition-colors ${isActive ? 'text-forest' : 'text-stone-500'
+                      }`}
                   >
                     {s.label}
                   </span>
                 </div>
-                
+
                 {/* Connecting line to the next step */}
                 {i < checkoutSteps.length - 1 && (
                   <div className="flex-1 mx-2 h-0.5 bg-warm-sand relative">
-                    <div 
-                      className={`absolute inset-0 bg-forest transition-all duration-500 ${
-                        i < stepIndex ? 'w-full' : 'w-0'
-                      }`}
+                    <div
+                      className={`absolute inset-0 bg-forest transition-all duration-500 ${i < stepIndex ? 'w-full' : 'w-0'
+                        }`}
                     />
                   </div>
                 )}
@@ -267,7 +264,7 @@ export default function CheckoutPage() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12 items-start">
-        
+
         {/* LEFT COLUMN: Actions & Forms */}
         <div className="space-y-6 lg:col-span-8">
 
@@ -301,7 +298,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-earth-muted font-semibold text-xs uppercase tracking-wider">Địa chỉ (Số nhà, đường) *</Label>
                   <Input
@@ -311,7 +308,7 @@ export default function CheckoutPage() {
                     onChange={(e) => setBillingForm({ addressLine1: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-earth-muted font-semibold text-xs uppercase tracking-wider">Phường/Xã</Label>
                   <Input
@@ -321,7 +318,7 @@ export default function CheckoutPage() {
                     onChange={(e) => setBillingForm({ addressLine2: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label className="text-earth-muted font-semibold text-xs uppercase tracking-wider">Quận/Huyện *</Label>
@@ -342,7 +339,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="pt-2">
                   <Button className="w-full bg-forest text-pastel-pink hover:bg-forest-dark font-bold py-5 rounded-md shadow-sm" onClick={handleBillingSubmit} disabled={submitting}>
                     {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -361,7 +358,7 @@ export default function CheckoutPage() {
                 <CardDescription>Chọn phương thức thanh toán phù hợp để hoàn tất đơn hàng.</CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-6 font-sans">
-                
+
                 {/* Address Summary */}
                 <div className="rounded-lg border-2 border-sand bg-warm-cream p-4 relative">
                   <h4 className="text-xs uppercase tracking-wider font-bold text-earth-lighter mb-1">Địa chỉ thanh toán</h4>
@@ -373,9 +370,9 @@ export default function CheckoutPage() {
                     {billingForm.addressLine2 ? `, ${billingForm.addressLine2}` : ''}
                     {`, ${billingForm.city}, ${billingForm.province}`}
                   </p>
-                  <Button 
-                    variant="link" 
-                    className="absolute top-3 right-3 text-forest hover:text-forest-dark text-xs h-auto p-0 font-bold" 
+                  <Button
+                    variant="link"
+                    className="absolute top-3 right-3 text-forest hover:text-forest-dark text-xs h-auto p-0 font-bold"
                     onClick={() => setStep('billing')}
                   >
                     Thay đổi
@@ -386,19 +383,18 @@ export default function CheckoutPage() {
                 {doc.price > 0 ? (
                   <div className="space-y-4">
                     <Label className="text-earth-muted font-bold text-sm">Phương thức thanh toán</Label>
-                    
+
                     <div className="grid gap-4 sm:grid-cols-2">
-                      
+
                       {/* Wallet Option */}
                       <button
                         type="button"
                         disabled={balance < Math.max(0, doc.price - discountAmount)}
                         onClick={() => setUseBalance(true)}
-                        className={`flex flex-col text-left p-4 rounded-md border-2 transition-all cursor-pointer relative overflow-hidden ${
-                          useBalance
+                        className={`flex flex-col text-left p-4 rounded-md border-2 transition-all cursor-pointer relative overflow-hidden ${useBalance
                             ? 'border-forest-bright bg-forest-tint/40 ring-2 ring-forest-bright/10'
                             : 'border-sand hover:border-sand/80 bg-transparent'
-                        } ${balance < Math.max(0, doc.price - discountAmount) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          } ${balance < Math.max(0, doc.price - discountAmount) ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <div className="flex items-center gap-2 text-stone-800">
                           <CreditCard className={`size-5 ${useBalance ? 'text-forest-bright' : 'text-stone-500'}`} />
@@ -421,11 +417,10 @@ export default function CheckoutPage() {
                       <button
                         type="button"
                         onClick={() => setUseBalance(false)}
-                        className={`flex flex-col text-left p-4 rounded-md border-2 transition-all cursor-pointer relative overflow-hidden ${
-                          !useBalance
+                        className={`flex flex-col text-left p-4 rounded-md border-2 transition-all cursor-pointer relative overflow-hidden ${!useBalance
                             ? 'border-forest bg-sand/20 ring-2 ring-forest/10'
                             : 'border-sand hover:border-sand/80 bg-transparent'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-2 text-stone-800">
                           <QrCode className={`size-5 ${!useBalance ? 'text-forest' : 'text-stone-500'}`} />
@@ -494,14 +489,13 @@ export default function CheckoutPage() {
 
                 {/* Action button */}
                 <div className="pt-2">
-                  <Button 
-                    className={`w-full py-6 rounded-md text-white font-bold transition-all flex items-center justify-center gap-2 shadow-sm ${
-                      useBalance 
-                        ? "bg-forest-bright hover:bg-forest-dark" 
+                  <Button
+                    className={`w-full py-6 rounded-md text-white font-bold transition-all flex items-center justify-center gap-2 shadow-sm ${useBalance
+                        ? "bg-forest-bright hover:bg-forest-dark"
                         : "bg-forest hover:bg-forest-dark"
-                    }`}
-                    size="lg" 
-                    onClick={handleConfirmOrder} 
+                      }`}
+                    size="lg"
+                    onClick={handleConfirmOrder}
                     disabled={submitting}
                   >
                     {submitting ? (
@@ -529,9 +523,9 @@ export default function CheckoutPage() {
                 <CardDescription>Quét mã QR bằng ứng dụng ngân hàng hoặc tự nhập thông tin chuyển khoản.</CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-6 font-sans">
-                
+
                 <div className="flex flex-col md:flex-row gap-6 items-center">
-                  
+
                   {/* QR Image block */}
                   {order.qrCodeUrl ? (
                     <div className="flex flex-col items-center shrink-0">
@@ -547,31 +541,31 @@ export default function CheckoutPage() {
                     <div className="text-sm font-bold text-earth-muted uppercase tracking-wide border-b border-sand pb-1">
                       Thông tin tài khoản nhận
                     </div>
-                    
+
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <span className="text-muted-foreground">Ngân hàng:</span>
                       <span className="col-span-2 font-bold text-stone-800 text-right">{order.bankInfo.bankName}</span>
-                      
+
                       <span className="text-muted-foreground">Số tài khoản:</span>
                       <span className="col-span-2 font-mono font-bold text-stone-900 text-right text-sm">{order.bankInfo.accountNumber}</span>
-                      
+
                       <span className="text-muted-foreground">Chủ tài khoản:</span>
                       <span className="col-span-2 font-semibold text-stone-800 text-right uppercase">{order.bankInfo.accountName}</span>
-                      
+
                       <span className="text-muted-foreground">Số tiền:</span>
                       <span className="col-span-2 font-extrabold text-category-red text-right text-base">{formatPrice(order.totalAmount)}</span>
                     </div>
 
                     <div className="border-2 border-dashed border-sand bg-warm-cream p-3 rounded-lg flex items-center justify-between gap-3 mt-4">
                       <div className="min-w-0">
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Nội dung chuyển khoản chính xác</span>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Nội dung chuyển khoản</span>
                         <div className="font-mono font-black text-forest text-lg select-all truncate mt-0.5">
                           {order.transferContent}
                         </div>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
+                      <Button
+                        size="sm"
+                        variant="outline"
                         className="border-sand hover:bg-sand/40 text-forest font-bold shrink-0 shadow-xs rounded-md"
                         onClick={handleCopyTransferContent}
                       >
@@ -587,7 +581,7 @@ export default function CheckoutPage() {
 
                 {/* Countdown and Waiting loader */}
                 <div className="bg-sand/20 border border-sand/60 rounded-lg p-4 space-y-3.5 text-center">
-                  
+
                   {remainingSeconds !== null && remainingSeconds > 0 ? (
                     <div className="flex items-center justify-center gap-2 text-xs font-semibold text-stone-700">
                       <Clock className="h-4 w-4 text-amber-600 animate-pulse" />
@@ -603,7 +597,7 @@ export default function CheckoutPage() {
                     <Loader2 className="h-4 w-4 animate-spin text-forest" />
                     <span>Đang chờ đối soát tự động từ ngân hàng...</span>
                   </div>
-                  
+
                   <p className="text-[10px] text-muted-foreground max-w-md mx-auto leading-relaxed">
                     Sau khi quý khách chuyển khoản thành công, hệ thống SePay sẽ ghi nhận và mở khóa tài liệu tự động trong vòng 30 giây đến 1 phút. Vui lòng không đóng trang này.
                   </p>
@@ -648,10 +642,10 @@ export default function CheckoutPage() {
               <CardDescription>Chi tiết tài liệu và tổng thanh toán</CardDescription>
             </CardHeader>
             <CardContent className="pt-4 space-y-4 font-sans">
-              
+
               {/* Document Info Row with Compact Cover */}
               <div className="flex gap-3.5 items-start">
-                
+
                 {/* Book cover (thumbnail size) */}
                 <div className="relative w-16 aspect-[1/1.38] shrink-0 overflow-hidden rounded-md shadow-xs border border-viewer-dark-border/10 bg-warm-cream">
                   {doc.previewImages?.[0] ? (
@@ -671,7 +665,7 @@ export default function CheckoutPage() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-earth line-clamp-2 leading-snug" title={doc.title}>
                     {doc.title}
@@ -684,7 +678,7 @@ export default function CheckoutPage() {
               </div>
 
               <Separator className="bg-warm-sand" />
-              
+
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-earth-lighter">Khách hàng:</span>
@@ -727,7 +721,7 @@ export default function CheckoutPage() {
                   </span>
                 </div>
               </div>
-              
+
             </CardContent>
           </Card>
         </div>
