@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { changePassword } from "@/lib/api";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
@@ -38,7 +38,7 @@ interface PasskeyItem {
 
 export default function SecurityPage() {
   const { toast } = useToast();
-  const { user, isOAuth, token } = useAuth();
+  const { user, isOAuth, token } = useAuthStore();
 
   // Password States
   const [currentPassword, setCurrentPassword] = useState("");

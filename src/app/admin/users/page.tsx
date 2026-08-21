@@ -8,7 +8,7 @@ import {
   updateAdminUserStatus, 
   adjustAdminUserBalance 
 } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { AdminUser, PaginationMeta } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
@@ -43,7 +43,7 @@ import { Label } from "@/components/ui/label";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 
 export default function AdminUsersPage() {
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
   
   const [users, setUsers] = useState<AdminUser[]>([]);

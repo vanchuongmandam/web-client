@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import type { Article, PaginationMeta } from '@/lib/types';
 import { formatVietnameseDate } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -32,7 +32,7 @@ export default function AdminArticlesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
 
   // Handle debounce

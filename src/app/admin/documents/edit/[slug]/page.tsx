@@ -6,7 +6,7 @@ import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { getDocumentBySlug, updateDocument, getDocumentCategories, getDocumentCollections } from "@/lib/api";
 import type { DocumentCategory, DocumentCollection } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -77,7 +77,7 @@ export default function EditDocumentPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
-  const { token, user } = useAuth();
+  const { token, user } = useAuthStore();
   const { toast } = useToast();
 
   const [categories, setCategories] = useState<DocumentCategory[]>([]);

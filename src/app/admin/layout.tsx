@@ -1,7 +1,7 @@
 // src/app/admin/layout.tsx
 "use client";
 
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ArrowLeft, Loader2, ShieldAlert } from "lucide-react";
@@ -16,7 +16,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {

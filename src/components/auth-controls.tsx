@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -16,9 +16,9 @@ import {
 import { LogIn, UserPlus, User, BookOpen, ShoppingBag, LayoutDashboard, LogOut, Landmark, Bookmark } from "lucide-react";
 
 export function AuthControls() {
-  const { user, logout, isLoading, isHydrated } = useAuth();
+  const { user, logout, isLoading, hasHydrated } = useAuthStore();
 
-  if (!isHydrated || isLoading) {
+  if (!hasHydrated || isLoading) {
     return <div className="h-10 w-28 bg-muted/60 rounded-md animate-pulse"></div>;
   }
 
@@ -42,7 +42,7 @@ export function AuthControls() {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href="/profile/wallet" className="flex items-center text-primary focus:text-primary font-medium">
-              <Landmark className="mr-2 h-4 w-4" /> Ví của tôi (Nạp tiền)
+              <Landmark className="mr-2 h-4 w-4" /> Ví của tôi
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>

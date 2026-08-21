@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { getAdminDocuments, deleteDocument as apiDeleteDocument } from '@/lib/api';
 import type { MarketDocument, PaginationMeta } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,7 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function AdminDocumentsPage() {
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
 
   const [documents, setDocuments] = useState<MarketDocument[]>([]);

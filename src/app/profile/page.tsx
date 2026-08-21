@@ -6,7 +6,7 @@ import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { getProfile, updateProfile } from "@/lib/api";
 import type { UserProfile, BillingAddress } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ function formatPrice(price: number): string {
 }
 
 export default function ProfilePage() {
-  const { token, user, isLoading: authLoading } = useAuth();
+  const { token, user, isLoading: authLoading } = useAuthStore();
   const router = useRouter();
   const { toast } = useToast();
 

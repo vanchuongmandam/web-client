@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { getProfile } from "@/lib/api";
 import type { UserProfile } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
-  const { token, isLoading: authLoading } = useAuth();
+  const { token, isLoading: authLoading } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();

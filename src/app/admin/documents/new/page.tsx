@@ -6,7 +6,7 @@ import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { createDocument, getDocumentCategories, getDocumentCollections } from "@/lib/api";
 import type { DocumentCategory, DocumentCollection } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -86,7 +86,7 @@ async function detectPdfPageCount(file: File): Promise<number | null> {
 
 export default function NewDocumentPage() {
   const router = useRouter();
-  const { token, user } = useAuth();
+  const { token, user } = useAuthStore();
   const { toast } = useToast();
 
   const [categories, setCategories] = useState<DocumentCategory[]>([]);

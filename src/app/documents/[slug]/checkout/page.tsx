@@ -1,12 +1,12 @@
 // src/app/documents/[slug]/checkout/page.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
-import { getDocumentBySlug, getProfile, updateProfile, createOrder, getOrderByCode, validateCoupon } from '@/lib/api';
-import type { MarketDocument, Order, BillingAddress } from '@/lib/types';
+import { useAuthStore } from '@/stores/auth.store';
+import { useCheckoutStore, type CheckoutStep } from '@/stores/checkout.store';
+import { getDocumentBySlug, getProfile } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,7 @@ const getStatusBadgeClass = (currentStep: Step) => {
   }
 };
 
-type Step = 'billing' | 'confirm' | 'payment' | 'success';
+type Step = CheckoutStep;
 
 const checkoutSteps: { key: Step; label: string }[] = [
   { key: 'billing', label: 'Địa chỉ' },
@@ -69,33 +69,36 @@ export default function CheckoutPage() {
   const params = useParams();
   const slug = params?.slug as string;
   const router = useRouter();
-  const { token, isLoading: authLoading } = useAuth();
+  const { token, isLoading: authLoading } = useAuthStore();
   const { toast } = useToast();
 
-  const [step, setStep] = useState<Step>('billing');
-  const [doc, setDoc] = useState<MarketDocument | null>(null);
-  const [order, setOrder] = useState<Order | null>(null);
-  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [balance, setBalance] = useState<number>(0);
-  const [useBalance, setUseBalance] = useState(false);
-  const [couponCode, setCouponCode] = useState('');
-  const [couponError, setCouponError] = useState<string | null>(null);
-  const [discountAmount, setDiscountAmount] = useState<number>(0);
-  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const {
+    step,
+    doc,
+    order,
+    billingForm,
+    balance,
+    useBalance,
+    couponCode,
+    appliedCoupon,
+    discountAmount,
+    couponError,
+    isValidatingCoupon,
+    submitting,
+    remainingSeconds,
+    initCheckout,
+    setStep,
+    setBillingForm,
+    saveBillingAddress,
+    setUseBalance,
+    setCouponCode,
+    applyCoupon,
+    submitOrder,
+    pollOrderStatus,
+    tickCountdown,
+  } = useCheckoutStore();
 
-  const [billingForm, setBillingForm] = useState<BillingAddress>({
-    fullName: '',
-    phone: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    province: '',
-    postalCode: '',
-    country: 'VN',
-  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
@@ -111,13 +114,7 @@ export default function CheckoutPage() {
           router.push('/documents');
           return;
         }
-        setDoc(docData);
-        setBalance(profileData.balance || 0);
-
-        if (profileData.billingAddress?.fullName) {
-          setBillingForm(profileData.billingAddress);
-          setStep('confirm');
-        }
+        initCheckout(docData, profileData.balance || 0, profileData.billingAddress);
       } catch {
         toast({ title: 'Lỗi', description: 'Không thể tải dữ liệu', variant: 'destructive' });
       } finally {
@@ -125,7 +122,7 @@ export default function CheckoutPage() {
       }
     };
     load();
-  }, [authLoading, token, slug, router, toast]);
+  }, [authLoading, token, slug, router, toast, initCheckout]);
 
   const handleBillingSubmit = async () => {
     if (!billingForm.fullName || !billingForm.addressLine1 || !billingForm.city || !billingForm.province) {
@@ -133,107 +130,57 @@ export default function CheckoutPage() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      await updateProfile({ billingAddress: billingForm }, token!);
-      setStep('confirm');
-    } catch (err: unknown) {
+    const ok = await saveBillingAddress(token!);
+    if (!ok) {
       toast({
         title: 'Lỗi',
-        description: err instanceof Error ? err.message : 'Không thể lưu địa chỉ',
+        description: 'Không thể lưu địa chỉ',
         variant: 'destructive',
       });
-    } finally {
-      setSubmitting(false);
     }
   };
 
   const handleApplyCoupon = async () => {
-    if (!couponCode.trim() || !token || !doc) return;
-    setIsValidatingCoupon(true);
-    setCouponError(null);
-    try {
-      const res = await validateCoupon(couponCode.toUpperCase(), [doc._id], token);
-      if (res && res.coupon) {
-        setDiscountAmount(res.discountAmount);
-        setAppliedCoupon(couponCode.toUpperCase());
-        toast({
-          title: 'Áp dụng thành công',
-          description: `Đã áp dụng mã giảm giá. Bạn được giảm ${formatPrice(res.discountAmount)}`,
-        });
-      } else {
-        setCouponError('Mã giảm giá không hợp lệ hoặc đã hết hạn.');
-        setDiscountAmount(0);
-        setAppliedCoupon(null);
-      }
-    } catch (err: unknown) {
-      setCouponError(err instanceof Error ? err.message : 'Mã giảm giá không hợp lệ.');
-      setDiscountAmount(0);
-      setAppliedCoupon(null);
-    } finally {
-      setIsValidatingCoupon(false);
+    if (!couponCode.trim()) return;
+    const ok = await applyCoupon(token!);
+    if (ok) {
+      const amount = useCheckoutStore.getState().discountAmount;
+      toast({
+        title: 'Áp dụng thành công',
+        description: `Đã áp dụng mã giảm giá. Bạn được giảm ${formatPrice(amount)}`,
+      });
     }
   };
 
   const handleConfirmOrder = async () => {
-    if (!doc || !token) return;
-    setSubmitting(true);
-    try {
-      const activeCoupon = appliedCoupon ? appliedCoupon : (couponCode ? couponCode.toUpperCase() : undefined);
-      const newOrder = await createOrder([doc._id], token, useBalance, activeCoupon);
-      setOrder(newOrder);
-      if (newOrder.status === 'paid' || newOrder.status === 'confirmed' || newOrder.totalAmount === 0) {
-        setStep('success');
-      } else {
-        setStep('payment');
-      }
-    } catch (err: unknown) {
+    const newOrder = await submitOrder(token!);
+    if (!newOrder) {
       toast({
         title: 'Lỗi',
-        description: err instanceof Error ? err.message : 'Không thể tạo đơn hàng',
+        description: 'Không thể tạo đơn hàng',
         variant: 'destructive',
       });
-    } finally {
-      setSubmitting(false);
     }
   };
 
-  const pollPayment = useCallback(async () => {
-    if (!order || !token) return;
-    try {
-      const updated = await getOrderByCode(order.orderCode, token);
-      if (updated.status === 'paid' || updated.status === 'confirmed') {
-        setOrder(updated);
-        setStep('success');
-      } else if (updated.status === 'expired' || updated.status === 'cancelled') {
-        setOrder(updated);
+  useEffect(() => {
+    if (step !== 'payment' || !order) return;
+    const interval = setInterval(async () => {
+      const status = await pollOrderStatus(token!);
+      if (status === 'expired') {
         toast({ title: 'Đơn hàng hết hạn', description: 'Đơn hàng đã hết hạn hoặc bị hủy. Vui lòng tạo đơn mới.', variant: 'destructive' });
         router.push(`/documents/${slug}`);
       }
-    } catch { /* ignore */ }
-  }, [order, token, toast, router, slug]);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [step, order, token, pollOrderStatus, toast, router, slug]);
 
   useEffect(() => {
     if (step !== 'payment' || !order) return;
-    const interval = setInterval(pollPayment, 5000);
+    tickCountdown();
+    const interval = setInterval(() => tickCountdown(), 1000);
     return () => clearInterval(interval);
-  }, [step, order, pollPayment]);
-
-  useEffect(() => {
-    if (step !== 'payment' || !order) {
-      setRemainingSeconds(null);
-      return;
-    }
-
-    const tick = () => {
-      const remain = Math.floor((new Date(order.expiresAt).getTime() - Date.now()) / 1000);
-      setRemainingSeconds(Math.max(0, remain));
-    };
-
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, [step, order]);
+  }, [step, order, tickCountdown]);
 
   const handleCopyTransferContent = async () => {
     if (!order?.transferContent) return;
@@ -341,7 +288,7 @@ export default function CheckoutPage() {
                       placeholder="Nguyễn Văn A"
                       className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
                       value={billingForm.fullName || ''}
-                      onChange={(e) => setBillingForm({ ...billingForm, fullName: e.target.value })}
+                      onChange={(e) => setBillingForm({ fullName: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -350,7 +297,7 @@ export default function CheckoutPage() {
                       placeholder="0901234567"
                       className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
                       value={billingForm.phone || ''}
-                      onChange={(e) => setBillingForm({ ...billingForm, phone: e.target.value })}
+                      onChange={(e) => setBillingForm({ phone: e.target.value })}
                     />
                   </div>
                 </div>
@@ -361,7 +308,7 @@ export default function CheckoutPage() {
                     placeholder="123 Đường Lê Lợi"
                     className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
                     value={billingForm.addressLine1 || ''}
-                    onChange={(e) => setBillingForm({ ...billingForm, addressLine1: e.target.value })}
+                    onChange={(e) => setBillingForm({ addressLine1: e.target.value })}
                   />
                 </div>
                 
@@ -371,7 +318,7 @@ export default function CheckoutPage() {
                     placeholder="Phường Bến Thành"
                     className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
                     value={billingForm.addressLine2 || ''}
-                    onChange={(e) => setBillingForm({ ...billingForm, addressLine2: e.target.value })}
+                    onChange={(e) => setBillingForm({ addressLine2: e.target.value })}
                   />
                 </div>
                 
@@ -382,7 +329,7 @@ export default function CheckoutPage() {
                       placeholder="Quận 1"
                       className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
                       value={billingForm.city || ''}
-                      onChange={(e) => setBillingForm({ ...billingForm, city: e.target.value })}
+                      onChange={(e) => setBillingForm({ city: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
@@ -391,7 +338,7 @@ export default function CheckoutPage() {
                       placeholder="TP. Hồ Chí Minh"
                       className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
                       value={billingForm.province || ''}
-                      onChange={(e) => setBillingForm({ ...billingForm, province: e.target.value })}
+                      onChange={(e) => setBillingForm({ province: e.target.value })}
                     />
                   </div>
                 </div>
@@ -517,14 +464,7 @@ export default function CheckoutPage() {
                         placeholder="Nhập mã giảm giá..."
                         className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30 uppercase"
                         value={couponCode}
-                        onChange={(e) => {
-                          setCouponCode(e.target.value.toUpperCase());
-                          if (appliedCoupon) {
-                            setAppliedCoupon(null);
-                            setDiscountAmount(0);
-                            setCouponError(null);
-                          }
-                        }}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         disabled={submitting || isValidatingCoupon}
                       />
                       <Button

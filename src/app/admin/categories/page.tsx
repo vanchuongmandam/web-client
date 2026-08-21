@@ -3,7 +3,7 @@
 
 import { useState, useEffect, FormEvent, useCallback } from 'react';
 import type { Category } from '@/lib/types';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
 import { getCategories, createCategory, deleteCategory } from '@/lib/api';
 
@@ -82,7 +82,7 @@ export default function AdminCategoriesPage() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [parentCategoryId, setParentCategoryId] = useState<string | undefined>(undefined);
   
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
 
   const fetchCategories = useCallback(async () => {

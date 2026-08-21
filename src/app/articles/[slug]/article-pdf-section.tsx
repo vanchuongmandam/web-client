@@ -6,7 +6,7 @@ import { toErrorMessage } from "@/lib/errors";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
 import { instantUnlock } from '@/lib/api';
 import type { Media } from "@/lib/types";
@@ -35,7 +35,7 @@ interface PdfItemProps {
 
 function PdfItem({ pdf, idx, articleId, articleTitle }: PdfItemProps) {
   const router = useRouter();
-  const { token, user } = useAuth();
+  const { token, user } = useAuthStore();
   const { toast } = useToast();
   const [isUnlockConfirmOpen, setIsUnlockConfirmOpen] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);

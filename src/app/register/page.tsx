@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,7 +22,7 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { register, loginWithGoogle, isLoading, error, clearError } = useAuth();
+  const { register, loginWithGoogle, isLoading, error, clearError } = useAuthStore();
   const router = useRouter();
 
   // Xóa lỗi khi người dùng rời khỏi trang hoặc component unmount
@@ -38,7 +38,7 @@ export default function RegisterPage() {
       await register(username, password, email);
       router.push('/verify-email?pending=true');
     } catch (err) {
-      // Bắt lỗi được ném từ AuthContext để ngăn các hành động tiếp theo
+      // Bắt lỗi được ném từ auth store để ngăn các hành động tiếp theo
       console.error("Registration failed:", err);
     }
   };

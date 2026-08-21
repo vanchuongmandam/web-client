@@ -5,7 +5,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import Link from 'next/link';
 import type { Comment } from '@/lib/types';
 import { getComments, createComment as createCommentApi, updateComment as updateCommentApi, deleteComment as deleteCommentApi } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,7 +25,7 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }: {
     onCommentUpdated: (updatedComment: Comment) => void,
     onCommentDeleted: (commentId: string) => void,
 }) => {
-    const { user, token } = useAuth();
+    const { user, token } = useAuthStore();
     const [isEditing, setIsEditing] = useState(false);
     // --- SỬA LỖI TẠI ĐÂY ---
     // Khai báo lại biến isSubmitting bị thiếu
@@ -126,7 +126,7 @@ export default function CommentSection({ articleId }: { articleId: string }) {
     const [newCommentContent, setNewCommentContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    const { user, token } = useAuth();
+    const { user, token } = useAuthStore();
     const { toast } = useToast();
 
     useEffect(() => {

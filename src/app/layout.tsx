@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Header } from "@/components/header";
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { SessionProvider } from "next-auth/react";
 import { ZenModeProvider } from "@/context/ZenModeContext";
 import { ZenModeLayoutWrapper } from "@/components/zen-mode-layout-wrapper";

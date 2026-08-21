@@ -7,7 +7,7 @@ import { toErrorMessage } from "@/lib/errors";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { getUserOrders, cancelOrder } from "@/lib/api";
 import type { Order, PaginationMeta } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,7 @@ function formatPrice(price: number): string {
 }
 
 export default function OrdersPage() {
-  const { token, isLoading: authLoading } = useAuth();
+  const { token, isLoading: authLoading } = useAuthStore();
   const router = useRouter();
   const { toast } = useToast();
 

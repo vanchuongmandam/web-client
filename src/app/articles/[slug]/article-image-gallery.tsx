@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 import { PlayCircle, Lock } from 'lucide-react';
 import { RequestAccessModal } from '@/components/articles/RequestAccessModal';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
 import { instantUnlock } from '@/lib/api';
 
@@ -38,7 +38,7 @@ const MediaItem = ({
   articleTitle: string,
   onRequestSuccess: () => void
 }) => {
-  const { token, user } = useAuth();
+  const { token, user } = useAuthStore();
   const { toast } = useToast();
   const [isUnlockConfirmOpen, setIsUnlockConfirmOpen] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);

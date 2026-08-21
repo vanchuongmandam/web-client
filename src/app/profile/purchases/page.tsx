@@ -7,7 +7,7 @@ import { toErrorMessage } from "@/lib/errors";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { getUserPurchases, getDocumentDownload, addReview } from "@/lib/api";
 import type { Purchase, PaginationMeta } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ const getBookCoverTheme = (docId: string) => {
 };
 
 export default function PurchasesPage() {
-  const { token, isLoading: authLoading } = useAuth();
+  const { token, isLoading: authLoading } = useAuthStore();
   const router = useRouter();
   const { toast } = useToast();
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent, useCallback } from 'react';
 import type { DocumentCollection } from '@/lib/types';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
 import { getDocumentCollections, createDocumentCollection, deleteDocumentCollection } from '@/lib/api';
 
@@ -33,7 +33,7 @@ export default function AdminDocumentCollectionsPage() {
   const [newCollectionName, setNewCollectionName] = useState('');
   const [newCollectionDescription, setNewCollectionDescription] = useState('');
   
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
 
   const fetchCollections = useCallback(async () => {

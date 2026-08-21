@@ -8,7 +8,7 @@ import {
   updateAdminCoupon, 
   deleteAdminCoupon,
 } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { Coupon, PaginationMeta } from "@/lib/types";
 import {
   Table,
@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function AdminCouponsPage() {
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
   
   const [coupons, setCoupons] = useState<Coupon[]>([]);

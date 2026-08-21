@@ -7,8 +7,8 @@ import { toErrorMessage } from "@/lib/errors";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { checkDocumentOwnership, getDocumentDownload, toggleBookmark } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth.store';
+import { checkDocumentOwnership, getDocumentDownload } from '@/lib/api';
 import type { MarketDocument } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ImageLightbox } from '@/components/ui/image-lightbox';
+import { Skeleton } from '@/components/ui/skeleton';
 import ReviewSection from '@/components/documents/ReviewSection';
 import DocumentSuggestions from '@/components/documents/DocumentSuggestions';
 import dynamic from 'next/dynamic';
@@ -79,7 +80,8 @@ const getBookCoverTheme = (docId: string) => {
 };
 
 export function DocumentDetailClient({ document: doc }: Props) {
-  const { user, token, refreshProfile } = useAuth();
+  const { token, hasHydrated } = useAuthStore();
+  const bookmarked = useAuthStore((s) => s.bookmarkedDocumentIds.includes(doc._id));
   const router = useRouter();
 
   // Fallback chain: coverImage -> first previewImages -> previewFile (if image)
@@ -98,41 +100,34 @@ export function DocumentDetailClient({ document: doc }: Props) {
   const [owned, setOwned] = useState(false);
   const [checking, setChecking] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
-    if (user?.bookmarkedDocuments) {
-      const isBookmarked = user.bookmarkedDocuments.some((b: string | MarketDocument) =>
-        typeof b === 'string' ? b === doc._id : b._id === doc._id
-      );
-      setBookmarked(isBookmarked);
-    }
-  }, [user, doc._id]);
+    // Chỉ check khi store đã hydrate xong
+    if (!hasHydrated) return;
 
-  useEffect(() => {
     if (token && doc._id) {
       checkDocumentOwnership(doc._id, token)
         .then((res) => setOwned(res.owned))
         .catch(() => setOwned(false))
         .finally(() => setChecking(false));
     } else {
+      // Bây giờ chắc chắn user chưa đăng nhập
+      setOwned(false);
       setChecking(false);
     }
-  }, [token, doc._id]);
+  }, [token, doc._id, hasHydrated]);
 
   const handleBookmark = async () => {
     if (!token) return router.push('/login');
     setIsBookmarkLoading(true);
     try {
-      const res = await toggleBookmark(doc._id, token);
-      setBookmarked(res.bookmarked);
-      refreshProfile(); // to update the user object context
+      const bookmarkedNow = await useAuthStore.getState().toggleBookmarkOptimistic(doc._id);
       toast({
-        title: res.bookmarked ? 'Đã lưu tài liệu' : 'Đã bỏ lưu tài liệu',
+        title: bookmarkedNow ? 'Đã lưu tài liệu' : 'Đã bỏ lưu tài liệu',
       });
     } catch (e) {
       toast({ title: 'Lỗi', description: toErrorMessage(e), variant: 'destructive' });
@@ -548,7 +543,12 @@ export function DocumentDetailClient({ document: doc }: Props) {
             <CardContent className="space-y-5 p-5">
               {/* Primary & Secondary Action Buttons */}
               <div className="space-y-2.5">
-                {owned ? (
+                {!hasHydrated || checking ? (
+                  <div className="space-y-2.5">
+                    <Skeleton className="h-11 w-full rounded-md" />
+                    <Skeleton className="h-11 w-full rounded-md" />
+                  </div>
+                ) : owned ? (
                   <>
                     <Button 
                       asChild 
@@ -599,7 +599,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 )}
 
                 {/* Preview Button */}
-                {!owned && allPreviewImages.length > 0 && (
+                {!owned && !checking && hasHydrated && allPreviewImages.length > 0 && (
                   <Button
                     variant="outline"
                     className="w-full h-11 border border-sand bg-warm-cream hover:bg-warm-linen text-earth hover:text-forest-dark font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-between px-3.5"
@@ -626,7 +626,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 <div className="flex items-center justify-between">
                   <span className="text-earth-light">Tình trạng</span>
                   <Badge variant={owned ? 'default' : 'secondary'} className={owned ? 'bg-forest text-white font-medium rounded-full py-0.5' : 'bg-sand/60 text-earth-muted font-medium rounded-full border-0 py-0.5'}>
-                    {checking ? 'Đang kiểm tra...' : owned ? 'Đã sở hữu' : 'Chưa sở hữu'}
+                    {!hasHydrated || checking ? 'Đang kiểm tra...' : owned ? 'Đã sở hữu' : 'Chưa sở hữu'}
                   </Badge>
                 </div>
                 <div className="h-[1px] bg-warm-sand/60" />

@@ -6,7 +6,7 @@ import { toErrorMessage } from "@/lib/errors";
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 import { resendVerification } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +27,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [resending, setResending] = useState(false);
-  const { login, loginWithGoogle, isLoading, error, clearError } = useAuth();
+  const { login, loginWithGoogle, isLoading, error, clearError } = useAuthStore();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {

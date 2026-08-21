@@ -6,7 +6,7 @@ import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { getReviews, createReview, upvoteReview, checkDocumentOwnership } from "@/lib/api";
 import type { Review } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,7 +25,7 @@ interface Props {
 }
 
 export default function ReviewSection({ documentId, price = 0, isFree = false }: Props) {
-  const { user, token } = useAuth();
+  const { user, token } = useAuthStore();
   const { toast } = useToast();
 
   const [reviews, setReviews] = useState<Review[]>([]);

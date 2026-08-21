@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent, useCallback } from 'react';
 import type { DocumentCategory } from '@/lib/types';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
 import { getDocumentCategories, createDocumentCategory, deleteDocumentCategory } from '@/lib/api';
 
@@ -68,7 +68,7 @@ export default function AdminDocumentCategoriesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
 
   const fetchCategories = useCallback(async () => {

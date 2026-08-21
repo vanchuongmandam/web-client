@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { getAccessRequestsPaginated, reviewAccessRequest, type AccessRequest } from "@/lib/api";
 import type { PaginationMeta } from "@/lib/types";
@@ -30,7 +30,7 @@ export default function RequestsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { token } = useAuth();
+  const { token } = useAuthStore();
 
   const fetchRequests = useCallback(async () => {
     if (!token) {

@@ -4,7 +4,7 @@ import { toErrorMessage } from "@/lib/errors";
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { linkGoogleAccount } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore, type AuthUser } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,11 +18,8 @@ function LinkAccountContent() {
   const idToken = searchParams.get("idToken");
   const router = useRouter();
   
-  // Note: we can't use loginWithGoogle here, we need to manually update AuthContext
-  // after calling linkGoogleAccount.
-  const { login } = useAuth(); // We'll need a special method, or we can just use router.push after manual localStorage update, or add a method to AuthContext.
-  // Actually, linkGoogleAccount returns LoginResponse (token, user).
-  // We can just update localStorage and refresh the page, or let AuthContext pick it up.
+  // linkGoogleAccount returns LoginResponse (token, user): update the store session directly.
+  const setSession = useAuthStore((s) => s.setSession);
   
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -48,11 +45,10 @@ function LinkAccountContent() {
 
     try {
       const data = await linkGoogleAccount(idToken, password);
-      // Success, manual login
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('authUser', JSON.stringify(data.user));
+      // Success: update the auth store session (isOAuth stays false; the next-auth
+      // session sync in AuthProvider will flip it if a Google session is active).
+      setSession(data.token, data.user as AuthUser);
       setStatus("success");
-      // Force reload to let AuthContext pick up the new token
       window.location.href = '/';
     } catch (err) {
       setStatus("error");

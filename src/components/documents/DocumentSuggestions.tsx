@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { getRelatedDocuments, getSuggestions } from "@/lib/api";
 import type { MarketDocument } from "@/lib/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -120,7 +120,7 @@ function DocumentCard({ doc }: { doc: MarketDocument }) {
 }
 
 export default function DocumentSuggestions({ documentId }: Props) {
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   
   const [related, setRelated] = useState<MarketDocument[]>([]);
   const [suggestions, setSuggestions] = useState<MarketDocument[]>([]);

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { getAdminOrders, confirmAdminOrder, refundAdminOrder } from '@/lib/api';
 import type { Order, PaginationMeta } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -85,7 +85,7 @@ function statusBadge(status: string) {
 }
 
 export default function AdminOrdersPage() {
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
 
   const [orders, setOrders] = useState<Order[]>([]);

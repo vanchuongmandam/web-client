@@ -5,7 +5,7 @@
 import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect, useRef } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { createDepositOrder } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -19,7 +19,7 @@ function formatPrice(price: number): string {
 }
 
 export default function WalletPage() {
-  const { user, token, refreshProfile } = useAuth();
+  const { user, token, refreshProfile } = useAuthStore();
   const { toast } = useToast();
   
   const [amount, setAmount] = useState<string>("");

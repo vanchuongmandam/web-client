@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
 import { generateSlug } from '@/lib/utils';
 import type { Category, Media, Article } from '@/lib/types';
@@ -125,7 +125,7 @@ export default function EditArticlePage() {
     const router = useRouter();
     const params = useParams();
     const slug = params.slug as string;
-    const { token } = useAuth();
+    const { token } = useAuthStore();
     const { toast } = useToast();
 
     const [allCategories, setAllCategories] = useState<Category[]>([]);

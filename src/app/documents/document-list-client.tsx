@@ -14,9 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PaginationControls } from '@/components/ui/pagination-controls';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
-import { toggleBookmark, getBookmarks } from '@/lib/api';
 import {
   FileText,
   Star,
@@ -108,12 +107,12 @@ export function DocumentListClient({
   currentTag,
 }: DocumentListClientProps) {
   const router = useRouter();
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
 
   const [searchValue, setSearchValue] = useState(currentSearch || '');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const bookmarkedIds = useAuthStore((s) => s.bookmarkedDocumentIds);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState<string | null>(null);
 
   const hasActiveFilters = Boolean(currentCategory || currentSearch || currentSort || currentTag);
@@ -131,18 +130,6 @@ export function DocumentListClient({
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (token) {
-      getBookmarks(token, { limit: 100 })
-        .then(res => {
-          setBookmarkedIds(res.data.map(doc => doc._id));
-        })
-        .catch(err => console.error("Error loading bookmarks:", err));
-    } else {
-      setBookmarkedIds([]);
-    }
-  }, [token]);
 
   const updateFilter = (key: string, value: string | undefined) => {
     const params = new URLSearchParams();
@@ -209,20 +196,13 @@ export function DocumentListClient({
 
     setIsBookmarkLoading(docId);
     try {
-      const res = await toggleBookmark(docId, token);
-      if (res.bookmarked) {
-        setBookmarkedIds(prev => [...prev, docId]);
-        toast({
-          title: "Đã lưu tài liệu",
-          description: "Tài liệu đã được thêm vào tủ sách cá nhân.",
-        });
-      } else {
-        setBookmarkedIds(prev => prev.filter(id => id !== docId));
-        toast({
-          title: "Đã bỏ lưu",
-          description: "Tài liệu đã được xóa khỏi tủ sách cá nhân.",
-        });
-      }
+      const bookmarked = await useAuthStore.getState().toggleBookmarkOptimistic(docId);
+      toast({
+        title: bookmarked ? "Đã lưu tài liệu" : "Đã bỏ lưu",
+        description: bookmarked
+          ? "Tài liệu đã được thêm vào tủ sách cá nhân."
+          : "Tài liệu đã được xóa khỏi tủ sách cá nhân.",
+      });
     } catch (err) {
       toast({
         title: "Thất bại",

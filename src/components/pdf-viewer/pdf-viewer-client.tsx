@@ -3,7 +3,8 @@ import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
+import { useReaderStore, type ReaderTheme } from "@/stores/reader.store";
 import { useRouter } from "next/navigation";
 import {
   Loader2,
@@ -46,7 +47,7 @@ if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 }
 
-type ThemeName = "parchment" | "sepia" | "dark";
+type ThemeName = ReaderTheme;
 
 interface ThemeConfig {
   name: ThemeName;
@@ -119,19 +120,25 @@ export default function PDFViewerClient({
   title,
   isInline = false,
 }: PDFViewerClientProps) {
-  const { token, isLoading: isAuthLoading } = useAuth();
+  const { token, isLoading: isAuthLoading } = useAuthStore();
   const router = useRouter();
   const { toast } = useToast();
+
+  const theme = useReaderStore((s) => s.theme);
+  const setTheme = useReaderStore((s) => s.setTheme);
+  const scale = useReaderStore((s) => s.scale);
+  const setScale = useReaderStore((s) => s.setScale);
+  const zoomIn = useReaderStore((s) => s.zoomIn);
+  const zoomOut = useReaderStore((s) => s.zoomOut);
+  const saveLastReadPage = useReaderStore((s) => s.saveLastReadPage);
 
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [inputPage, setInputPage] = useState<string>("1");
-  const [scale, setScale] = useState<number>(isInline ? 1.0 : 1.2);
   const [pdfData, setPdfData] = useState<Blob | null>(null);
   const [loadingFile, setLoadingFile] = useState(true);
   const [isPageRendering, setIsPageRendering] = useState(false);
 
-  const [theme, setTheme] = useState<ThemeName>("parchment");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isZenMode, setIsZenMode] = useState(false);
 
@@ -210,10 +217,10 @@ export default function PDFViewerClient({
 
       // Zoom Shortcuts: + / = / -
       if (e.key === "=" || e.key === "+") {
-        setScale((s) => Math.min(3, parseFloat((s + 0.15).toFixed(2))));
+        useReaderStore.getState().zoomIn();
       }
       if (e.key === "-" || e.key === "_") {
-        setScale((s) => Math.max(0.4, parseFloat((s - 0.15).toFixed(2))));
+        useReaderStore.getState().zoomOut();
       }
 
       // Zen Mode Shortcut (Z key)
@@ -291,9 +298,18 @@ export default function PDFViewerClient({
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
-    setPageNumber(1);
-    setInputPage("1");
-  }, []);
+    const lastPage = documentId ? useReaderStore.getState().getLastReadPage(documentId) : 1;
+    const startPage = lastPage >= 1 && lastPage <= numPages ? lastPage : 1;
+    setPageNumber(startPage);
+    setInputPage(String(startPage));
+  }, [documentId]);
+
+  // Persist the current page whenever the reader advances
+  useEffect(() => {
+    if (documentId && pageNumber >= 1) {
+      saveLastReadPage(documentId, pageNumber);
+    }
+  }, [documentId, pageNumber, saveLastReadPage]);
 
   const handlePageJumpInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -540,8 +556,8 @@ export default function PDFViewerClient({
           <div className={cn("flex items-center space-x-1.5 border-l pl-3", currentTheme.divider)}>
             <TooltipIconButton
               tooltip="Thu nhỏ (-)"
-              disabled={scale <= 0.4}
-              onClick={() => setScale((s) => Math.max(0.4, parseFloat((s - 0.15).toFixed(2))))}
+              disabled={scale <= 0.5}
+              onClick={zoomOut}
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </TooltipIconButton>
@@ -578,8 +594,8 @@ export default function PDFViewerClient({
 
             <TooltipIconButton
               tooltip="Phóng to (+)"
-              disabled={scale >= 3.0}
-              onClick={() => setScale((s) => Math.min(3.0, parseFloat((s + 0.15).toFixed(2))))}
+              disabled={scale >= 2.5}
+              onClick={zoomIn}
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </TooltipIconButton>

@@ -5,7 +5,7 @@
 import { toErrorMessage } from "@/lib/errors";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { getBookmarks, toggleBookmark } from "@/lib/api";
 import type { MarketDocument } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,7 +35,7 @@ function formatPrice(price: number): string {
 }
 
 export default function BookmarksPage() {
-  const { token, refreshProfile } = useAuth();
+  const { token, refreshProfile } = useAuthStore();
   const { toast } = useToast();
   
   const [documents, setDocuments] = useState<MarketDocument[]>([]);

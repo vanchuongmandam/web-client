@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/auth.store";
 import { useToast } from "@/hooks/use-toast";
 import { getAdminStats } from "@/lib/api";
 import type { AdminDashboardStats } from "@/lib/types";
@@ -17,7 +17,7 @@ import { CouponPerformance } from "@/components/admin/dashboard/coupon-performan
 import { DashboardSkeleton } from "@/components/admin/dashboard/dashboard-skeleton";
 
 export default function AdminDashboardPage() {
-  const { token } = useAuth();
+  const { token } = useAuthStore();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
