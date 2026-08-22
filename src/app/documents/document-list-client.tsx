@@ -263,10 +263,10 @@ export function DocumentListClient({
           onValueChange={(v) => updateFilter('tag', v === 'all' ? undefined : v)}
         >
           <SelectTrigger className="w-full bg-warm-cream border-2 border-sand hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
-            <SelectValue placeholder="Tất cả chuyên đề thi" />
+            <SelectValue placeholder="Tất cả bộ sưu tập" />
           </SelectTrigger>
           <SelectContent className="bg-warm-cream border-sand">
-            <SelectItem value="all">Tất cả chuyên đề thi</SelectItem>
+            <SelectItem value="all">Tất cả bộ sưu tập</SelectItem>
             {collections.map((col) => (
               <SelectItem key={col.slug} value={col.slug}>
                 {col.name}
@@ -519,7 +519,7 @@ export function DocumentListClient({
                   const isHighlyRated = averageRating >= 4.7;
                   const isEditorChoice = doc.featured;
 
-                  const coverImg = doc.coverImage?.trim() || 
+                  const coverImg = doc.coverImage?.trim() ||
                     (Array.isArray(doc.previewImages) && doc.previewImages.length > 0 ? doc.previewImages[0] : null) ||
                     (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
 

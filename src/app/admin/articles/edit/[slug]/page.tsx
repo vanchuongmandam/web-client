@@ -43,8 +43,11 @@ const articleFormSchema = z.object({
     trending: z.boolean().default(false),
     media: z.array(z.object({
         url: z.string(),
+        previewUrl: z.string().optional(),
         mediaType: z.enum(['image', 'video', 'pdf']),
         caption: z.string().optional(),
+        isRestricted: z.boolean().optional(),
+        unlockPrice: z.number().optional(),
     })),
 });
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
@@ -320,7 +323,7 @@ export default function EditArticlePage() {
                                     <div className="mt-4 space-y-2">
                                         {mediaValue && mediaValue.map((m, index) => (
                                             <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
-                                                {m.mediaType === 'image' && m.url && <Image src={m.url} alt="preview" width={40} height={40} className="rounded object-cover" />}
+                                                {m.mediaType === 'image' && m.url && <Image src={m.previewUrl || m.url} alt="preview" width={40} height={40} className="rounded object-cover" />}
                                                 {m.mediaType === 'pdf' && <FileText className="h-10 w-10 text-red-500" />}
                                                 {m.mediaType === 'video' && <ImageIcon className="h-10 w-10 text-muted-foreground" />}
                                                 <p className="text-sm truncate flex-1">{m.url.split('/').pop()}</p>

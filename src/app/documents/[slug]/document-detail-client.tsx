@@ -325,7 +325,6 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   {/* Author & Rating Line */}
                   <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs text-earth-muted">
                     <span className="inline-flex items-center gap-1.5 font-medium bg-sand/25 px-2.5 py-1 rounded-md border border-sand-light/60">
-                      <BookOpen className="size-3.5 text-forest shrink-0" />
                       <span>Tác giả: <strong className="text-earth font-semibold">{doc.author || 'Khuyết danh'}</strong></span>
                     </span>
                     {doc.rating?.average > 0 && (

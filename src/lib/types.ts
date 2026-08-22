@@ -2,6 +2,7 @@
 
 export interface Media {
   url: string;
+  previewUrl?: string;
   mediaType: 'image' | 'video' | 'pdf';
   caption?: string;
   isRestricted?: boolean;

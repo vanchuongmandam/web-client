@@ -490,7 +490,7 @@ export default function NewDocumentPage() {
                               setImagesUploadProgress(Math.round(baseProgress + singleProgress));
                             }
                           );
-                          newUrls.push(media.url);
+                          newUrls.push(media.previewUrl || media.url);
                           uploadedCount++;
                         } catch (err) {
                           toast({ title: "Lỗi tải ảnh", description: toErrorMessage(err), variant: "destructive" });
