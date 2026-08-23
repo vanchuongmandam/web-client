@@ -20,7 +20,7 @@ const getStatusBadgeClass = (status: string) => {
   switch (status) {
     case 'paid':
     case 'confirmed':
-      return 'bg-forest-bright text-white hover:bg-forest-bright border-none font-bold text-[10px] px-2 py-0.5 rounded';
+      return 'bg-primary text-primary-foreground hover:bg-wine-dark border-none font-bold text-[10px] px-2 py-0.5 rounded';
     case 'pending':
       return 'bg-amber-600 text-white hover:bg-amber-600 border-none font-bold text-[10px] px-2 py-0.5 rounded';
     case 'cancelled':

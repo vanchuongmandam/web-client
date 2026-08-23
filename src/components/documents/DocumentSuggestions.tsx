@@ -13,7 +13,7 @@ interface Props {
   documentId: string;
 }
 
-// Helper to determine book cover theme dynamically (identical to document-list-client)
+// // Helper to determine book cover theme dynamically (identical to document-list-client)
 const getBookCoverTheme = (docId: string) => {
   let sum = 0;
   for (let i = 0; i < docId.length; i++) {
@@ -21,10 +21,10 @@ const getBookCoverTheme = (docId: string) => {
   }
   const themes = [
     { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' }, // Warm Mahogany
-    { bg: 'bg-forest-deepest', text: 'text-pastel-green', border: 'border-forest-night', tagBg: 'bg-forest-night/40 text-pastel-green/90', lineBg: 'bg-forest' }, // Forest Moss
+    { bg: 'bg-wine-deepest', text: 'text-pastel-pink', border: 'border-wine-night', tagBg: 'bg-wine-night/40 text-pastel-pink/90', lineBg: 'bg-wine' }, // Crimson Velvet / Wine Red
     { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' }, // Dark Aubergine
     { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' }, // Slate Ocean
-    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-sand-muted' }, // Vintage Parchment
+    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-gold' }, // Vintage Parchment & Gold
   ];
   return themes[sum % themes.length];
 };
@@ -41,7 +41,7 @@ function DocumentCard({ doc }: { doc: MarketDocument }) {
     (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
 
   return (
-    <Card className="overflow-hidden flex flex-col group h-full border-2 border-sand-light bg-warm-cream/70 hover:bg-warm-cream rounded-xl hover:border-forest/60 transition-all duration-300 shadow-xs">
+    <Card className="overflow-hidden flex flex-col group h-full border-2 border-sand-light bg-warm-cream/70 hover:bg-warm-cream rounded-xl hover:border-primary/60 transition-all duration-300 shadow-xs">
 
       {/* Cover Image/Book container */}
       <Link href={`/documents/${doc.slug}`} className="relative w-full aspect-[4/3] overflow-hidden bg-warm-linen/40 border-b border-sand-light block">
@@ -120,7 +120,7 @@ function DocumentCard({ doc }: { doc: MarketDocument }) {
       <CardFooter className="p-3 pt-0 border-t border-sand-light/40 bg-warm-cream/40 text-xs">
         <div className="w-full pt-2 flex items-center justify-between">
           <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">Ấn phí</span>
-          <span className={`text-sm font-extrabold tracking-tight ${doc.isFree ? 'text-forest-bright' : 'text-category-red'}`}>
+          <span className={`text-sm font-extrabold tracking-tight ${doc.isFree ? 'text-primary' : 'text-category-red'}`}>
             {formatPrice(doc.price)}
           </span>
         </div>

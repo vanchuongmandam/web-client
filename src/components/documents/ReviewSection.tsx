@@ -111,11 +111,11 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
                     <div>
                       <p className="font-semibold text-sm text-earth">{user.username}</p>
                       {owned ? (
-                        <p className="text-[11px] text-forest-bright font-semibold flex items-center gap-1">
+                        <p className="text-[11px] text-primary font-semibold flex items-center gap-1">
                           <BadgeCheck className="w-3.5 h-3.5" /> Đã sở hữu tài liệu
                         </p>
                       ) : (
-                        <p className="text-[11px] text-forest-bright font-semibold flex items-center gap-1">
+                        <p className="text-[11px] text-primary font-semibold flex items-center gap-1">
                           Tài liệu miễn phí
                         </p>
                       )}
@@ -142,7 +142,7 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
                   <Button
                     onClick={handleSubmit}
                     disabled={submitting || !content.trim()}
-                    className="bg-forest text-pastel-pink hover:bg-forest-dark font-bold h-9 text-xs rounded-md shadow-sm"
+                    className="bg-primary text-primary-foreground hover:bg-wine-dark font-bold h-9 text-xs rounded-md shadow-sm"
                   >
                     {submitting && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                     Gửi đánh giá
@@ -158,7 +158,7 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
           )
         ) : (
           <div className="bg-sand/10 p-6 rounded-md text-center border-2 border-dashed border-sand text-xs text-earth-light">
-            <p>Vui lòng <Link href="/login" className="font-bold text-forest underline hover:text-forest-dark">đăng nhập</Link> để viết nhận xét & đánh giá tài liệu.</p>
+            <p>Vui lòng <Link href="/login" className="font-bold text-primary underline hover:text-wine-dark">đăng nhập</Link> để viết nhận xét & đánh giá tài liệu.</p>
           </div>
         )}
 
@@ -182,7 +182,7 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
                         <div className="flex items-center gap-2">
                           <p className="font-semibold text-xs text-earth">{r.user?.displayName || r.user?.username}</p>
                           {r.isVerifiedPurchase && (
-                            <span className="inline-flex items-center gap-1 text-[8px] uppercase font-bold text-forest-bright bg-forest-tint px-1.5 py-0.5 rounded border border-sage-border">
+                            <span className="inline-flex items-center gap-1 text-[8px] uppercase font-bold text-primary bg-wine-tint px-1.5 py-0.5 rounded border border-sand">
                               <BadgeCheck className="w-2.5 h-2.5" /> Đã mua
                             </span>
                           )}
@@ -203,7 +203,7 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
                     <Button
                       variant="ghost"
                       size="sm"
-                      className={`h-7 px-2 gap-1 rounded-md text-[10px] ${r.upvotes?.includes(user?._id || '') ? "text-forest bg-forest/10 hover:bg-forest/20" : "text-muted-foreground hover:bg-sand/15"}`}
+                      className={`h-7 px-2 gap-1 rounded-md text-[10px] ${r.upvotes?.includes(user?._id || '') ? "text-primary bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:bg-sand/15"}`}
                       onClick={() => handleUpvote(r._id)}
                     >
                       <ThumbsUp className="w-3 h-3" />

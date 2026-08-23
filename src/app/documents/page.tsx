@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { DocumentListClient } from './document-list-client';
 
 export const metadata: Metadata = {
-  title: 'Tài liệu | Văn Chương Mạn Đàm',
+  title: 'Tài liệu',
   description: 'Kho tài liệu văn học chất lượng cao - phân tích, bình giảng, đề thi và tài liệu ôn tập.',
 };
 

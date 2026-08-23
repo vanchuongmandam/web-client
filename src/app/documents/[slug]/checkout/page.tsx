@@ -35,10 +35,10 @@ const getBookCoverTheme = (docId: string) => {
   }
   const themes = [
     { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' }, // Warm Mahogany
-    { bg: 'bg-forest-deepest', text: 'text-pastel-green', border: 'border-forest-night', tagBg: 'bg-forest-night/40 text-pastel-green/90', lineBg: 'bg-forest' }, // Forest Moss
+    { bg: 'bg-wine-deepest', text: 'text-pastel-pink', border: 'border-wine-night', tagBg: 'bg-wine-night/40 text-pastel-pink/90', lineBg: 'bg-wine' }, // Crimson Velvet / Wine Red
     { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' }, // Dark Aubergine
     { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' }, // Slate Ocean
-    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-sand-muted' }, // Vintage Parchment
+    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-gold' }, // Vintage Parchment & Gold
   ];
   return themes[sum % themes.length];
 };
@@ -46,11 +46,11 @@ const getBookCoverTheme = (docId: string) => {
 const getStatusBadgeClass = (currentStep: Step) => {
   switch (currentStep) {
     case 'success':
-      return 'bg-forest-bright text-white hover:bg-forest-bright border-none font-bold';
+      return 'bg-primary text-primary-foreground hover:bg-wine-dark border-none font-bold';
     case 'payment':
       return 'bg-amber-600 text-white hover:bg-amber-600 border-none font-bold';
     case 'confirm':
-      return 'bg-forest text-warm-cream hover:bg-forest border-none font-bold';
+      return 'bg-primary text-primary-foreground hover:bg-wine-dark border-none font-bold';
     default:
       return 'bg-sand text-earth-muted hover:bg-sand border-none font-bold';
   }
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
   if (authLoading || loading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-forest" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -210,7 +210,7 @@ export default function CheckoutPage() {
       {/* Back button */}
       <Link
         href={`/documents/${slug}`}
-        className="mb-8 inline-flex items-center gap-2 rounded-md border-2 border-sand bg-warm-cream px-4 py-2 text-sm font-bold text-forest hover:bg-sand/30 transition-colors shadow-sm w-fit animate-fade-in"
+        className="mb-8 inline-flex items-center gap-2 rounded-md border-2 border-sand bg-warm-cream px-4 py-2 text-sm font-bold text-primary hover:bg-sand/30 transition-colors shadow-sm w-fit animate-fade-in"
       >
         <ArrowLeft className="size-4" /> Quay lại chi tiết tài liệu
       </Link>
@@ -227,9 +227,9 @@ export default function CheckoutPage() {
                 <div className="flex flex-col items-center relative z-10 shrink-0">
                   <div
                     className={`size-9 rounded-full flex items-center justify-center border-2 transition-all duration-300 text-sm font-bold ${isCompleted
-                        ? 'bg-forest border-forest text-warm-cream'
+                        ? 'bg-primary border-primary text-primary-foreground'
                         : isActive
-                          ? 'bg-warm-cream border-forest text-forest ring-4 ring-forest/10'
+                          ? 'bg-warm-cream border-primary text-primary ring-4 ring-primary/10'
                           : 'bg-warm-cream border-sand-light text-stone-400'
                       }`}
                   >
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   <span
-                    className={`mt-2 text-xs font-bold whitespace-nowrap absolute top-9 left-1/2 -translate-x-1/2 transition-colors ${isActive ? 'text-forest' : 'text-stone-500'
+                    className={`mt-2 text-xs font-bold whitespace-nowrap absolute top-9 left-1/2 -translate-x-1/2 transition-colors ${isActive ? 'text-primary' : 'text-stone-500'
                       }`}
                   >
                     {s.label}
@@ -251,7 +251,7 @@ export default function CheckoutPage() {
                 {i < checkoutSteps.length - 1 && (
                   <div className="flex-1 mx-2 h-0.5 bg-warm-sand relative">
                     <div
-                      className={`absolute inset-0 bg-forest transition-all duration-500 ${i < stepIndex ? 'w-full' : 'w-0'
+                      className={`absolute inset-0 bg-primary transition-all duration-500 ${i < stepIndex ? 'w-full' : 'w-0'
                         }`}
                     />
                   </div>
@@ -272,7 +272,7 @@ export default function CheckoutPage() {
           {step === 'billing' ? (
             <Card className="border-2 border-sand-light bg-warm-cream/70 shadow-xs rounded-xl">
               <CardHeader className="pb-3 border-b border-sand-light/60">
-                <CardTitle className="text-xl font-sans font-bold text-forest flex items-center gap-2">
+                <CardTitle className="text-xl font-sans font-bold text-primary flex items-center gap-2">
                   <CreditCard className="size-5" /> Địa chỉ thanh toán
                 </CardTitle>
                 <CardDescription>Thông tin này dùng để xuất hóa đơn và lưu thông tin mua hàng.</CardDescription>
@@ -283,7 +283,7 @@ export default function CheckoutPage() {
                     <Label className="text-earth-muted font-semibold text-xs uppercase tracking-wider">Họ và tên *</Label>
                     <Input
                       placeholder="Nguyễn Văn A"
-                      className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
+                      className="bg-warm-cream border-2 border-sand focus-visible:ring-primary/30"
                       value={billingForm.fullName || ''}
                       onChange={(e) => setBillingForm({ fullName: e.target.value })}
                     />
@@ -292,7 +292,7 @@ export default function CheckoutPage() {
                     <Label className="text-earth-muted font-semibold text-xs uppercase tracking-wider">Số điện thoại</Label>
                     <Input
                       placeholder="0901234567"
-                      className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
+                      className="bg-warm-cream border-2 border-sand focus-visible:ring-primary/30"
                       value={billingForm.phone || ''}
                       onChange={(e) => setBillingForm({ phone: e.target.value })}
                     />
@@ -303,7 +303,7 @@ export default function CheckoutPage() {
                   <Label className="text-earth-muted font-semibold text-xs uppercase tracking-wider">Địa chỉ (Số nhà, đường) *</Label>
                   <Input
                     placeholder="123 Đường Lê Lợi"
-                    className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
+                    className="bg-warm-cream border-2 border-sand focus-visible:ring-primary/30"
                     value={billingForm.addressLine1 || ''}
                     onChange={(e) => setBillingForm({ addressLine1: e.target.value })}
                   />
@@ -313,7 +313,7 @@ export default function CheckoutPage() {
                   <Label className="text-earth-muted font-semibold text-xs uppercase tracking-wider">Phường/Xã</Label>
                   <Input
                     placeholder="Phường Bến Thành"
-                    className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
+                    className="bg-warm-cream border-2 border-sand focus-visible:ring-primary/30"
                     value={billingForm.addressLine2 || ''}
                     onChange={(e) => setBillingForm({ addressLine2: e.target.value })}
                   />
@@ -324,7 +324,7 @@ export default function CheckoutPage() {
                     <Label className="text-earth-muted font-semibold text-xs uppercase tracking-wider">Quận/Huyện *</Label>
                     <Input
                       placeholder="Quận 1"
-                      className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
+                      className="bg-warm-cream border-2 border-sand focus-visible:ring-primary/30"
                       value={billingForm.city || ''}
                       onChange={(e) => setBillingForm({ city: e.target.value })}
                     />
@@ -333,7 +333,7 @@ export default function CheckoutPage() {
                     <Label className="text-earth-muted font-semibold text-xs uppercase tracking-wider">Tỉnh/Thành phố *</Label>
                     <Input
                       placeholder="TP. Hồ Chí Minh"
-                      className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30"
+                      className="bg-warm-cream border-2 border-sand focus-visible:ring-primary/30"
                       value={billingForm.province || ''}
                       onChange={(e) => setBillingForm({ province: e.target.value })}
                     />
@@ -341,7 +341,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="pt-2">
-                  <Button className="w-full bg-forest text-pastel-pink hover:bg-forest-dark font-bold py-5 rounded-md shadow-sm" onClick={handleBillingSubmit} disabled={submitting}>
+                  <Button className="w-full bg-primary text-primary-foreground hover:bg-wine-dark font-bold py-5 rounded-md shadow-sm" onClick={handleBillingSubmit} disabled={submitting}>
                     {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Xác nhận địa chỉ & Tiếp tục
                   </Button>
@@ -354,7 +354,7 @@ export default function CheckoutPage() {
           {step === 'confirm' ? (
             <Card className="border-2 border-sand-light bg-warm-cream/70 shadow-xs rounded-xl">
               <CardHeader className="pb-3 border-b border-sand-light/60">
-                <CardTitle className="text-xl font-sans font-bold text-forest">Xác nhận & Thanh toán</CardTitle>
+                <CardTitle className="text-xl font-sans font-bold text-primary">Xác nhận & Thanh toán</CardTitle>
                 <CardDescription>Chọn phương thức thanh toán phù hợp để hoàn tất đơn hàng.</CardDescription>
               </CardHeader>
               <CardContent className="pt-6 space-y-6 font-sans">
@@ -372,7 +372,7 @@ export default function CheckoutPage() {
                   </p>
                   <Button
                     variant="link"
-                    className="absolute top-3 right-3 text-forest hover:text-forest-dark text-xs h-auto p-0 font-bold"
+                    className="absolute top-3 right-3 text-primary hover:text-wine-dark text-xs h-auto p-0 font-bold"
                     onClick={() => setStep('billing')}
                   >
                     Thay đổi
@@ -392,12 +392,12 @@ export default function CheckoutPage() {
                         disabled={balance < Math.max(0, doc.price - discountAmount)}
                         onClick={() => setUseBalance(true)}
                         className={`flex flex-col text-left p-4 rounded-md border-2 transition-all cursor-pointer relative overflow-hidden ${useBalance
-                            ? 'border-forest-bright bg-forest-tint/40 ring-2 ring-forest-bright/10'
+                            ? 'border-primary bg-wine-tint/60 ring-2 ring-primary/10'
                             : 'border-sand hover:border-sand/80 bg-transparent'
                           } ${balance < Math.max(0, doc.price - discountAmount) ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <div className="flex items-center gap-2 text-stone-800">
-                          <CreditCard className={`size-5 ${useBalance ? 'text-forest-bright' : 'text-stone-500'}`} />
+                          <CreditCard className={`size-5 ${useBalance ? 'text-primary' : 'text-stone-500'}`} />
                           <span className="font-bold text-sm">Ví tài khoản</span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">
@@ -407,7 +407,7 @@ export default function CheckoutPage() {
                           <p className="text-[10px] text-red-700 font-medium mt-1">Số dư không đủ</p>
                         )}
                         {useBalance && (
-                          <div className="absolute top-2.5 right-2.5 size-4 bg-forest-bright rounded-full flex items-center justify-center text-white">
+                          <div className="absolute top-2.5 right-2.5 size-4 bg-primary rounded-full flex items-center justify-center text-white">
                             <Check className="size-2.5" />
                           </div>
                         )}
@@ -418,19 +418,19 @@ export default function CheckoutPage() {
                         type="button"
                         onClick={() => setUseBalance(false)}
                         className={`flex flex-col text-left p-4 rounded-md border-2 transition-all cursor-pointer relative overflow-hidden ${!useBalance
-                            ? 'border-forest bg-sand/20 ring-2 ring-forest/10'
+                            ? 'border-primary bg-sand/20 ring-2 ring-primary/10'
                             : 'border-sand hover:border-sand/80 bg-transparent'
                           }`}
                       >
                         <div className="flex items-center gap-2 text-stone-800">
-                          <QrCode className={`size-5 ${!useBalance ? 'text-forest' : 'text-stone-500'}`} />
+                          <QrCode className={`size-5 ${!useBalance ? 'text-primary' : 'text-stone-500'}`} />
                           <span className="font-bold text-sm">Chuyển khoản QR</span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">
                           Quét mã chuyển khoản tức thì qua SePay tự động đối soát.
                         </p>
                         {!useBalance && (
-                          <div className="absolute top-2.5 right-2.5 size-4 bg-forest rounded-full flex items-center justify-center text-white">
+                          <div className="absolute top-2.5 right-2.5 size-4 bg-primary rounded-full flex items-center justify-center text-white">
                             <Check className="size-2.5" />
                           </div>
                         )}
@@ -439,9 +439,9 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-md border-2 border-dashed border-forest/30 bg-forest/5 p-5 text-center">
-                    <CheckCircle className="size-10 text-forest mx-auto mb-2 opacity-85" />
-                    <h4 className="font-bold text-forest text-sm">Tài liệu miễn phí</h4>
+                  <div className="rounded-md border-2 border-dashed border-primary/30 bg-primary/5 p-5 text-center">
+                    <CheckCircle className="size-10 text-primary mx-auto mb-2 opacity-85" />
+                    <h4 className="font-bold text-primary text-sm">Tài liệu miễn phí</h4>
                     <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
                       Tài liệu này được chia sẻ hoàn toàn miễn phí. Quý khách chỉ cần nhấn nút bên dưới để nhận ngay mà không cần giao dịch ngân hàng.
                     </p>
@@ -457,7 +457,7 @@ export default function CheckoutPage() {
                     <div className="flex gap-2">
                       <Input
                         placeholder="Nhập mã giảm giá..."
-                        className="bg-warm-cream border-2 border-sand focus-visible:ring-forest/30 uppercase"
+                        className="bg-warm-cream border-2 border-sand focus-visible:ring-primary/30 uppercase"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         disabled={submitting || isValidatingCoupon}
@@ -465,7 +465,7 @@ export default function CheckoutPage() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="border-sand hover:bg-sand/40 text-forest font-bold shrink-0 shadow-sm"
+                        className="border-sand hover:bg-sand/40 text-primary font-bold shrink-0 shadow-sm"
                         onClick={handleApplyCoupon}
                         disabled={submitting || isValidatingCoupon || !couponCode.trim()}
                       >
@@ -491,8 +491,8 @@ export default function CheckoutPage() {
                 <div className="pt-2">
                   <Button
                     className={`w-full py-6 rounded-md text-white font-bold transition-all flex items-center justify-center gap-2 shadow-sm ${useBalance
-                        ? "bg-forest-bright hover:bg-forest-dark"
-                        : "bg-forest hover:bg-forest-dark"
+                        ? "bg-primary hover:bg-wine-dark"
+                        : "bg-primary hover:bg-wine-dark"
                       }`}
                     size="lg"
                     onClick={handleConfirmOrder}
@@ -517,7 +517,7 @@ export default function CheckoutPage() {
           {step === 'payment' && order ? (
             <Card className="border-2 border-sand-light bg-warm-cream/70 shadow-xs rounded-xl">
               <CardHeader className="pb-3 border-b border-sand-light/60 text-center md:text-left">
-                <CardTitle className="text-xl font-sans font-bold text-forest flex items-center justify-center md:justify-start gap-2">
+                <CardTitle className="text-xl font-sans font-bold text-primary flex items-center justify-center md:justify-start gap-2">
                   <QrCode className="size-5" /> Thanh toán chuyển khoản
                 </CardTitle>
                 <CardDescription>Quét mã QR bằng ứng dụng ngân hàng hoặc tự nhập thông tin chuyển khoản.</CardDescription>
@@ -559,14 +559,14 @@ export default function CheckoutPage() {
                     <div className="border-2 border-dashed border-sand bg-warm-cream p-3 rounded-lg flex items-center justify-between gap-3 mt-4">
                       <div className="min-w-0">
                         <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Nội dung chuyển khoản</span>
-                        <div className="font-mono font-black text-forest text-lg select-all truncate mt-0.5">
+                        <div className="font-mono font-black text-primary text-lg select-all truncate mt-0.5">
                           {order.transferContent}
                         </div>
                       </div>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-sand hover:bg-sand/40 text-forest font-bold shrink-0 shadow-xs rounded-md"
+                        className="border-sand hover:bg-sand/40 text-primary font-bold shrink-0 shadow-xs rounded-md"
                         onClick={handleCopyTransferContent}
                       >
                         <Copy className="mr-1 h-3.5 w-3.5" />
@@ -593,8 +593,8 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-center gap-2.5 text-sm font-semibold text-forest bg-sand/40 py-2.5 px-4 rounded-md inline-flex max-w-full">
-                    <Loader2 className="h-4 w-4 animate-spin text-forest" />
+                  <div className="flex items-center justify-center gap-2.5 text-sm font-semibold text-primary bg-sand/40 py-2.5 px-4 rounded-md inline-flex max-w-full">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
                     <span>Đang chờ đối soát tự động từ ngân hàng...</span>
                   </div>
 
@@ -611,20 +611,20 @@ export default function CheckoutPage() {
           {step === 'success' ? (
             <Card className="border-2 border-sand-light bg-warm-cream/70 shadow-xs rounded-xl">
               <CardContent className="p-8 text-center font-sans space-y-5">
-                <div className="size-16 bg-forest-tint rounded-full flex items-center justify-center mx-auto border-2 border-sage-border">
-                  <CheckCircle className="h-10 w-10 text-forest-bright" />
+                <div className="size-16 bg-wine-tint rounded-full flex items-center justify-center mx-auto border-2 border-sand">
+                  <CheckCircle className="h-10 w-10 text-primary" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-sans font-bold text-forest">Thanh toán thành công!</h2>
+                  <h2 className="text-2xl font-sans font-bold text-primary">Thanh toán thành công!</h2>
                   <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
                     Giao dịch của bạn đã được đối soát thành công. Tài liệu hiện đã được mở khóa và lưu vào thư viện cá nhân của bạn.
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-center pt-2">
-                  <Button className="bg-forest text-pastel-pink hover:bg-forest-dark font-bold px-6 shadow-sm" onClick={() => router.push(`/documents/${slug}`)}>
+                  <Button className="bg-primary text-primary-foreground hover:bg-wine-dark font-bold px-6 shadow-sm" onClick={() => router.push(`/documents/${slug}`)}>
                     Xem & Tải tài liệu
                   </Button>
-                  <Button variant="outline" className="border-sand hover:bg-sand/40 text-forest font-bold" onClick={() => router.push('/profile/purchases')}>
+                  <Button variant="outline" className="border-sand hover:bg-sand/40 text-primary font-bold" onClick={() => router.push('/profile/purchases')}>
                     Thư viện cá nhân
                   </Button>
                 </div>

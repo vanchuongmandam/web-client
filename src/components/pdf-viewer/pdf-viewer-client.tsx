@@ -73,9 +73,9 @@ const THEMES: Record<ThemeName, ThemeConfig> = {
     toolbar: "bg-warm-cream/95 border-sand-light text-earth-dark",
     card: "bg-white border-sand-light shadow-sm",
     divider: "border-sand-light",
-    badge: "bg-warm-linen text-forest border-sand-dark",
-    accentBtn: "hover:bg-warm-linen text-earth-dark/80 hover:text-forest",
-    activeBtn: "bg-warm-linen text-forest font-semibold",
+    badge: "bg-warm-linen text-primary border-sand-dark",
+    accentBtn: "hover:bg-warm-linen text-earth-dark/80 hover:text-primary",
+    activeBtn: "bg-warm-linen text-primary font-semibold",
   },
   sepia: {
     name: "sepia",

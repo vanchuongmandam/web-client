@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'transparenttextures.com',
         port: '',
-        pathname: 'patterns/**',
+        pathname: '/patterns/**',
       },
       {
         protocol: 'http',

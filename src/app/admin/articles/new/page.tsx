@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
-import { generateSlug } from '@/lib/utils';
+import { generateSlug, getMediaUrl } from '@/lib/utils';
 import type { Category, Media } from '@/lib/types';
 
 import dynamic from 'next/dynamic';
@@ -293,7 +293,7 @@ export default function NewArticlePage() {
                                     <div className="mt-4 space-y-2">
                                         {mediaValue.map((m, index) => (
                                             <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
-                                                {m.mediaType === 'image' && m.url && <Image src={m.previewUrl || m.url} alt="preview" width={40} height={40} className="rounded object-cover" />}
+                                                {m.mediaType === 'image' && m.url && <Image src={getMediaUrl(m.previewUrl || m.url)} alt="preview" width={40} height={40} className="rounded object-cover" />}
                                                 {m.mediaType === 'pdf' && <FileText className="h-10 w-10 text-red-500" />} {/* ĐÃ SỬA: Hiển thị icon PDF */}
                                                 {m.mediaType === 'video' && <ImageIcon className="h-10 w-10 text-muted-foreground" />} {/* Giữ lại icon chung cho video hoặc có thể thêm icon video cụ thể */}
                                                 <p className="text-sm truncate flex-1">{m.url.split('/').pop()}</p>

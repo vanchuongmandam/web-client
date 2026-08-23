@@ -8,6 +8,7 @@ import { FileText, Eye, Star, BookOpen, Trophy, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import Image from "next/image";
+import { getMediaUrl } from "@/lib/utils";
 
 interface Props {
   profile: PublicProfile;
@@ -75,7 +76,7 @@ export function PublicProfileClient({ profile }: Props) {
                   <Link href={`/documents/${doc.slug}`} className="relative aspect-[4/3] block overflow-hidden bg-muted">
                     {doc.previewImages?.[0] ? (
                       <Image 
-                        src={doc.previewImages[0]} 
+                        src={getMediaUrl(doc.previewImages[0])} 
                         alt={doc.title} 
                         fill 
                         className="object-cover transition-transform duration-300 group-hover:scale-105" 

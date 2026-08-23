@@ -73,39 +73,61 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
-        // ── VCMD Design Palette ──
-        'warm-cream': '#fcf9f2',
-        'warm-sand': '#e6dfd3',
-        'warm-linen': '#ebe2cf',
-        'warm-ivory': '#f7f0e3',
+        // ── VCMD Design Palette (Wine Red / Antique Gold / Warm Paper) ──
+        'warm-cream': '#fdfbf7', // #FDFBF7 - Giấy trầm sáng
+        'warm-sand': '#f5f1e9',  // #F5F1E9 - Giấy trầm ấm
+        'warm-linen': '#efe9dc', // #EFE9DC
+        'warm-ivory': '#faf6ee', // #FAF6EE
         sand: {
-          DEFAULT: '#ebdcb9',
-          light: '#e6dfd3',
-          dark: '#ccbfae',
-          muted: '#bca68d',
+          DEFAULT: '#e5dfd5',    // #E5DFD5 - Đường kẻ giấy
+          light: '#efebe3',
+          dark: '#d5cdc0',
+          muted: '#beb5a5',
         },
-        'sage-border': '#d2e7dd',
+        'sage-border': '#e5dfd5',
+        'sage-text': '#c5a059',
+        // ── Primary Action: Wine Red / Crimson Velvet (Đỏ Rượu Cung Đình) ──
+        wine: {
+          DEFAULT: '#a34355',
+          dark: '#833241',
+          bright: '#c24f65',
+          deepest: '#4a1b24',
+          night: '#2b1016',
+          tint: '#fdf2f4',
+        },
+        crimson: {
+          DEFAULT: '#a34355',
+          dark: '#833241',
+          light: '#c24f65',
+          deepest: '#4a1b24',
+        },
+        // Safe Migration Alias: 'forest' mapped to Wine Red shades
         forest: {
-          DEFAULT: '#4c6b54',
-          dark: '#3b5341',
-          bright: '#3c6b41',
-          deepest: '#2b3a32',
-          night: '#1d2722',
-          tint: '#ebf4ef',
+          DEFAULT: '#a34355',
+          dark: '#833241',
+          bright: '#c24f65',
+          deepest: '#4a1b24',
+          night: '#2b1016',
+          tint: '#fdf2f4',
         },
+        // ── Typography: Earth Ink (Mực Nâu Trầm) ──
         earth: {
-          DEFAULT: '#483d31',
-          dark: '#3e342a',
-          muted: '#5a5045',
-          light: '#7e7363',
-          lighter: '#8c7e6c',
+          DEFAULT: '#3d3534',    // #3D3534
+          dark: '#2c2625',
+          muted: '#7a6d6b',    // #7A6D6B
+          light: '#9e908e',
+          lighter: '#b8aca9',
         },
+        // ── Accent: Antique Gold (Vàng Đồng Cổ) ──
         gold: {
-          DEFAULT: '#cbb685',
-          light: '#eae0d2',
+          DEFAULT: '#c5a059',    // #C5A059
+          light: '#dfc68e',
+          dark: '#a17e38',
+          tint: '#faf5eb',
         },
-        'category-red': '#8e2929',
-        'category-red-dark': '#432d27',
+        // ── Category Accents ──
+        'category-red': '#a34355',
+        'category-red-dark': '#4a1b24',
         'category-brown': '#5c3e35',
         'category-copper': '#a37055',
         'category-blue': '#4f6b8c',
@@ -114,15 +136,15 @@ export default {
         'category-purple': '#7a5879',
         'category-purple-dark': '#3b2b3a',
         'category-purple-night': '#261c25',
-        'pastel-green': '#e9f1e8',
+        'pastel-green': '#fdf2f4',
         'pastel-blue': '#e9f1f6',
         'pastel-purple': '#f5eaf4',
         'pastel-warm': '#f4eae1',
-        'pastel-pink': '#f7eaf0',
+        'pastel-pink': '#fdf2f4',
+        'pastel-gold': '#faf5eb',
         'viewer-dark': '#141210',
         'viewer-dark-surface': '#24201b',
         'viewer-dark-border': '#28231e',
-        'sage-text': '#8ea48a',
       },
       borderRadius: {
         lg: 'var(--radius)',

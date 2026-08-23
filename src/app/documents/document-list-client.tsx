@@ -80,7 +80,6 @@ const sortOptions = [
 ];
 
 // popularTags is removed since collections handles it now
-// Helper to determine book cover theme dynamically
 const getBookCoverTheme = (docId: string) => {
   let sum = 0;
   for (let i = 0; i < docId.length; i++) {
@@ -88,10 +87,10 @@ const getBookCoverTheme = (docId: string) => {
   }
   const themes = [
     { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' }, // Warm Mahogany
-    { bg: 'bg-forest-deepest', text: 'text-pastel-green', border: 'border-forest-night', tagBg: 'bg-forest-night/40 text-pastel-green/90', lineBg: 'bg-forest' }, // Forest Moss
+    { bg: 'bg-wine-deepest', text: 'text-pastel-pink', border: 'border-wine-night', tagBg: 'bg-wine-night/40 text-pastel-pink/90', lineBg: 'bg-wine' }, // Crimson Velvet / Wine Red
     { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' }, // Dark Aubergine
     { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' }, // Slate Ocean
-    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-sand-muted' }, // Vintage Parchment
+    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-gold' }, // Vintage Parchment & Gold
   ];
   return themes[sum % themes.length];
 };
@@ -218,7 +217,7 @@ export function DocumentListClient({
   const FilterPanel = () => (
     <div className="flex flex-col gap-5 font-sans">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-forest flex items-center gap-2">
+        <h3 className="text-lg font-bold text-primary flex items-center gap-2">
           <SlidersHorizontal className="size-4" /> Tinh chỉnh kết quả
         </h3>
         {hasActiveFilters && (
@@ -289,7 +288,7 @@ export function DocumentListClient({
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage className="text-earth font-semibold">Tủ sách Tài liệu</BreadcrumbPage>
+              <BreadcrumbPage className="text-earth font-semibold">Kho tài liệu</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -300,8 +299,8 @@ export function DocumentListClient({
         <div className="absolute top-0 right-0 w-64 h-64 bg-sand opacity-30 rounded-full blur-3xl pointer-events-none"></div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-forest leading-tight">
-              Tủ Sách Tài Liệu
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-primary leading-tight">
+              Kho tài liệu
             </h1>
             <p className="mt-3 text-earth-muted font-medium italic text-base leading-relaxed">
               &ldquo;Nơi gìn giữ và chia sẻ những ấn phẩm văn chương chọn lọc, chuyên đề lý luận chuyên sâu cùng các đề thi tốt nghiệp, học sinh giỏi quốc gia đạt chuẩn học thuật.&rdquo;
@@ -313,7 +312,7 @@ export function DocumentListClient({
               <Button
                 size="sm"
                 variant={!currentTag ? "default" : "outline"}
-                className={`h-7 px-3 text-xs rounded-md border border-primary/20 ${!currentTag ? 'bg-forest text-pastel-pink hover:bg-forest-dark' : 'bg-warm-cream text-foreground hover:bg-sand/40'}`}
+                className={`h-7 px-3 text-xs rounded-md border border-primary/20 ${!currentTag ? 'bg-primary text-primary-foreground hover:bg-wine-dark' : 'bg-warm-cream text-foreground hover:bg-sand/40'}`}
                 onClick={() => updateFilter('tag', undefined)}
               >
                 Tất cả
@@ -323,7 +322,7 @@ export function DocumentListClient({
                   key={tag.slug}
                   size="sm"
                   variant={currentTag === tag.slug ? "default" : "outline"}
-                  className={`h-7 px-3 text-xs rounded-md border border-primary/20 transition-all ${currentTag === tag.slug ? 'bg-forest text-pastel-pink hover:bg-forest-dark font-semibold' : 'bg-warm-cream text-foreground hover:bg-sand/40'}`}
+                  className={`h-7 px-3 text-xs rounded-md border border-primary/20 transition-all ${currentTag === tag.slug ? 'bg-primary text-primary-foreground hover:bg-wine-dark font-semibold' : 'bg-warm-cream text-foreground hover:bg-sand/40'}`}
                   onClick={() => updateFilter('tag', currentTag === tag.slug ? undefined : tag.slug)}
                 >
                   {tag.name}
@@ -335,7 +334,7 @@ export function DocumentListClient({
           {/* Elegant Stats Card */}
           <div className="flex flex-row md:flex-col gap-4 shrink-0 bg-warm-cream p-5 rounded-md border border-sand shadow-sm font-sans w-full md:w-auto">
             <div className="flex-1 text-center md:text-left min-w-[100px]">
-              <p className="text-2xl font-black text-forest tracking-tight">{initialPagination.total || 0}</p>
+              <p className="text-2xl font-black text-primary tracking-tight">{initialPagination.total || 0}</p>
               <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mt-0.5">Tác phẩm</p>
             </div>
             <div className="hidden md:block border-t border-border/60 my-1"></div>
@@ -359,7 +358,7 @@ export function DocumentListClient({
             onChange={(e) => setSearchValue(e.target.value)}
             className="pl-12 pr-28 h-14 text-base rounded-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-earth-lighter"
           />
-          <Button type="submit" className="absolute right-1.5 h-11 px-5 rounded-md font-bold bg-forest text-pastel-pink hover:bg-forest-dark transition-colors">
+          <Button type="submit" className="absolute right-1.5 h-11 px-5 rounded-md font-bold bg-primary text-primary-foreground hover:bg-wine-dark transition-colors">
             Tìm kiếm
           </Button>
         </form>
@@ -432,7 +431,7 @@ export function DocumentListClient({
                   </SheetTrigger>
                   <SheetContent side="right" className="bg-warm-cream border-l-sand w-80">
                     <SheetHeader className="mb-4">
-                      <SheetTitle className="font-sans font-bold text-forest">Tìm kiếm tài liệu</SheetTitle>
+                      <SheetTitle className="font-sans font-bold text-primary">Tìm kiếm tài liệu</SheetTitle>
                       <SheetDescription>Điều chỉnh các thông số để khám phá thư viện tài liệu.</SheetDescription>
                     </SheetHeader>
                     <div className="mt-4">
@@ -497,11 +496,11 @@ export function DocumentListClient({
               <div className="bg-warm-cream border border-sand p-5 rounded-md mb-4 shadow-sm text-stone-500">
                 <BookOpen className="size-10 opacity-75" />
               </div>
-              <h3 className="text-xl font-bold text-forest mb-2">Trang Sách Trống Trơn</h3>
+              <h3 className="text-xl font-bold text-primary mb-2">Trang Sách Trống Trơn</h3>
               <p className="text-earth-light italic max-w-md leading-relaxed mb-6">
                 Rất tiếc, không tìm thấy tài liệu nào khớp với các bộ lọc hiện tại của bạn. Hãy thử thay đổi từ khóa tìm kiếm hoặc bấm nút bên dưới để xem toàn bộ tác phẩm.
               </p>
-              <Button onClick={clearFilters} className="font-semibold bg-forest text-pastel-pink hover:bg-forest-dark h-10 px-5 rounded-md shadow-sm">
+              <Button onClick={clearFilters} className="font-semibold bg-primary text-primary-foreground hover:bg-wine-dark h-10 px-5 rounded-md shadow-sm">
                 Xem toàn bộ Tủ sách
               </Button>
             </div>
@@ -529,7 +528,7 @@ export function DocumentListClient({
                       key={doc._id}
                       className="block group h-full"
                     >
-                      <Card className="h-full flex flex-col border-2 border-sand-light bg-warm-cream/70 hover:bg-warm-cream rounded-xl overflow-hidden hover:border-forest/60 transition-all duration-300 shadow-xs hover:-translate-y-0.5">
+                      <Card className="h-full flex flex-col border-2 border-sand-light bg-warm-cream/70 hover:bg-warm-cream rounded-xl overflow-hidden hover:border-primary/60 transition-all duration-300 shadow-xs hover:-translate-y-0.5">
 
                         {/* 5A. BOOK COVER CONTAINER (FULL-BLEED) */}
                         <div className="relative w-full aspect-[4/3] overflow-hidden bg-warm-linen/40 border-b border-sand-light">
@@ -538,12 +537,12 @@ export function DocumentListClient({
                           <button
                             type="button"
                             onClick={(e) => toggleSaveDocument(doc._id, e)}
-                            className="absolute top-2.5 right-2.5 z-20 size-7 flex items-center justify-center rounded-full bg-warm-cream/90 backdrop-blur-sm border border-sand-light hover:border-primary/50 text-earth-lighter hover:text-forest transition-all hover:scale-105 shadow-xs"
+                            className="absolute top-2.5 right-2.5 z-20 size-7 flex items-center justify-center rounded-full bg-warm-cream/90 backdrop-blur-sm border border-sand-light hover:border-primary/50 text-earth-lighter hover:text-primary transition-all hover:scale-105 shadow-xs"
                           >
                             {isBookmarkLoading === doc._id ? (
                               <Loader2 className="size-3.5 animate-spin text-primary" />
                             ) : (
-                              <Bookmark className={`size-3.5 ${isSaved ? 'fill-forest text-forest' : ''}`} />
+                              <Bookmark className={`size-3.5 ${isSaved ? 'fill-primary text-primary' : ''}`} />
                             )}
                           </button>
 
@@ -675,7 +674,7 @@ export function DocumentListClient({
                                   {formatPrice(doc.originalPrice)}
                                 </span>
                               )}
-                              <span className={`text-sm font-extrabold tracking-tight ${doc.isFree ? 'text-forest-bright' : 'text-category-red'}`}>
+                              <span className={`text-sm font-extrabold tracking-tight ${doc.isFree ? 'text-primary' : 'text-category-red'}`}>
                                 {formatPrice(doc.price)}
                               </span>
                             </div>

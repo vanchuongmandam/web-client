@@ -18,11 +18,11 @@ export function RelatedDocumentsCTA({ documents }: { documents: MarketDocument[]
   return (
     <div className="mt-8 mb-4 border-2 border-sand/40 bg-warm-cream rounded-xl p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
-        <div className="bg-forest/10 p-2 rounded-lg">
-          <BookOpen className="size-5 text-forest" />
+        <div className="bg-primary/10 p-2 rounded-lg">
+          <BookOpen className="size-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-bold text-forest text-lg">Tài liệu đính kèm</h3>
+          <h3 className="font-bold text-primary text-lg">Tài liệu đính kèm</h3>
           <p className="text-sm text-muted-foreground">Tài liệu tham khảo chuyên sâu liên quan đến bài viết này</p>
         </div>
       </div>
@@ -43,7 +43,7 @@ export function RelatedDocumentsCTA({ documents }: { documents: MarketDocument[]
                   <p className="text-xs text-muted-foreground line-clamp-2">Tác giả: {doc.author || 'Khuyết danh'}</p>
                 </div>
                 <div className="bg-warm-cream p-3 border-t border-sand/30 mt-auto">
-                  <Button asChild className="w-full bg-forest text-white hover:bg-forest-dark font-semibold" size="sm">
+                  <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-wine-dark font-semibold" size="sm">
                     <Link href={`/documents/${doc.slug}`}>
                       {doc.price === 0 ? (
                         <><Download className="mr-2 size-3.5" /> Tải miễn phí</>

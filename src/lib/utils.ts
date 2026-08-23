@@ -72,3 +72,23 @@ export function formatVietnameseDate(date: string | Date): string {
   const year = d.getFullYear();
   return `${day} tháng ${month}, ${year}`;
 }
+
+/**
+ * Normalizes media and image URLs to guarantee valid src for Next.js Image and <img>.
+ * - Leaves absolute URLs (http://, https://, data:, blob:) intact.
+ * - Leaves root-relative URLs (starting with /) intact.
+ * - Ensures relative paths (e.g. "media/sang-tac/...") are prefixed with "/" so Next.js Image parser doesn't crash.
+ */
+export function getMediaUrl(url?: string | null): string {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (/^(https?:|data:|blob:|\/\/)/i.test(trimmed)) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/')) {
+    return trimmed;
+  }
+  return `/${trimmed}`;
+}
+

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { getMediaUrl } from "@/lib/utils";
 
 interface FeaturedImageFallbackProps {
   initialImageUrl?: string;
@@ -11,13 +12,14 @@ interface FeaturedImageFallbackProps {
 
 export function FeaturedImageFallback({ initialImageUrl, title, priority = false }: FeaturedImageFallbackProps) {
   const [imageError, setImageError] = useState(false);
-  const showBanner = !initialImageUrl || imageError;
+  const imageUrl = getMediaUrl(initialImageUrl);
+  const showBanner = !imageUrl || imageError;
 
   return (
     <div className="relative h-64 md:h-auto w-full bg-muted overflow-hidden">
       {!showBanner ? (
         <Image
-          src={initialImageUrl!}
+          src={imageUrl}
           alt={title}
           fill
           className="object-cover"
@@ -42,3 +44,5 @@ export function FeaturedImageFallback({ initialImageUrl, title, priority = false
     </div>
   );
 }
+
+

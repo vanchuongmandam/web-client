@@ -23,6 +23,8 @@ export interface SearchHit {
   createdAt?: number | null;
   price?: number;
   isFree?: boolean;
+  fileFormat?: string | null;
+  rating?: { average: number; count: number } | null;
 }
 
 export interface SearchResults {

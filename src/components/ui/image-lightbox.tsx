@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/carousel";
 import { CustomVideoPlayer } from "@/components/ui/custom-video-player";
 import { X } from "lucide-react";
+import { getMediaUrl } from "@/lib/utils";
 
 export interface LightboxMediaItem {
   url: string;
@@ -46,10 +47,10 @@ export function ImageLightbox({
   const normalizedItems: LightboxMediaItem[] = items.map((item) => {
     if (typeof item === "string") {
       const isVideo = item.match(/\.(mp4|webm|ogg)$/i) !== null;
-      return { url: item, mediaType: isVideo ? "video" : "image" };
+      return { url: getMediaUrl(item), mediaType: isVideo ? "video" : "image" };
     }
     return {
-      url: item.url,
+      url: getMediaUrl(item.url),
       caption: item.caption,
       mediaType: item.mediaType || "image",
     };

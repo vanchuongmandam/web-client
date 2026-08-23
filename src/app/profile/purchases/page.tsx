@@ -58,7 +58,6 @@ import {
   Lock
 } from "lucide-react";
 
-// Helper to determine book cover theme dynamically (identical to document details)
 const getBookCoverTheme = (docId: string) => {
   let sum = 0;
   for (let i = 0; i < docId.length; i++) {
@@ -66,10 +65,10 @@ const getBookCoverTheme = (docId: string) => {
   }
   const themes = [
     { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' },
-    { bg: 'bg-forest-deepest', text: 'text-pastel-green', border: 'border-forest-night', tagBg: 'bg-forest-night/40 text-pastel-green/90', lineBg: 'bg-forest' },
+    { bg: 'bg-wine-deepest', text: 'text-pastel-pink', border: 'border-wine-night', tagBg: 'bg-wine-night/40 text-pastel-pink/90', lineBg: 'bg-wine' },
     { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' },
     { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' },
-    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-sand-muted' },
+    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-gold' },
   ];
   return themes[sum % themes.length];
 };
@@ -254,7 +253,7 @@ export default function PurchasesPage() {
   if (authLoading || loading) {
     return (
       <div className="flex h-64 items-center justify-center bg-transparent">
-        <Loader2 className="h-8 w-8 animate-spin text-forest" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -267,7 +266,7 @@ export default function PurchasesPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-sand-light pb-4">
           <div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-earth flex items-center gap-2.5">
-              <BookOpen className="size-6 text-forest shrink-0" />
+              <BookOpen className="size-6 text-primary shrink-0" />
               <span>Thư viện tài liệu đã sở hữu</span>
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -278,11 +277,11 @@ export default function PurchasesPage() {
           {/* Quick Stats Badges */}
           <div className="flex items-center gap-2 shrink-0">
             <Badge variant="outline" className="border-sand bg-warm-cream text-earth-muted font-medium text-xs px-2.5 py-1 rounded-sm gap-1.5">
-              <ShoppingBag className="size-3.5 text-forest" />
+              <ShoppingBag className="size-3.5 text-primary" />
               <span>Đã sở hữu: <strong className="text-earth font-semibold">{purchases.length}</strong></span>
             </Badge>
             <Badge variant="outline" className="border-sand bg-warm-cream text-earth-muted font-medium text-xs px-2.5 py-1 rounded-sm gap-1.5">
-              <Download className="size-3.5 text-forest" />
+              <Download className="size-3.5 text-primary" />
               <span>Đã tải: <strong className="text-earth font-semibold">{totalDownloads}</strong> lượt</span>
             </Badge>
           </div>
@@ -292,7 +291,7 @@ export default function PurchasesPage() {
           /* Empty Collection State */
           <Card className="border-2 border-dashed border-sand bg-warm-cream/50 rounded-xl">
             <CardContent className="py-16 text-center flex flex-col justify-center items-center">
-              <div className="size-16 rounded-full bg-sand/30 flex items-center justify-center mb-4 text-forest">
+              <div className="size-16 rounded-full bg-sand/30 flex items-center justify-center mb-4 text-primary">
                 <BookOpen className="size-8" />
               </div>
               <h3 className="text-base font-bold text-earth">Thư viện của bạn đang trống</h3>
@@ -300,11 +299,11 @@ export default function PurchasesPage() {
                 Bạn chưa mua hoặc nhận tài liệu nào. Hãy khám phá kho tàng tư liệu học thuật và văn học được chọn lọc ngay nhé!
               </p>
               <Button
-                className="bg-forest hover:bg-forest-dark text-white font-semibold text-xs px-5 h-9 rounded-md shadow-xs transition-all gap-2"
+                className="bg-primary hover:bg-wine-dark text-primary-foreground font-semibold text-xs px-5 h-9 rounded-md shadow-xs transition-all gap-2"
                 onClick={() => router.push("/documents")}
               >
                 <Sparkles className="size-3.5" />
-                <span>Khám phá Tủ sách Tài liệu</span>
+                <span>Khám phá Kho tài liệu</span>
               </Button>
             </CardContent>
           </Card>
@@ -353,7 +352,7 @@ export default function PurchasesPage() {
                 {/* Sort Selector */}
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-[155px] h-9 text-xs bg-warm-ivory/60 border-sand rounded-md text-earth-muted">
-                    <ArrowUpDown className="size-3.5 mr-1.5 text-forest" />
+                    <ArrowUpDown className="size-3.5 mr-1.5 text-primary" />
                     <SelectValue placeholder="Sắp xếp" />
                   </SelectTrigger>
                   <SelectContent>
@@ -372,7 +371,7 @@ export default function PurchasesPage() {
                     variant="ghost"
                     size="icon"
                     className={`size-7 rounded-sm transition-all ${viewMode === "list"
-                      ? "bg-warm-cream text-forest shadow-xs font-bold"
+                      ? "bg-warm-cream text-primary shadow-xs font-bold"
                       : "text-muted-foreground hover:text-earth"
                       }`}
                     onClick={() => handleToggleViewMode("list")}
@@ -384,7 +383,7 @@ export default function PurchasesPage() {
                     variant="ghost"
                     size="icon"
                     className={`size-7 rounded-sm transition-all ${viewMode === "grid"
-                      ? "bg-warm-cream text-forest shadow-xs font-bold"
+                      ? "bg-warm-cream text-primary shadow-xs font-bold"
                       : "text-muted-foreground hover:text-earth"
                       }`}
                     onClick={() => handleToggleViewMode("grid")}
@@ -409,7 +408,7 @@ export default function PurchasesPage() {
                     setSearchQuery("");
                     setFormatFilter("all");
                   }}
-                  className="text-forest hover:text-forest-dark font-medium underline flex items-center gap-1"
+                  className="text-primary hover:text-wine-dark font-medium underline flex items-center gap-1"
                 >
                   <FilterX className="size-3.5" /> Xóa bộ lọc
                 </button>
@@ -495,7 +494,7 @@ export default function PurchasesPage() {
                           <div className="flex-1 min-w-0 space-y-1">
                             <Link
                               href={`/documents/${doc.slug}`}
-                              className="font-bold text-sm sm:text-base text-earth hover:text-forest transition-colors leading-snug line-clamp-2"
+                              className="font-bold text-sm sm:text-base text-earth hover:text-primary transition-colors leading-snug line-clamp-2"
                             >
                               {doc.title}
                             </Link>
@@ -538,10 +537,10 @@ export default function PurchasesPage() {
                           {/* 1. Primary Action: Đọc online */}
                           <Button
                             asChild
-                            className="bg-forest hover:bg-forest-dark text-white font-medium text-xs sm:text-sm h-9.5 sm:h-10 px-4 rounded-md shadow-xs transition-all gap-2"
+                            className="bg-primary hover:bg-wine-dark text-primary-foreground font-medium text-xs sm:text-sm h-9.5 sm:h-10 px-4 rounded-md shadow-xs transition-all gap-2"
                           >
                             <Link href={`/documents/${doc.slug}/viewer`}>
-                              <BookOpen className="size-4 text-pastel-green" />
+                              <BookOpen className="size-4" />
                               <span>Đọc online</span>
                             </Link>
                           </Button>
@@ -550,15 +549,15 @@ export default function PurchasesPage() {
                           {doc.allowDownload !== false ? (
                             <Button
                               variant="outline"
-                              className="border-sand bg-warm-ivory/80 hover:bg-warm-sand/50 text-earth hover:text-forest font-medium text-xs sm:text-sm h-9.5 sm:h-10 px-3.5 rounded-md shadow-xs transition-colors gap-2"
+                              className="border-sand bg-warm-ivory/80 hover:bg-warm-sand/50 text-earth hover:text-primary font-medium text-xs sm:text-sm h-9.5 sm:h-10 px-3.5 rounded-md shadow-xs transition-colors gap-2"
                               onClick={() => handleDownload(doc._id)}
                               disabled={downloadingId === doc._id}
                               title="Tải tệp tin gốc về máy"
                             >
                               {downloadingId === doc._id ? (
-                                <Loader2 className="size-4 animate-spin text-forest" />
+                                <Loader2 className="size-4 animate-spin text-primary" />
                               ) : (
-                                <Download className="size-4 text-forest" />
+                                <Download className="size-4 text-primary" />
                               )}
                               <span>Tải về</span>
                             </Button>
@@ -659,7 +658,7 @@ export default function PurchasesPage() {
                         <div>
                           <Link
                             href={`/documents/${doc.slug}`}
-                            className="font-bold text-xs sm:text-sm text-earth hover:text-forest transition-colors leading-snug line-clamp-2"
+                            className="font-bold text-xs sm:text-sm text-earth hover:text-primary transition-colors leading-snug line-clamp-2"
                           >
                             {doc.title}
                           </Link>
@@ -684,7 +683,7 @@ export default function PurchasesPage() {
                             <button
                               type="button"
                               onClick={() => openReviewModal(purchase)}
-                              className="text-forest hover:text-forest-dark hover:underline font-medium text-[10px] cursor-pointer"
+                              className="text-primary hover:text-wine-dark hover:underline font-medium text-[10px] cursor-pointer"
                             >
                               Đánh giá
                             </button>
@@ -696,10 +695,10 @@ export default function PurchasesPage() {
                       <div className="p-3 pt-0 flex items-center gap-2">
                         <Button
                           asChild
-                          className="flex-1 bg-forest hover:bg-forest-dark text-white font-medium text-xs h-9 rounded-md shadow-xs gap-1.5"
+                          className="flex-1 bg-primary hover:bg-wine-dark text-primary-foreground font-medium text-xs h-9 rounded-md shadow-xs gap-1.5"
                         >
                           <Link href={`/documents/${doc.slug}/viewer`}>
-                            <BookOpen className="size-3.5 text-pastel-green" />
+                            <BookOpen className="size-3.5" />
                             <span>Đọc online</span>
                           </Link>
                         </Button>
@@ -714,9 +713,9 @@ export default function PurchasesPage() {
                             title="Tải tệp tin gốc về máy"
                           >
                             {downloadingId === doc._id ? (
-                              <Loader2 className="size-3.5 animate-spin text-forest" />
+                              <Loader2 className="size-3.5 animate-spin text-primary" />
                             ) : (
-                              <Download className="size-3.5 text-forest" />
+                              <Download className="size-3.5 text-primary" />
                             )}
                           </Button>
                         ) : (
@@ -813,7 +812,7 @@ export default function PurchasesPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-forest text-pastel-green flex items-center justify-center text-[7px] font-bold">
+                      <div className="w-full h-full bg-primary text-primary-foreground flex items-center justify-center text-[7px] font-bold">
                         {reviewDialogTarget.document.fileFormat?.toUpperCase()}
                       </div>
                     )}
@@ -867,7 +866,7 @@ export default function PurchasesPage() {
                     value={reviewDraft}
                     onChange={(e) => setReviewDraft(e.target.value)}
                     placeholder="Nội dung tài liệu có đáp ứng đúng mong đợi của bạn không? Bạn có gợi ý gì cho cộng đồng học tập không..."
-                    className="bg-warm-ivory/50 border-sand text-xs focus-visible:ring-forest text-earth rounded-md resize-none"
+                    className="bg-warm-ivory/50 border-sand text-xs focus-visible:ring-primary text-earth rounded-md resize-none"
                   />
                 </div>
               </div>
@@ -888,7 +887,7 @@ export default function PurchasesPage() {
               </Button>
               <Button
                 size="sm"
-                className="bg-forest hover:bg-forest-dark text-white font-semibold text-xs rounded-md shadow-xs"
+                className="bg-primary hover:bg-wine-dark text-primary-foreground font-semibold text-xs rounded-md shadow-xs"
                 onClick={handleSubmitReview}
                 disabled={savingReview}
               >

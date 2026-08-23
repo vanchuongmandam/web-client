@@ -6,14 +6,15 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { Article } from "@/lib/types";
-import { formatVietnameseDate } from "@/lib/utils";
+import { formatVietnameseDate, getMediaUrl } from "@/lib/utils";
 
 interface ArticleCardProps {
   article: Article;
 }
 
 const ArticleCard = React.memo(({ article }: ArticleCardProps) => {
-  const initialImageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+  const rawImageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+  const initialImageUrl = getMediaUrl(rawImageUrl);
   const [imageError, setImageError] = useState(false);
 
   const showBanner = !initialImageUrl || imageError;
@@ -64,3 +65,4 @@ const ArticleCard = React.memo(({ article }: ArticleCardProps) => {
 ArticleCard.displayName = "ArticleCard";
 
 export default ArticleCard;
+

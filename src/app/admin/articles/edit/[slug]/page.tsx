@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
-import { generateSlug } from '@/lib/utils';
+import { generateSlug, getMediaUrl } from '@/lib/utils';
 import type { Category, Media, Article } from '@/lib/types';
 
 import dynamic from 'next/dynamic';
@@ -323,7 +323,7 @@ export default function EditArticlePage() {
                                     <div className="mt-4 space-y-2">
                                         {mediaValue && mediaValue.map((m, index) => (
                                             <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
-                                                {m.mediaType === 'image' && m.url && <Image src={m.previewUrl || m.url} alt="preview" width={40} height={40} className="rounded object-cover" />}
+                                                {m.mediaType === 'image' && m.url && <Image src={getMediaUrl(m.previewUrl || m.url)} alt="preview" width={40} height={40} className="rounded object-cover" />}
                                                 {m.mediaType === 'pdf' && <FileText className="h-10 w-10 text-red-500" />}
                                                 {m.mediaType === 'video' && <ImageIcon className="h-10 w-10 text-muted-foreground" />}
                                                 <p className="text-sm truncate flex-1">{m.url.split('/').pop()}</p>

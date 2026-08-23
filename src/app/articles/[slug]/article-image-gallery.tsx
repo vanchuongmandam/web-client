@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Dialog, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ImageLightbox } from '@/components/ui/image-lightbox';
-import { cn } from '@/lib/utils';
+import { cn, getMediaUrl } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 import { PlayCircle, Lock } from 'lucide-react';
 import { RequestAccessModal } from '@/components/articles/RequestAccessModal';
@@ -148,6 +148,7 @@ const MediaItem = ({
   }
 
   const isVideo = media.mediaType === 'video';
+  const mediaUrl = getMediaUrl(media.url);
   return (
     <div
       className="relative cursor-pointer group w-full h-full overflow-hidden"
@@ -157,7 +158,7 @@ const MediaItem = ({
         <>
           <div className="absolute inset-0 bg-black flex items-center justify-center">
             <video
-              src={media.url}
+              src={mediaUrl}
               className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
               muted
               loop
@@ -170,7 +171,7 @@ const MediaItem = ({
         </>
       ) : (
         <Image
-          src={media.url}
+          src={mediaUrl}
           alt={media.caption || 'Article media'}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"

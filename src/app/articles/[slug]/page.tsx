@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Article } from "@/lib/types";
-import { formatVietnameseDate } from "@/lib/utils";
+import { formatVietnameseDate, getMediaUrl } from "@/lib/utils";
 import type { Metadata } from "next";
 
 // Import the new image gallery component
@@ -70,7 +70,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const url = `https://vanchuongmandam.thptchuyenhatinh.edu.vn/articles/${article.slug}`;
-  const image = article.media?.find(m => m.mediaType === "image")?.url || "/default-thumbnail.jpg";
+  const rawImage = article.media?.find(m => m.mediaType === "image")?.url;
+  const image = getMediaUrl(rawImage) || "/default-thumbnail.jpg";
 
   return {
     title: article.title,

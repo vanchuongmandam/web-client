@@ -5,13 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Article } from "@/lib/types";
+import { getMediaUrl } from "@/lib/utils";
 
 interface NewspaperArticleCardProps {
   article: Article;
 }
 
 const NewspaperArticleCard = React.memo(({ article }: NewspaperArticleCardProps) => {
-  const initialImageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+  const rawImageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
+  const initialImageUrl = getMediaUrl(rawImageUrl);
   const [imageError, setImageError] = useState(false);
   
   const showBanner = !initialImageUrl || imageError;
@@ -58,3 +60,5 @@ const NewspaperArticleCard = React.memo(({ article }: NewspaperArticleCardProps)
 NewspaperArticleCard.displayName = "NewspaperArticleCard";
 
 export default NewspaperArticleCard;
+
+
