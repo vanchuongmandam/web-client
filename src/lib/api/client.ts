@@ -20,6 +20,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   try {
     res = await fetch(url, options);
   } catch (err) {
+    if ((err as { name?: string })?.name === 'AbortError') throw err;
     console.error(`[apiFetch] Network error fetching ${url}:`, err);
     throw new Error(`Cannot connect to API server at ${url}`);
   }
