@@ -5,43 +5,59 @@
 @layer base {
   :root {
     /* ── 1. Base Canvas ── */
-    --background: 40 56% 98%;          /* #FDFBF7 - Giấy trầm sáng, ấm áp */
-    --foreground: 10 8% 22%;           /* #3D3534 - Mực nâu trầm (Earth Ink) */
+    --background: 40 56% 98%;
+    /* #FDFBF7 - Giấy trầm sáng, ấm áp */
+    --foreground: 10 8% 22%;
+    /* #3D3534 - Mực nâu trầm (Earth Ink) */
 
     /* ── 2. Surfaces & Cards ── */
-    --card: 40 45% 99%;                /* #FCFAF6 - Kem ngả trắng, dịu mắt khi đọc dài */
-    --card-foreground: 10 8% 22%;      /* #3D3534 */
+    --card: 40 45% 99%;
+    /* #FCFAF6 - Kem ngả trắng, dịu mắt khi đọc dài */
+    --card-foreground: 10 8% 22%;
+    /* #3D3534 */
 
     --popover: 40 45% 99%;
     --popover-foreground: 10 8% 22%;
 
     /* ── 3. Primary Action: ĐỎ RƯỢU (Wine Red) ── */
-    --primary: 348 42% 45%;            /* #A34355 - Đỏ rượu sang trọng, quý phái */
-    --primary-foreground: 40 56% 98%; /* #FDFBF7 */
+    --primary: 348 42% 45%;
+    /* #A34355 - Đỏ rượu sang trọng, quý phái */
+    --primary-foreground: 40 56% 98%;
+    /* #FDFBF7 */
 
     /* ── 4. Secondary & Neutral ── */
-    --secondary: 40 32% 95%;           /* #F5F1E9 */
-    --secondary-foreground: 10 8% 22%; /* #3D3534 */
+    --secondary: 40 32% 95%;
+    /* #F5F1E9 */
+    --secondary-foreground: 10 8% 22%;
+    /* #3D3534 */
 
     /* ── 5. Accent: VÀNG ĐỒNG CỔ (Antique Gold) ── */
-    --accent: 42 48% 57%;              /* #C5A059 - Điểm nhấn hoàng gia / cổ điển */
-    --accent-foreground: 40 56% 98%;   /* #FDFBF7 */
+    --accent: 42 48% 57%;
+    /* #C5A059 - Điểm nhấn hoàng gia / cổ điển */
+    --accent-foreground: 40 56% 98%;
+    /* #FDFBF7 */
 
     /* ── 6. Muted & Subtext ── */
-    --muted: 40 26% 95%;               /* #F4F0E8 */
-    --muted-foreground: 20 8% 45%;      /* #7A6D6B - Chữ phụ, metadata, icon */
+    --muted: 40 26% 95%;
+    /* #F4F0E8 */
+    --muted-foreground: 20 8% 45%;
+    /* #7A6D6B - Chữ phụ, metadata, icon */
 
     /* ── 7. States ── */
-    --destructive: 0 75% 50%;          /* #DC2626 */
+    --destructive: 0 75% 50%;
+    /* #DC2626 */
     --destructive-foreground: 0 0% 98%;
 
     /* ── 8. Borders & Lines ── */
-    --border: 40 22% 88%;              /* #E5DFD5 - Đường kẻ giấy thanh mảnh */
+    --border: 40 22% 88%;
+    /* #E5DFD5 - Đường kẻ giấy thanh mảnh */
     --input: 40 22% 88%;
-    --ring: 348 42% 45%;               /* Highlight focus theo màu Primary */
+    --ring: 348 42% 45%;
+    /* Highlight focus theo màu Primary */
 
     /* ── 9. Radius ── */
-    --radius: 0.75rem;                 /* 12px (rounded-xl) */
+    --radius: 0.75rem;
+    /* 12px (rounded-xl) */
 
     /* ── 10. Sidebar ── */
     --sidebar-background: 40 45% 99%;
@@ -54,12 +70,18 @@
     --sidebar-ring: 348 42% 45%;
 
     /* ── 11. Data Visualization / Charts ── */
-    --chart-1: 348 42% 45%;            /* Đỏ rượu */
-    --chart-2: 42 48% 57%;             /* Vàng đồng */
-    --chart-3: 10 8% 22%;              /* Mực nâu */
-    --chart-4: 45 45% 70%;             /* Vàng nhạt */
-    --chart-5: 25 50% 55%;             /* Nâu đồng */
+    --chart-1: 348 42% 45%;
+    /* Đỏ rượu */
+    --chart-2: 42 48% 57%;
+    /* Vàng đồng */
+    --chart-3: 10 8% 22%;
+    /* Mực nâu */
+    --chart-4: 45 45% 70%;
+    /* Vàng nhạt */
+    --chart-5: 25 50% 55%;
+    /* Nâu đồng */
   }
+
   .dark {
     --background: 30 10% 12%;
     --card: 30 10% 16%;
@@ -98,19 +120,17 @@
     --chart-5: 25 50% 55%;
   }
 
-  html {
-    font-size: 18px; /* Base font size for desktop on client site */
-  }
-
   html:has(.admin-layout) {
-    font-size: 16px; /* Reset base font size for admin dashboard */
+    font-size: 16px;
+    /* Reset base font size for admin dashboard */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 348 42% 45%; /* Wine red brand primary color */
+    --primary: 348 42% 45%;
+    /* Wine red brand primary color */
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -124,7 +144,8 @@
     --input: 240 5.9% 90%;
     --ring: 348 42% 45%;
 
-    --sidebar-background: 240 4.8% 95.9%; /* Standard light zinc sidebar */
+    --sidebar-background: 240 4.8% 95.9%;
+    /* Standard light zinc sidebar */
     --sidebar-foreground: 240 5.9% 10%;
     --sidebar-primary: 348 42% 45%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -136,7 +157,8 @@
 
   @media (max-width: 768px) {
     html {
-      font-size: 16px; /* Reduced font size for mobile */
+      font-size: 16px;
+      /* Reduced font size for mobile */
     }
   }
 }
@@ -147,6 +169,7 @@
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--foreground) / 0.2) transparent;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -186,9 +209,8 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 }
-
-
