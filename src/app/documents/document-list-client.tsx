@@ -33,7 +33,9 @@ import {
   Layers,
   Coins,
   Loader2,
-  Trash2
+  Trash2,
+  ArrowUpDown,
+  CheckCircle2
 } from 'lucide-react';
 import {
   Breadcrumb,
