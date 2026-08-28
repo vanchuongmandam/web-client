@@ -7,14 +7,14 @@ export default function Footer() {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="font-headline text-xl font-semibold mb-4">Văn Chương Mạn Đàm</h3>
+            <h3 className="font-sans text-xl font-semibold mb-4">Văn Chương Mạn Đàm</h3>
             <p className="text-sm text-muted-foreground">
             Fanpage được sáng lập bởi đội ngũ Admin giàu kinh nghiệm Trường THPT Chuyên Hà Tĩnh - GV Ngữ văn và Cựu HSGQG môn Văn.
             Ở đây có: tiếng nói TRI ÂM qua trang sách, CÂU CHUYỆN văn chương thú vị và KIẾN THỨC cần thiết cho tất cả các kì thi.
             </p>
           </div>
           <div>
-            <h3 className="font-headline text-lg font-semibold mb-4">Liên kết nhanh</h3>
+            <h3 className="font-sans text-lg font-semibold mb-4">Liên kết nhanh</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/" className="hover:text-primary">Trang chủ</Link></li>
               <li><Link href="#" className="hover:text-primary">Về chúng tôi</Link></li>
@@ -23,7 +23,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-headline text-lg font-semibold mb-4">Kết nối với chúng tôi</h3>
+            <h3 className="font-sans text-lg font-semibold mb-4">Kết nối với chúng tôi</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Để lại lời nhắn hoặc theo dõi chúng tôi trên các nền tảng xã hội.
             </p>

@@ -16,20 +16,11 @@ export default {
         "2xl": "1400px",
       },
     },
-    fontSize: {
-      xs: '0.778rem',  // ~14px
-      sm: '0.889rem',  // ~16px
-      base: '1rem',      // 18px (DEFAULT)
-      lg: '1.111rem',  // ~20px
-      xl: '1.222rem',   // ~22px
-      '2xl': '1.5rem',  // 27px
-      '3xl': '1.833rem', // ~33px
-      '4xl': '2.167rem', // ~39px
-    },
     extend: {
       fontFamily: {
         sans: ['var(--font-sans)', ...fontFamily.sans],
-        serif: ['var(--font-serif)', ...fontFamily.serif],
+        serif: ['var(--font-sans)', ...fontFamily.sans],
+        headline: ['var(--font-sans)', ...fontFamily.sans],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -65,6 +56,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
         chart: {
           '1': 'hsl(var(--chart-1))',
           '2': 'hsl(var(--chart-2))',
@@ -72,6 +73,78 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
+        // ── VCMD Design Palette (Wine Red / Antique Gold / Warm Paper) ──
+        'warm-cream': '#fdfbf7', // #FDFBF7 - Giấy trầm sáng
+        'warm-sand': '#f5f1e9',  // #F5F1E9 - Giấy trầm ấm
+        'warm-linen': '#efe9dc', // #EFE9DC
+        'warm-ivory': '#faf6ee', // #FAF6EE
+        sand: {
+          DEFAULT: '#e5dfd5',    // #E5DFD5 - Đường kẻ giấy
+          light: '#efebe3',
+          dark: '#d5cdc0',
+          muted: '#beb5a5',
+        },
+        'sage-border': '#e5dfd5',
+        'sage-text': '#c5a059',
+        // ── Primary Action: Wine Red / Crimson Velvet (Đỏ Rượu Cung Đình) ──
+        wine: {
+          DEFAULT: '#a34355',
+          dark: '#833241',
+          bright: '#c24f65',
+          deepest: '#4a1b24',
+          night: '#2b1016',
+          tint: '#fdf2f4',
+        },
+        crimson: {
+          DEFAULT: '#a34355',
+          dark: '#833241',
+          light: '#c24f65',
+          deepest: '#4a1b24',
+        },
+        // Safe Migration Alias: 'forest' mapped to Wine Red shades
+        forest: {
+          DEFAULT: '#a34355',
+          dark: '#833241',
+          bright: '#c24f65',
+          deepest: '#4a1b24',
+          night: '#2b1016',
+          tint: '#fdf2f4',
+        },
+        // ── Typography: Earth Ink (Mực Nâu Trầm) ──
+        earth: {
+          DEFAULT: '#3d3534',    // #3D3534
+          dark: '#2c2625',
+          muted: '#7a6d6b',    // #7A6D6B
+          light: '#9e908e',
+          lighter: '#b8aca9',
+        },
+        // ── Accent: Antique Gold (Vàng Đồng Cổ) ──
+        gold: {
+          DEFAULT: '#c5a059',    // #C5A059
+          light: '#dfc68e',
+          dark: '#a17e38',
+          tint: '#faf5eb',
+        },
+        // ── Category Accents ──
+        'category-red': '#a34355',
+        'category-red-dark': '#4a1b24',
+        'category-brown': '#5c3e35',
+        'category-copper': '#a37055',
+        'category-blue': '#4f6b8c',
+        'category-blue-dark': '#1f2d3d',
+        'category-blue-night': '#131b25',
+        'category-purple': '#7a5879',
+        'category-purple-dark': '#3b2b3a',
+        'category-purple-night': '#261c25',
+        'pastel-green': '#fdf2f4',
+        'pastel-blue': '#e9f1f6',
+        'pastel-purple': '#f5eaf4',
+        'pastel-warm': '#f4eae1',
+        'pastel-pink': '#fdf2f4',
+        'pastel-gold': '#faf5eb',
+        'viewer-dark': '#141210',
+        'viewer-dark-surface': '#24201b',
+        'viewer-dark-border': '#28231e',
       },
       borderRadius: {
         lg: 'var(--radius)',

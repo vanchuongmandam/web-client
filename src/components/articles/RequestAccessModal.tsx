@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { requestAccess } from "@/lib/api";
+import { toErrorMessage } from "@/lib/errors";
 
 interface RequestAccessModalProps {
     articleId: string;
@@ -41,31 +43,18 @@ export function RequestAccessModal({ articleId, articleTitle, token, onSuccess }
 
         setLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/requests`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ articleId, reason }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.message || "Có lỗi xảy ra");
-            }
+            const { message } = await requestAccess(articleId, reason, token);
 
             toast({
                 title: "Thành công",
-                description: data.message,
+                description: message,
             });
             setOpen(false);
             if (onSuccess) onSuccess();
         } catch (error: unknown) {
             toast({
                 title: "Lỗi",
-                description: error instanceof Error ? error.message : "Đã có lỗi không xác định xảy ra",
+                description: toErrorMessage(error),
                 variant: "destructive",
             });
         } finally {

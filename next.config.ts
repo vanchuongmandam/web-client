@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'standalone', // Uncomment this for production Docker builds. Breaks local Windows builds.
+  output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : undefined,
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -38,7 +38,19 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'transparenttextures.com',
         port: '',
-        pathname: 'patterns/**',
+        pathname: '/patterns/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/media/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '9000',
+        pathname: '/media/**',
       },
     ],
     dangerouslyAllowSVG: true,

@@ -1,19 +1,6 @@
-
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetClose,
-} from "@/components/ui/sheet";
-import { Menu, LayoutGrid } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { getCategories } from "@/lib/api";
 import type { Category } from "@/lib/types";
 import { AuthControls } from "@/components/auth-controls";
@@ -21,150 +8,94 @@ import Logo from "@/assets/logo/vanchuongmandam-logo.svg";
 import LogoText from "@/assets/logo/vanchuongmandam-chu.svg";
 import BannerImage from "@/assets/logo/banner.webp";
 import { SearchButtonAndOverlay } from "@/components/search-button-and-overlay";
+import { DesktopNav } from "@/components/desktop-nav";
+import { MobileNav } from "@/components/mobile-nav";
+import { BookOpen } from "lucide-react";
 
 export async function Header() {
   const parentCategories: Category[] = await getCategories().catch(() => []);
 
-  const navItems = [{ name: "Trang chủ", href: "/" }];
-
   return (
     <>
       <div
-        className="relative overflow-hidden border-b"
+        className="relative overflow-hidden border-b border-border/60"
         style={{
           backgroundImage: `url(${BannerImage.src})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-card/50 backdrop-blur-sm z-0"></div>
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between relative z-10">
-          <Link href="/" className="inline-flex flex-col">
-            <div className="flex items-center gap-3">
-              <Image src={Logo} alt="vanchuongmandam" height={120} />
+        <div className="absolute inset-0 bg-card/60 backdrop-blur-xs z-0" />
+        <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between relative z-10">
+          <Link href="/" className="inline-flex flex-col group">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Image
+                src={Logo}
+                alt="vanchuongmandam"
+                height={120}
+                className="h-11 sm:h-14 md:h-20 lg:h-24 w-auto transition-transform duration-200 group-hover:scale-102"
+                priority
+              />
               <div className="relative">
-                <Image src={LogoText} alt="vanchuongmandam" height={150} />
+                <Image
+                  src={LogoText}
+                  alt="vanchuongmandam"
+                  height={150}
+                  className="h-12 sm:h-18 md:h-24 lg:h-28 w-auto"
+                  priority
+                />
 
-                <p className="hidden md:block absolute bottom-4 left-full ml-2 text-xs italic text-muted-foreground whitespace-nowrap">
+                <p className="hidden md:block absolute bottom-4 left-full ml-2.5 text-xs italic text-muted-foreground whitespace-nowrap">
                   Think deeper, feel kinder, read wider.
                 </p>
 
-                <p className="hidden md:block absolute bottom-0 left-full ml-2 text-xs italic text-muted-foreground whitespace-nowrap">
+                <p className="hidden md:block absolute bottom-0.5 left-full ml-2.5 text-xs italic text-muted-foreground whitespace-nowrap">
                   Suy nghĩ sâu hơn, cảm nhân ái hơn, đọc rộng hơn.
                 </p>
               </div>
             </div>
-            <div className="md:hidden text-xs italic text-muted-foreground mt-3 text-center">
+            <div className="md:hidden text-xs italic text-muted-foreground mt-2 text-center">
               <p>Think deeper, feel kinder, read wider.</p>
               <p>Suy nghĩ sâu hơn, cảm nhân ái hơn, đọc rộng hơn.</p>
             </div>
           </Link>
 
-
-          <div className="flex items-center gap-4">
-            {/* Auth Section (Desktop) */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Desktop Auth Controls */}
             <div className="hidden sm:flex items-center">
               <AuthControls />
             </div>
 
-            {/* Mobile Navigation Trigger */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Mở menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left">
-                <nav className="grid gap-4 py-6">
-                  {navItems.map((item) => (
-                    <SheetClose asChild key={item.name}>
-                      <Link
-                        href={item.href}
-                        className="flex w-full items-center py-2 text-lg font-semibold"
-                      >
-                        {item.name}
-                      </Link>
-                    </SheetClose>
-                  ))}
-                  {parentCategories.map((item) => (
-                    <SheetClose asChild key={item._id}>
-                      <Link
-                        href={`/articles?category=${item.slug}`}
-                        className="flex w-full items-center py-2 text-lg font-semibold"
-                      >
-                        {item.name}
-                      </Link>
-                    </SheetClose>
-                  ))}
-                  <div className="sm:hidden pt-4 border-t">
-                    <AuthControls />
-                  </div>
-                </nav>
-              </SheetContent>
-            </Sheet>
+            {/* Mobile Search & Menu */}
+            <div className="flex md:hidden items-center gap-1.5">
+              <SearchButtonAndOverlay />
+              <MobileNav parentCategories={parentCategories} />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Bottom Bar - Sticky */}
-      <nav className="bg-card/80 backdrop-blur-sm sticky top-0 z-40 border-b">
-        <div className="container mx-auto px-4 hidden md:flex items-center justify-between h-14 text-sm font-medium">
-          {/* Left side: Category Popover */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <LayoutGrid className="mr-2 h-4 w-4" /> Danh mục
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto" align="start">
-              <div className="grid grid-flow-col auto-cols-max gap-x-8 gap-y-4">
-                {parentCategories.map((parent) => (
-                  <div key={parent._id} className="flex flex-col space-y-2">
-                    <Link
-                      href={`/articles?category=${parent.slug}`}
-                      className="font-bold text-base hover:text-primary transition-colors"
-                    >
-                      {parent.name}
-                    </Link>
-                    <div className="flex flex-col space-y-1.5">
-                      {parent.children?.map((child) => (
-                        <Link
-                          key={child._id}
-                          href={`/articles?category=${child.slug}`}
-                          className="text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          {child.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {/* Center: Main Navigation Links */}
-          <div className="flex items-center gap-1">
-            <Link
-              href="/"
-              className="transition-colors hover:text-primary px-2 py-2 rounded-md"
-            >
-              Trang chủ
-            </Link>
-            {parentCategories.map((category) => (
-              <Link
-                key={category._id}
-                href={`/articles?category=${category.slug}`}
-                className="transition-colors hover:text-primary px-2 py-2 rounded-md"
-              >
-                {category.name}
-              </Link>
-            ))}
+      <nav className="bg-card/90 backdrop-blur-md sticky top-0 z-40 border-b border-border/60">
+        <div className="container mx-auto px-4 hidden md:flex items-center justify-between h-14">
+          {/* Left & Center: Desktop Navigation Menu with hover subcategories */}
+          <div className="flex items-center flex-1 min-w-0 mr-4">
+            <DesktopNav parentCategories={parentCategories} />
           </div>
 
-          {/* Right side: Search Button - REPLACED */}
-          <SearchButtonAndOverlay />
+          {/* Right side: Actions */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Link href="/documents">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-primary/30 hover:border-primary/80 bg-primary/5 hover:bg-primary/10 text-primary font-semibold text-xs h-9 px-3.5 rounded-md flex items-center gap-1.5 transition-all shadow-xs"
+              >
+                <span>Kho tài liệu</span>
+              </Button>
+            </Link>
+            <SearchButtonAndOverlay />
+          </div>
         </div>
       </nav>
     </>

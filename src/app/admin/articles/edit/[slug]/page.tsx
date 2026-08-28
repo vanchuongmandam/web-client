@@ -7,9 +7,9 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/stores/auth.store';
 import { useToast } from '@/hooks/use-toast';
-import { generateSlug } from '@/lib/utils';
+import { generateSlug, getMediaUrl } from '@/lib/utils';
 import type { Category, Media, Article } from '@/lib/types';
 
 import dynamic from 'next/dynamic';
@@ -43,8 +43,11 @@ const articleFormSchema = z.object({
     trending: z.boolean().default(false),
     media: z.array(z.object({
         url: z.string(),
+        previewUrl: z.string().optional(),
         mediaType: z.enum(['image', 'video', 'pdf']),
         caption: z.string().optional(),
+        isRestricted: z.boolean().optional(),
+        unlockPrice: z.number().optional(),
     })),
 });
 type ArticleFormValues = z.infer<typeof articleFormSchema>;
@@ -125,7 +128,7 @@ export default function EditArticlePage() {
     const router = useRouter();
     const params = useParams();
     const slug = params.slug as string;
-    const { token } = useAuth();
+    const { token } = useAuthStore();
     const { toast } = useToast();
 
     const [allCategories, setAllCategories] = useState<Category[]>([]);
@@ -270,7 +273,7 @@ export default function EditArticlePage() {
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     <header className="flex items-center justify-between mb-8">
-                        <div><h1 className="text-4xl font-headline font-bold text-primary">Chỉnh sửa bài viết</h1><p className="text-muted-foreground mt-2">Cập nhật: <span className="font-semibold text-foreground">{form.getValues('title')}</span></p></div>
+                        <div><h1 className="text-4xl font-sans font-bold text-primary">Chỉnh sửa bài viết</h1><p className="text-muted-foreground mt-2">Cập nhật: <span className="font-semibold text-foreground">{form.getValues('title')}</span></p></div>
                         <div className="flex gap-2">
                             <Button type="button" variant="outline" asChild><Link href="/admin/articles">Hủy</Link></Button>
                             <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Cập nhật</Button>
@@ -320,7 +323,7 @@ export default function EditArticlePage() {
                                     <div className="mt-4 space-y-2">
                                         {mediaValue && mediaValue.map((m, index) => (
                                             <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
-                                                {m.mediaType === 'image' && m.url && <Image src={m.url} alt="preview" width={40} height={40} className="rounded object-cover" />}
+                                                {m.mediaType === 'image' && m.url && <Image src={getMediaUrl(m.previewUrl || m.url)} alt="preview" width={40} height={40} className="rounded object-cover" />}
                                                 {m.mediaType === 'pdf' && <FileText className="h-10 w-10 text-red-500" />}
                                                 {m.mediaType === 'video' && <ImageIcon className="h-10 w-10 text-muted-foreground" />}
                                                 <p className="text-sm truncate flex-1">{m.url.split('/').pop()}</p>

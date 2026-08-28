@@ -4,7 +4,8 @@
 import { useState, useEffect, FormEvent } from 'react';
 import Link from 'next/link';
 import type { Comment } from '@/lib/types';
-import { useAuth } from '@/context/AuthContext';
+import { getComments, createComment as createCommentApi, updateComment as updateCommentApi, deleteComment as deleteCommentApi } from '@/lib/api';
+import { useAuthStore } from '@/stores/auth.store';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,66 +19,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 
-// --- Các hàm gọi API ---
-
-async function getComments(articleId: string): Promise<Comment[]> {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiBaseUrl}/comments/article/${articleId}`);
-    if (!response.ok) throw new Error('Failed to fetch comments');
-    const json = await response.json();
-    return json.data ?? json;
-}
-
-async function postComment(articleId: string, content: string, token: string): Promise<Comment> {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiBaseUrl}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-        body: JSON.stringify({ articleId, content })
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to post comment');
-    }
-    const json = await response.json();
-    return json.data ?? json;
-}
-
-async function updateComment(commentId: string, content: string, token: string): Promise<Comment> {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiBaseUrl}/comments/${commentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
-        body: JSON.stringify({ content })
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update comment');
-    }
-    const json = await response.json();
-    return json.data ?? json;
-}
-
-async function deleteComment(commentId: string, token: string): Promise<void> {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    const response = await fetch(`${apiBaseUrl}/comments/${commentId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}`},
-    });
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete comment');
-    }
-}
-
-
 // --- Component con để hiển thị một bình luận ---
 const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }: { 
     comment: Comment, 
     onCommentUpdated: (updatedComment: Comment) => void,
     onCommentDeleted: (commentId: string) => void,
 }) => {
-    const { user, token } = useAuth();
+    const { user, token } = useAuthStore();
     const [isEditing, setIsEditing] = useState(false);
     // --- SỬA LỖI TẠI ĐÂY ---
     // Khai báo lại biến isSubmitting bị thiếu
@@ -91,7 +39,7 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }: {
         if (!token || !editedContent.trim()) return;
         setIsSubmitting(true);
         try {
-            const updatedComment = await updateComment(comment._id, editedContent, token);
+            const updatedComment = await updateCommentApi(comment._id, editedContent, token);
             onCommentUpdated(updatedComment);
             setIsEditing(false);
             toast({ title: "Thành công!", description: "Bình luận đã được cập nhật." });
@@ -109,7 +57,7 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }: {
     const handleDelete = async () => {
         if (!token) return;
         try {
-            await deleteComment(comment._id, token);
+            await deleteCommentApi(comment._id, token);
             onCommentDeleted(comment._id);
             toast({ title: "Thành công!", description: "Bình luận đã được xóa." });
         } catch (error: unknown) {
@@ -178,7 +126,7 @@ export default function CommentSection({ articleId }: { articleId: string }) {
     const [newCommentContent, setNewCommentContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    const { user, token } = useAuth();
+    const { user, token } = useAuthStore();
     const { toast } = useToast();
 
     useEffect(() => {
@@ -205,7 +153,7 @@ export default function CommentSection({ articleId }: { articleId: string }) {
         if (!newCommentContent.trim() || !token) return;
         setIsSubmitting(true);
         try {
-            const newComment = await postComment(articleId, newCommentContent, token);
+            const newComment = await createCommentApi(articleId, newCommentContent, token);
             setComments(prev => [newComment, ...prev]);
             setNewCommentContent('');
             toast({ title: "Thành công!", description: "Bình luận của bạn đã được đăng." });
@@ -230,7 +178,7 @@ export default function CommentSection({ articleId }: { articleId: string }) {
 
     return (
         <section className="mt-12">
-            <h2 className="font-headline text-3xl font-bold mb-6">Thảo luận ({comments.length})</h2>
+            <h2 className="font-sans text-3xl font-bold mb-6">Thảo luận ({comments.length})</h2>
             <div className="mb-6">
                 {user ? (
                     <form onSubmit={handleCommentSubmit} className="space-y-4">

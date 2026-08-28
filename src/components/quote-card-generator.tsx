@@ -36,7 +36,7 @@ export function QuoteCardGenerator({ initialText = "", author = "Văn Chương M
     const themes = {
         light: "bg-white text-gray-900 border-gray-200",
         dark: "bg-slate-900 text-white border-slate-800",
-        paper: "bg-[#fdfbf7] text-[#4a4a4a] border-[#e6e1d5] bg-[url('https://www.transparenttextures.com/patterns/cardboard-flat.png')]",
+        paper: "bg-warm-cream text-earth-muted border-sand-light bg-[url('https://www.transparenttextures.com/patterns/cardboard-flat.png')]",
     };
 
     return (
@@ -89,14 +89,14 @@ export function QuoteCardGenerator({ initialText = "", author = "Văn Chương M
                     <div className="flex items-center justify-center bg-gray-100 p-4 rounded-lg overflow-hidden relative">
                         <div
                             ref={cardRef}
-                            className={`p-8 w-[350px] aspect-[4/5] flex flex-col justify-between shadow-xl ${themes[theme]} relative transition-colors`}
+                            className={`p-8 w-[350px] aspect-[4/5] flex flex-col justify-between rounded-xl shadow-sm border border-border/50 ${themes[theme]} relative transition-colors`}
                         >
                             <div className="absolute top-4 left-4 opacity-20">
                                 <Quote className="h-8 w-8" />
                             </div>
 
                             <div className="flex-grow flex items-center justify-center">
-                                <p className={`font-serif text-xl md:text-2xl italic leading-relaxed text-center font-medium`}>
+                                <p className={`font-sans text-xl md:text-2xl italic leading-relaxed text-center font-medium`}>
                                     {text || "Nội dung trích dẫn sẽ hiện ở đây..."}
                                 </p>
                             </div>

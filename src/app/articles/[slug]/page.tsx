@@ -2,10 +2,11 @@
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Article } from "@/lib/types";
-import { formatVietnameseDate } from "@/lib/utils";
+import { formatVietnameseDate, getMediaUrl } from "@/lib/utils";
 import type { Metadata } from "next";
 
 // Import the new image gallery component
@@ -25,13 +26,24 @@ import ArticlePdfSection from "./article-pdf-section";
 import RelatedArticles from "./related-articles";
 import ReadingSuggestions from "./reading-suggestions";
 import CommentSection from "./comment-section";
+import { RelatedDocumentsCTA } from "./related-documents-cta";
 
 // --- API Function to get a specific article ---
-async function getArticle(slug: string): Promise<Article | null> {
+async function getArticle(slug: string, token?: string): Promise<Article | null> {
   try {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    // OPTIMIZED: Changed cache strategy to revalidate every hour
-    const response = await fetch(`${apiBaseUrl}/articles/${slug}`, { next: { revalidate: 3600 } });
+    const headers: HeadersInit = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    // Bypass Next.js cache for logged-in requests to avoid cache pollution,
+    // while keeping 1-hour cache for public guests.
+    const fetchOptions: RequestInit = token
+      ? { headers, cache: "no-store" }
+      : { next: { revalidate: 3600 } };
+
+    const response = await fetch(`${apiBaseUrl}/articles/${slug}`, fetchOptions);
     if (!response.ok) {
       if (response.status === 404) return null;
       throw new Error(`Failed to fetch article: ${response.statusText}`);
@@ -47,7 +59,9 @@ async function getArticle(slug: string): Promise<Article | null> {
 // --- generateMetadata for dynamic SEO / OG tags ---
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getArticle(slug);
+  const cookieStore = await cookies();
+  const token = cookieStore.get("authToken")?.value;
+  const article = await getArticle(slug, token);
   if (!article) {
     return {
       title: "Bài viết không tồn tại",
@@ -56,7 +70,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   const url = `https://vanchuongmandam.thptchuyenhatinh.edu.vn/articles/${article.slug}`;
-  const image = article.media?.find(m => m.mediaType === "image")?.url || "/default-thumbnail.jpg";
+  const rawImage = article.media?.find(m => m.mediaType === "image")?.url;
+  const image = getMediaUrl(rawImage) || "/default-thumbnail.jpg";
 
   return {
     title: article.title,
@@ -87,7 +102,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 // --- Article Detail Page Component (FIXED) ---
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = await getArticle(slug);
+  const cookieStore = await cookies();
+  const token = cookieStore.get("authToken")?.value;
+  const article = await getArticle(slug, token);
 
   if (!article) {
     notFound();
@@ -105,7 +122,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               <ZenModeToggle />
             </div>
           </div>
-          <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight text-primary break-words hyphens-auto">
+          <h1 className="font-sans text-4xl md:text-6xl font-extrabold tracking-tight text-primary break-words hyphens-auto">
             {article.title}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground break-words">
@@ -126,7 +143,11 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
         {/* --- PDF Section --- */}
         {article.media && article.media.some(m => m.mediaType === "pdf") && (
-          <ArticlePdfSection pdfs={article.media.filter(m => m.mediaType === "pdf")} />
+          <ArticlePdfSection 
+            pdfs={article.media.filter(m => m.mediaType === "pdf")} 
+            articleId={article._id}
+            articleTitle={article.title}
+          />
         )}
 
         <RichTextEditor
@@ -134,6 +155,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           editable={false}
           className="w-full overflow-hidden"
         />
+
+        {article.relatedDocuments && article.relatedDocuments.length > 0 && (
+          <RelatedDocumentsCTA documents={article.relatedDocuments} />
+        )}
 
       </article>
 
@@ -146,7 +171,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       <div className="mt-12">
         <ReadingSuggestions
-          articleContent={article.content}
+          currentSlug={article.slug}
+          categoryId={article.category._id || String(article.category)}
         />
       </div>
 
