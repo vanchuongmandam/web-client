@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // output: 'standalone', // Uncomment this for production Docker builds. Breaks local Windows builds.
+  output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : undefined,
   typescript: {
     ignoreBuildErrors: false,
   },
