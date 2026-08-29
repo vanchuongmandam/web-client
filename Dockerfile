@@ -46,14 +46,7 @@ RUN adduser --system --uid 1001 nextjs
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# Copy scripts and install dependencies for cron
-COPY --from=builder /app/scripts ./scripts
-RUN npm install node-cron dotenv
-
-# Rename search-cron.js to .mjs to support ES imports
-RUN mv scripts/search-cron.js scripts/search-cron.mjs
-
-# Ensure public folder is writable by nextjs user (for search-data.json)
+# Ensure public folder is writable by nextjs user
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # Automatically leverage output traces to reduce image size
@@ -69,4 +62,4 @@ ENV PORT=3000
 # set hostname to localhost
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["sh", "-c", "node scripts/search-cron.mjs & node server.js"]
+CMD ["node", "server.js"]

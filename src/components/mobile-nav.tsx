@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -27,7 +27,7 @@ interface MobileNavProps {
   parentCategories: Category[];
 }
 
-export function MobileNav({ parentCategories }: MobileNavProps) {
+function MobileNavContent({ parentCategories }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -186,5 +186,25 @@ export function MobileNav({ parentCategories }: MobileNavProps) {
         </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+export function MobileNav(props: MobileNavProps) {
+  return (
+    <Suspense
+      fallback={
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden h-9 w-9 rounded-md"
+          aria-label="Mở menu điều hướng"
+        >
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Mở menu</span>
+        </Button>
+      }
+    >
+      <MobileNavContent {...props} />
+    </Suspense>
   );
 }

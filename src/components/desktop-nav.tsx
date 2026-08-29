@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { Category } from "@/lib/types";
@@ -9,7 +10,7 @@ interface DesktopNavProps {
   parentCategories: Category[];
 }
 
-export function DesktopNav({ parentCategories }: DesktopNavProps) {
+function DesktopNavContent({ parentCategories }: DesktopNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get("category");
@@ -115,5 +116,13 @@ export function DesktopNav({ parentCategories }: DesktopNavProps) {
         );
       })}
     </div>
+  );
+}
+
+export function DesktopNav(props: DesktopNavProps) {
+  return (
+    <Suspense fallback={<div className="flex items-center gap-2 sm:gap-4 flex-wrap" />}>
+      <DesktopNavContent {...props} />
+    </Suspense>
   );
 }
