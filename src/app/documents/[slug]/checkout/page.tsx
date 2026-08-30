@@ -1,12 +1,15 @@
 // src/app/documents/[slug]/checkout/page.tsx
 "use client";
 
+import { getBookCoverTheme, formatPrice } from "@/lib/document-utils";
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth.store';
 import { useCheckoutStore, type CheckoutStep } from '@/stores/checkout.store';
 import { getDocumentBySlug, getProfile } from '@/lib/api';
+import { getMediaUrl } from "@/lib/utils";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,32 +19,12 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, CheckCircle, Clock, Loader2, QrCode, CreditCard, UserRound, Copy, Check, TicketPercent } from 'lucide-react';
 
-function formatPrice(price: number): string {
-  if (price === 0) return 'Miễn phí';
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-}
-
 function formatCountdown(seconds: number): string {
   const safe = Math.max(0, seconds);
   const mm = Math.floor(safe / 60);
   const ss = safe % 60;
   return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
 }
-
-const getBookCoverTheme = (docId: string) => {
-  let sum = 0;
-  for (let i = 0; i < docId.length; i++) {
-    sum += docId.charCodeAt(i);
-  }
-  const themes = [
-    { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' }, // Warm Mahogany
-    { bg: 'bg-wine-deepest', text: 'text-pastel-pink', border: 'border-wine-night', tagBg: 'bg-wine-night/40 text-pastel-pink/90', lineBg: 'bg-wine' }, // Crimson Velvet / Wine Red
-    { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' }, // Dark Aubergine
-    { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' }, // Slate Ocean
-    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-gold' }, // Vintage Parchment & Gold
-  ];
-  return themes[sum % themes.length];
-};
 
 const getStatusBadgeClass = (currentStep: Step) => {
   switch (currentStep) {
@@ -69,34 +52,33 @@ export default function CheckoutPage() {
   const params = useParams();
   const slug = params?.slug as string;
   const router = useRouter();
-  const { token, isLoading: authLoading } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const authLoading = useAuthStore((s) => s.isLoading);
   const { toast } = useToast();
 
-  const {
-    step,
-    doc,
-    order,
-    billingForm,
-    balance,
-    useBalance,
-    couponCode,
-    appliedCoupon,
-    discountAmount,
-    couponError,
-    isValidatingCoupon,
-    submitting,
-    remainingSeconds,
-    initCheckout,
-    setStep,
-    setBillingForm,
-    saveBillingAddress,
-    setUseBalance,
-    setCouponCode,
-    applyCoupon,
-    submitOrder,
-    pollOrderStatus,
-    tickCountdown,
-  } = useCheckoutStore();
+  const step = useCheckoutStore((s) => s.step);
+  const doc = useCheckoutStore((s) => s.doc);
+  const order = useCheckoutStore((s) => s.order);
+  const billingForm = useCheckoutStore((s) => s.billingForm);
+  const balance = useCheckoutStore((s) => s.balance);
+  const useBalance = useCheckoutStore((s) => s.useBalance);
+  const couponCode = useCheckoutStore((s) => s.couponCode);
+  const appliedCoupon = useCheckoutStore((s) => s.appliedCoupon);
+  const discountAmount = useCheckoutStore((s) => s.discountAmount);
+  const couponError = useCheckoutStore((s) => s.couponError);
+  const isValidatingCoupon = useCheckoutStore((s) => s.isValidatingCoupon);
+  const submitting = useCheckoutStore((s) => s.submitting);
+  const remainingSeconds = useCheckoutStore((s) => s.remainingSeconds);
+  const initCheckout = useCheckoutStore((s) => s.initCheckout);
+  const setStep = useCheckoutStore((s) => s.setStep);
+  const setBillingForm = useCheckoutStore((s) => s.setBillingForm);
+  const saveBillingAddress = useCheckoutStore((s) => s.saveBillingAddress);
+  const setUseBalance = useCheckoutStore((s) => s.setUseBalance);
+  const setCouponCode = useCheckoutStore((s) => s.setCouponCode);
+  const applyCoupon = useCheckoutStore((s) => s.applyCoupon);
+  const submitOrder = useCheckoutStore((s) => s.submitOrder);
+  const pollOrderStatus = useCheckoutStore((s) => s.pollOrderStatus);
+  const tickCountdown = useCheckoutStore((s) => s.tickCountdown);
 
   const [loading, setLoading] = useState(true);
 
@@ -530,7 +512,7 @@ export default function CheckoutPage() {
                   {order.qrCodeUrl ? (
                     <div className="flex flex-col items-center shrink-0">
                       <div className="bg-warm-cream border-2 border-sand p-3 rounded-lg shadow-xs">
-                        <img src={order.qrCodeUrl} alt="QR Code" loading="lazy" decoding="async" className="h-56 w-56 object-contain" />
+                        <Image src={getMediaUrl(order.qrCodeUrl)} alt="QR Code" width={224} height={224} className="object-contain" unoptimized />
                       </div>
                       <span className="text-[10px] text-muted-foreground uppercase tracking-widest mt-2 font-semibold">VietQR / Napas</span>
                     </div>
@@ -649,7 +631,7 @@ export default function CheckoutPage() {
                 {/* Book cover (thumbnail size) */}
                 <div className="relative w-16 aspect-[1/1.38] shrink-0 overflow-hidden rounded-md shadow-xs border border-viewer-dark-border/10 bg-warm-cream">
                   {doc.previewImages?.[0] ? (
-                    <img src={doc.previewImages[0]} alt={doc.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                    <Image src={getMediaUrl(doc.previewImages[0])} alt={doc.title} fill sizes="64px" className="object-cover" />
                   ) : (
                     <div className={`w-full h-full ${getBookCoverTheme(doc._id).bg} ${getBookCoverTheme(doc._id).text} flex flex-col p-1.5 justify-between relative`}>
                       <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-r from-black/25 via-black/5 to-transparent z-10"></div>

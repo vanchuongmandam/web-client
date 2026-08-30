@@ -27,7 +27,11 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [resending, setResending] = useState(false);
-  const { login, loginWithGoogle, isLoading, error, clearError } = useAuthStore();
+  const login = useAuthStore((s) => s.login);
+  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const error = useAuthStore((s) => s.error);
+  const clearError = useAuthStore((s) => s.clearError);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {

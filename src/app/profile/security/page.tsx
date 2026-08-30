@@ -38,7 +38,9 @@ interface PasskeyItem {
 
 export default function SecurityPage() {
   const { toast } = useToast();
-  const { user, isOAuth, token } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const isOAuth = useAuthStore((s) => s.isOAuth);
+  const token = useAuthStore((s) => s.token);
 
   // Password States
   const [currentPassword, setCurrentPassword] = useState("");

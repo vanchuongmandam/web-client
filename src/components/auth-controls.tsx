@@ -16,7 +16,10 @@ import {
 import { LogIn, UserPlus, User, BookOpen, ShoppingBag, LayoutDashboard, LogOut, Landmark, Bookmark } from "lucide-react";
 
 export function AuthControls() {
-  const { user, logout, isLoading, hasHydrated } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
 
   if (!hasHydrated || isLoading) {
     return <div className="h-10 w-28 bg-muted/60 rounded-md animate-pulse"></div>;

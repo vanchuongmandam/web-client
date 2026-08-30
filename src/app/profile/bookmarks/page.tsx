@@ -35,7 +35,8 @@ function formatPrice(price: number): string {
 }
 
 export default function BookmarksPage() {
-  const { token, refreshProfile } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const { toast } = useToast();
   
   const [documents, setDocuments] = useState<MarketDocument[]>([]);

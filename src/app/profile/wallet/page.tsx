@@ -19,7 +19,9 @@ function formatPrice(price: number): string {
 }
 
 export default function WalletPage() {
-  const { user, token, refreshProfile } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const { toast } = useToast();
   
   const [amount, setAmount] = useState<string>("");

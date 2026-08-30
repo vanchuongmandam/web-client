@@ -85,7 +85,7 @@ function statusBadge(status: string) {
 }
 
 export default function AdminOrdersPage() {
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
 
   const [orders, setOrders] = useState<Order[]>([]);

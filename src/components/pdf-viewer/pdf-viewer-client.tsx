@@ -120,7 +120,8 @@ export default function PDFViewerClient({
   title,
   isInline = false,
 }: PDFViewerClientProps) {
-  const { token, isLoading: isAuthLoading } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const isAuthLoading = useAuthStore((s) => s.isLoading);
   const router = useRouter();
   const { toast } = useToast();
 

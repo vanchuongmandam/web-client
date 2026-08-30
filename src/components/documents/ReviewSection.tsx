@@ -4,7 +4,7 @@
 
 import { toErrorMessage } from "@/lib/errors";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth.store";
 import { getReviews, createReview, upvoteReview, checkDocumentOwnership } from "@/lib/api";
@@ -25,7 +25,8 @@ interface Props {
 }
 
 export default function ReviewSection({ documentId, price = 0, isFree = false }: Props) {
-  const { user, token } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
 
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -36,16 +37,7 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadReviews();
-    if (token) {
-      checkDocumentOwnership(documentId, token)
-        .then(res => setOwned(res.owned))
-        .catch(() => { });
-    }
-  }, [documentId, token]);
-
-  const loadReviews = async () => {
+  const loadReviews = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getReviews(documentId, { limit: 10, sort: '-createdAt' });
@@ -55,9 +47,18 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
     } finally {
       setLoading(false);
     }
-  };
+  }, [documentId]);
 
-  const handleSubmit = async () => {
+  useEffect(() => {
+    loadReviews();
+    if (token) {
+      checkDocumentOwnership(documentId, token)
+        .then(res => setOwned(res.owned))
+        .catch(() => { });
+    }
+  }, [documentId, token, loadReviews]);
+
+  const handleSubmit = useCallback(async () => {
     if (!token) return;
     if (!content.trim()) return;
     setSubmitting(true);
@@ -72,9 +73,9 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [token, documentId, rating, content, toast]);
 
-  const handleUpvote = async (reviewId: string) => {
+  const handleUpvote = useCallback(async (reviewId: string) => {
     if (!token) {
       toast({ title: "Vui lòng đăng nhập để thích đánh giá." });
       return;
@@ -85,7 +86,7 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
     } catch (e) {
       toast({ title: "Lỗi", description: toErrorMessage(e), variant: "destructive" });
     }
-  };
+  }, [token, toast]);
 
   const canReview = isFree || price === 0 || owned;
 

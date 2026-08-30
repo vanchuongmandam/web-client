@@ -43,7 +43,7 @@ import { Label } from "@/components/ui/label";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 
 export default function AdminUsersPage() {
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
   
   const [users, setUsers] = useState<AdminUser[]>([]);

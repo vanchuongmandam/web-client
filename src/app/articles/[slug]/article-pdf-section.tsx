@@ -35,7 +35,8 @@ interface PdfItemProps {
 
 function PdfItem({ pdf, idx, articleId, articleTitle }: PdfItemProps) {
   const router = useRouter();
-  const { token, user } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
   const { toast } = useToast();
   const [isUnlockConfirmOpen, setIsUnlockConfirmOpen] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);

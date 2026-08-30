@@ -40,7 +40,11 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [usernameError, setUsernameError] = useState<string | null>(null);
-  const { register, loginWithGoogle, isLoading, error, clearError } = useAuthStore();
+  const register = useAuthStore((s) => s.register);
+  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const error = useAuthStore((s) => s.error);
+  const clearError = useAuthStore((s) => s.clearError);
   const router = useRouter();
 
   // Xóa lỗi khi người dùng rời khỏi trang hoặc component unmount

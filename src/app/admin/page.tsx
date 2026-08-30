@@ -8,16 +8,27 @@ import type { AdminDashboardStats } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 
 import { KpiCards } from "@/components/admin/dashboard/kpi-cards";
-import { RevenueChart } from "@/components/admin/dashboard/revenue-chart";
-import { OrderStatusChart } from "@/components/admin/dashboard/order-status-chart";
 import { RecentOrdersTable } from "@/components/admin/dashboard/recent-orders-table";
 import { TopDocumentsTable } from "@/components/admin/dashboard/top-documents-table";
-import { ActivityChart } from "@/components/admin/dashboard/activity-chart";
 import { CouponPerformance } from "@/components/admin/dashboard/coupon-performance";
 import { DashboardSkeleton } from "@/components/admin/dashboard/dashboard-skeleton";
+import dynamic from "next/dynamic";
+
+const RevenueChart = dynamic(
+  () => import("@/components/admin/dashboard/revenue-chart").then((mod) => ({ default: mod.RevenueChart })),
+  { loading: () => <div className="h-[370px] bg-muted animate-pulse rounded-xl" />, ssr: false }
+);
+const ActivityChart = dynamic(
+  () => import("@/components/admin/dashboard/activity-chart").then((mod) => ({ default: mod.ActivityChart })),
+  { loading: () => <div className="h-[300px] bg-muted animate-pulse rounded-xl" />, ssr: false }
+);
+const OrderStatusChart = dynamic(
+  () => import("@/components/admin/dashboard/order-status-chart").then((mod) => ({ default: mod.OrderStatusChart })),
+  { loading: () => <div className="h-[300px] bg-muted animate-pulse rounded-xl" />, ssr: false }
+);
 
 export default function AdminDashboardPage() {
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);

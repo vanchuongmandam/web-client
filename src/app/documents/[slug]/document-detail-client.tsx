@@ -3,12 +3,15 @@
 "use client";
 
 import { toErrorMessage } from "@/lib/errors";
+import { getBookCoverTheme, formatPrice } from "@/lib/document-utils";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { checkDocumentOwnership, getDocumentDownload } from '@/lib/api';
+import { getMediaUrl } from "@/lib/utils";
 import type { MarketDocument } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,11 +53,6 @@ import ReviewSection from '@/components/documents/ReviewSection';
 import DocumentSuggestions from '@/components/documents/DocumentSuggestions';
 import dynamic from 'next/dynamic';
 
-function formatPrice(price: number): string {
-  if (price === 0) return 'Miễn phí';
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-}
-
 const RichTextEditor = dynamic(() => import("@/components/ui/rich-text-editor"), {
   loading: () => <div className="animate-pulse bg-warm-cream h-40 rounded border border-sand" />,
   ssr: false
@@ -65,37 +63,26 @@ interface Props {
   initialOwned?: boolean;
 }
 
-const getBookCoverTheme = (docId: string) => {
-  let sum = 0;
-  for (let i = 0; i < docId.length; i++) {
-    sum += docId.charCodeAt(i);
-  }
-  const themes = [
-    { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' }, // Warm Mahogany
-    { bg: 'bg-wine-deepest', text: 'text-pastel-pink', border: 'border-wine-night', tagBg: 'bg-wine-night/40 text-pastel-pink/90', lineBg: 'bg-wine' }, // Crimson Velvet / Wine Red
-    { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' }, // Dark Aubergine
-    { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' }, // Slate Ocean
-    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-gold' }, // Vintage Parchment & Gold
-  ];
-  return themes[sum % themes.length];
-};
-
 export function DocumentDetailClient({ document: doc }: Props) {
-  const { token, hasHydrated } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const bookmarked = useAuthStore((s) => s.bookmarkedDocumentIds.includes(doc._id));
   const router = useRouter();
 
   // Fallback chain: coverImage -> first previewImages -> previewFile (if image)
-  const primaryCoverImage = doc.coverImage?.trim() ||
+  const primaryCoverImage = useMemo(() =>
+    doc.coverImage?.trim() ||
     (Array.isArray(doc.previewImages) && doc.previewImages.length > 0 ? doc.previewImages[0] : null) ||
-    (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
+    (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null),
+    [doc.coverImage, doc.previewImages, doc.previewFile]
+  );
 
   // Combine coverImage, previewFile (if it's an image) and previewImages
-  const allPreviewImages = Array.from(new Set([
+  const allPreviewImages = useMemo(() => Array.from(new Set([
     ...(doc.coverImage ? [doc.coverImage] : []),
     ...(Array.isArray(doc.previewImages) ? doc.previewImages : []),
     ...(doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? [doc.previewFile] : [])
-  ]));
+  ])), [doc.coverImage, doc.previewImages, doc.previewFile]);
 
   const { toast } = useToast();
   const [owned, setOwned] = useState(false);
@@ -122,7 +109,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
     }
   }, [token, doc._id, hasHydrated]);
 
-  const handleBookmark = async () => {
+  const handleBookmark = useCallback(async () => {
     if (!token) return router.push('/login');
     setIsBookmarkLoading(true);
     try {
@@ -135,9 +122,9 @@ export function DocumentDetailClient({ document: doc }: Props) {
     } finally {
       setIsBookmarkLoading(false);
     }
-  };
+  }, [token, doc._id, router, toast]);
 
-  const handleDownload = async () => {
+  const handleDownload = useCallback(async () => {
     if (!token) return router.push('/login');
     setDownloading(true);
     try {
@@ -152,14 +139,14 @@ export function DocumentDetailClient({ document: doc }: Props) {
     } finally {
       setDownloading(false);
     }
-  };
+  }, [token, doc._id, router, toast]);
 
-  const handleBuy = () => {
+  const handleBuy = useCallback(() => {
     if (!token) return router.push('/login');
     router.push(`/documents/${doc.slug}/checkout`);
-  };
+  }, [token, router, doc.slug]);
 
-  const theme = getBookCoverTheme(doc._id);
+  const theme = useMemo(() => getBookCoverTheme(doc._id), [doc._id]);
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-6 sm:py-8 bg-background font-sans w-full min-w-0">
@@ -210,12 +197,12 @@ export function DocumentDetailClient({ document: doc }: Props) {
                 >
                   {primaryCoverImage ? (
                     <>
-                      <img
-                        src={primaryCoverImage}
+                      <Image
+                        src={getMediaUrl(primaryCoverImage)}
                         alt={doc.title}
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 768px) 208px, 224px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
                         <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/75 text-white text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 backdrop-blur-xs">
@@ -456,12 +443,12 @@ export function DocumentDetailClient({ document: doc }: Props) {
                             setIsLightboxOpen(true);
                           }}
                         >
-                          <img
-                            src={img}
+                          <Image
+                            src={getMediaUrl(img)}
                             alt={`Trang xem trước ${i + 1}`}
-                            loading="lazy"
-                            decoding="async"
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                             <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white text-[11px] px-2 py-1 rounded-md font-medium">

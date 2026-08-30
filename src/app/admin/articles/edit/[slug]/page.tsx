@@ -128,7 +128,7 @@ export default function EditArticlePage() {
     const router = useRouter();
     const params = useParams();
     const slug = params.slug as string;
-    const { token } = useAuthStore();
+    const token = useAuthStore((s) => s.token);
     const { toast } = useToast();
 
     const [allCategories, setAllCategories] = useState<Category[]>([]);

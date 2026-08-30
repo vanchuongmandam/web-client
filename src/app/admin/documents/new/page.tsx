@@ -86,7 +86,8 @@ async function detectPdfPageCount(file: File): Promise<number | null> {
 
 export default function NewDocumentPage() {
   const router = useRouter();
-  const { token, user } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
   const { toast } = useToast();
 
   const [categories, setCategories] = useState<DocumentCategory[]>([]);

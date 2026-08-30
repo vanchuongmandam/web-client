@@ -37,7 +37,7 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function AdminDocumentsPage() {
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
 
   const [documents, setDocuments] = useState<MarketDocument[]>([]);

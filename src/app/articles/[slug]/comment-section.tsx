@@ -1,7 +1,7 @@
 // src/app/articles/[slug]/comment-section.tsx
 "use client";
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useCallback, memo } from 'react';
 import Link from 'next/link';
 import type { Comment } from '@/lib/types';
 import { getComments, createComment as createCommentApi, updateComment as updateCommentApi, deleteComment as deleteCommentApi } from '@/lib/api';
@@ -20,12 +20,13 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 
 // --- Component con để hiển thị một bình luận ---
-const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }: { 
+const CommentItem = memo(function CommentItem({ comment, onCommentUpdated, onCommentDeleted }: { 
     comment: Comment, 
     onCommentUpdated: (updatedComment: Comment) => void,
     onCommentDeleted: (commentId: string) => void,
-}) => {
-    const { user, token } = useAuthStore();
+}) {
+    const user = useAuthStore((s) => s.user);
+    const token = useAuthStore((s) => s.token);
     const [isEditing, setIsEditing] = useState(false);
     // --- SỬA LỖI TẠI ĐÂY ---
     // Khai báo lại biến isSubmitting bị thiếu
@@ -116,7 +117,7 @@ const CommentItem = ({ comment, onCommentUpdated, onCommentDeleted }: {
             </div>
         </div>
     );
-};
+});
 
 
 // --- Component chính ---
@@ -126,7 +127,8 @@ export default function CommentSection({ articleId }: { articleId: string }) {
     const [newCommentContent, setNewCommentContent] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    const { user, token } = useAuthStore();
+    const user = useAuthStore((s) => s.user);
+    const token = useAuthStore((s) => s.token);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -168,13 +170,13 @@ export default function CommentSection({ articleId }: { articleId: string }) {
         }
     };
     
-    const handleCommentUpdated = (updatedComment: Comment) => {
+    const handleCommentUpdated = useCallback((updatedComment: Comment) => {
         setComments(prev => prev.map(c => c._id === updatedComment._id ? updatedComment : c));
-    };
+    }, []);
 
-    const handleCommentDeleted = (commentId: string) => {
+    const handleCommentDeleted = useCallback((commentId: string) => {
         setComments(prev => prev.filter(c => c._id !== commentId));
-    };
+    }, []);
 
     return (
         <section className="mt-12">

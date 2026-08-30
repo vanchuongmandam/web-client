@@ -82,7 +82,7 @@ export default function AdminCategoriesPage() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [parentCategoryId, setParentCategoryId] = useState<string | undefined>(undefined);
   
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
 
   const fetchCategories = useCallback(async () => {

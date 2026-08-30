@@ -30,7 +30,7 @@ export default function RequestsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
 
   const fetchRequests = useCallback(async () => {
     if (!token) {

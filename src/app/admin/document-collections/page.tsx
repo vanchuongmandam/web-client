@@ -33,7 +33,7 @@ export default function AdminDocumentCollectionsPage() {
   const [newCollectionName, setNewCollectionName] = useState('');
   const [newCollectionDescription, setNewCollectionDescription] = useState('');
   
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
 
   const fetchCollections = useCallback(async () => {

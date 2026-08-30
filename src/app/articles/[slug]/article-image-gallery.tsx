@@ -1,7 +1,7 @@
 "use client";
 import { toErrorMessage } from "@/lib/errors";
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -21,7 +21,7 @@ interface ArticleMediaGalleryProps {
   articleTitle: string;
 }
 
-const MediaItem = ({
+const MediaItem = memo(function MediaItem({
   media,
   onClick,
   isOverlay,
@@ -37,8 +37,9 @@ const MediaItem = ({
   articleId: string,
   articleTitle: string,
   onRequestSuccess: () => void
-}) => {
-  const { token, user } = useAuthStore();
+}) {
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
   const { toast } = useToast();
   const [isUnlockConfirmOpen, setIsUnlockConfirmOpen] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -185,27 +186,30 @@ const MediaItem = ({
       )}
     </div>
   );
-};
+});
 
 
 export function ArticleImageGallery({ media, articleId, articleTitle }: ArticleMediaGalleryProps) {
   // Chỉ lấy media là image hoặc video
-  const filteredMedia = media.filter(m => m.mediaType === 'image' || m.mediaType === 'video');
+  const filteredMedia = useMemo(
+    () => media.filter(m => m.mediaType === 'image' || m.mediaType === 'video'),
+    [media]
+  );
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const router = useRouter();
 
-  const handleRequestSuccess = () => {
+  const handleRequestSuccess = useCallback(() => {
     router.refresh();
-  };
+  }, [router]);
 
-  const openLightbox = (index: number) => {
+  const openLightbox = useCallback((index: number) => {
     // Only open lightbox if access granted/not restricted
     if (filteredMedia[index].isRestricted && !filteredMedia[index].accessGranted) return;
 
     setSelectedMediaIndex(index);
     setIsLightboxOpen(true);
-  };
+  }, [filteredMedia]);
 
   const totalMedia = filteredMedia.length;
 

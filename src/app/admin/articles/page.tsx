@@ -32,7 +32,7 @@ export default function AdminArticlesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
 
   // Handle debounce

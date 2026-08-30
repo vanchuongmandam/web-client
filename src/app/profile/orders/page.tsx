@@ -46,7 +46,8 @@ function formatPrice(price: number): string {
 }
 
 export default function OrdersPage() {
-  const { token, isLoading: authLoading } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const authLoading = useAuthStore((s) => s.isLoading);
   const router = useRouter();
   const { toast } = useToast();
 

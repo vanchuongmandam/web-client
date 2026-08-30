@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function AdminCouponsPage() {
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
   
   const [coupons, setCoupons] = useState<Coupon[]>([]);

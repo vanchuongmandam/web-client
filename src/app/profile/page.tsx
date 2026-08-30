@@ -24,7 +24,9 @@ function formatPrice(price: number): string {
 }
 
 export default function ProfilePage() {
-  const { token, user, isLoading: authLoading } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.isLoading);
   const router = useRouter();
   const { toast } = useToast();
 

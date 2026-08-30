@@ -3,8 +3,11 @@
 "use client";
 
 import { toErrorMessage } from "@/lib/errors";
+import { getBookCoverTheme, formatPrice } from "@/lib/document-utils";
+import { getMediaUrl } from "@/lib/utils";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { MarketDocument, DocumentCategory, DocumentCollection, PaginationMeta } from '@/lib/types';
@@ -68,11 +71,6 @@ interface DocumentListClientProps {
   currentTag?: string;
 }
 
-function formatPrice(price: number): string {
-  if (price === 0) return 'Miễn phí';
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-}
-
 const sortOptions = [
   { value: '-createdAt', label: 'Ấn bản mới nhất' },
   { value: '-purchaseCount', label: 'Mua nhiều nhất' },
@@ -82,20 +80,89 @@ const sortOptions = [
 ];
 
 // popularTags is removed since collections handles it now
-const getBookCoverTheme = (docId: string) => {
-  let sum = 0;
-  for (let i = 0; i < docId.length; i++) {
-    sum += docId.charCodeAt(i);
-  }
-  const themes = [
-    { bg: 'bg-category-brown', text: 'text-pastel-warm', border: 'border-category-red-dark', tagBg: 'bg-category-red-dark/40 text-pastel-warm/90', lineBg: 'bg-category-copper' }, // Warm Mahogany
-    { bg: 'bg-wine-deepest', text: 'text-pastel-pink', border: 'border-wine-night', tagBg: 'bg-wine-night/40 text-pastel-pink/90', lineBg: 'bg-wine' }, // Crimson Velvet / Wine Red
-    { bg: 'bg-category-purple-dark', text: 'text-pastel-purple', border: 'border-category-purple-night', tagBg: 'bg-category-purple-night/40 text-pastel-purple/90', lineBg: 'bg-category-purple' }, // Dark Aubergine
-    { bg: 'bg-category-blue-dark', text: 'text-pastel-blue', border: 'border-category-blue-night', tagBg: 'bg-category-blue-night/40 text-pastel-blue/90', lineBg: 'bg-category-blue' }, // Slate Ocean
-    { bg: 'bg-warm-sand', text: 'text-earth-dark', border: 'border-sand-dark', tagBg: 'bg-earth-dark/15 text-earth-dark/95', lineBg: 'bg-gold' }, // Vintage Parchment & Gold
-  ];
-  return themes[sum % themes.length];
-};
+
+interface FilterPanelProps {
+  categories: DocumentCategory[];
+  collections: DocumentCollection[];
+  currentCategory?: string;
+  currentTag?: string;
+  hasActiveFilters: boolean;
+  onUpdateFilter: (key: string, value: string | undefined) => void;
+  onClearFilters: () => void;
+}
+
+const FilterPanel = memo(function FilterPanel({
+  categories,
+  collections,
+  currentCategory,
+  currentTag,
+  hasActiveFilters,
+  onUpdateFilter,
+  onClearFilters,
+}: FilterPanelProps) {
+  return (
+    <div className="flex flex-col gap-5 font-sans">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+          <SlidersHorizontal className="size-4" /> Tinh chỉnh kết quả
+        </h3>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={onClearFilters} className="text-xs text-category-red hover:text-category-red/80 hover:bg-transparent p-0 h-auto">
+            <FilterX className="mr-1 size-3.5" /> Xóa lọc
+          </Button>
+        )}
+      </div>
+
+      <Separator className="bg-border/60" />
+
+      {/* Categories Filter */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-earth-muted flex items-center gap-1.5">
+          <Layers className="size-3.5 text-earth-lighter" /> Chuyên mục tài liệu
+        </label>
+        <Select
+          value={currentCategory || 'all'}
+          onValueChange={(v) => onUpdateFilter('category', v === 'all' ? undefined : v)}
+        >
+          <SelectTrigger className="w-full bg-warm-cream border-2 border-sand hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
+            <SelectValue placeholder="Tất cả chuyên mục" />
+          </SelectTrigger>
+          <SelectContent className="bg-warm-cream border-sand">
+            <SelectItem value="all">Tất cả chuyên mục</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat._id} value={cat._id}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Collections Filter */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-earth-muted flex items-center gap-1.5">
+          <Sparkles className="size-3.5 text-earth-lighter" /> Bộ sưu tập đề thi
+        </label>
+        <Select
+          value={currentTag || 'all'}
+          onValueChange={(v) => onUpdateFilter('tag', v === 'all' ? undefined : v)}
+        >
+          <SelectTrigger className="w-full bg-warm-cream border-2 border-sand hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
+            <SelectValue placeholder="Tất cả bộ sưu tập" />
+          </SelectTrigger>
+          <SelectContent className="bg-warm-cream border-sand">
+            <SelectItem value="all">Tất cả bộ sưu tập</SelectItem>
+            {collections.map((col) => (
+              <SelectItem key={col.slug} value={col.slug}>
+                {col.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+});
 
 export function DocumentListClient({
   initialDocuments,
@@ -109,7 +176,7 @@ export function DocumentListClient({
   currentTag,
 }: DocumentListClientProps) {
   const router = useRouter();
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
 
   const [searchValue, setSearchValue] = useState(currentSearch || '');
@@ -133,7 +200,7 @@ export function DocumentListClient({
     }
   }, []);
 
-  const updateFilter = (key: string, value: string | undefined) => {
+  const updateFilter = useCallback((key: string, value: string | undefined) => {
     const params = new URLSearchParams();
     if (currentCategory && key !== 'category') params.set('category', currentCategory);
     if (currentSearch && key !== 'search') params.set('search', currentSearch);
@@ -144,9 +211,9 @@ export function DocumentListClient({
     else params.delete(key);
     params.set('page', '1');
     router.push(`/documents?${params.toString()}`);
-  };
+  }, [currentCategory, currentSearch, currentSort, currentTag, router]);
 
-  const handleSearchSubmit = (keyword: string) => {
+  const handleSearchSubmit = useCallback((keyword: string) => {
     const trimmed = keyword.trim();
     if (trimmed) {
       // Save to recent searches
@@ -155,20 +222,20 @@ export function DocumentListClient({
       localStorage.setItem('vcmd_recent_searches', JSON.stringify(updated));
     }
     updateFilter('search', trimmed || undefined);
-  };
+  }, [recentSearches, updateFilter]);
 
-  const handleFormSearch = (e: React.FormEvent) => {
+  const handleFormSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     handleSearchSubmit(searchValue);
-  };
+  }, [handleSearchSubmit, searchValue]);
 
-  const handleClearRecentSearches = (e: React.MouseEvent) => {
+  const handleClearRecentSearches = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setRecentSearches([]);
     localStorage.removeItem('vcmd_recent_searches');
-  };
+  }, []);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     const params = new URLSearchParams();
     if (currentCategory) params.set('category', currentCategory);
     if (currentSearch) params.set('search', currentSearch);
@@ -176,14 +243,14 @@ export function DocumentListClient({
     if (currentTag) params.set('tag', currentTag);
     params.set('page', String(page));
     router.push(`/documents?${params.toString()}`);
-  };
+  }, [currentCategory, currentSearch, currentSort, currentTag, router]);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setSearchValue('');
     router.push('/documents');
-  };
+  }, [router]);
 
-  const toggleSaveDocument = async (docId: string, e: React.MouseEvent) => {
+  const toggleSaveDocument = useCallback(async (docId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -214,70 +281,7 @@ export function DocumentListClient({
     } finally {
       setIsBookmarkLoading(null);
     }
-  };
-
-  const FilterPanel = () => (
-    <div className="flex flex-col gap-5 font-sans">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-primary flex items-center gap-2">
-          <SlidersHorizontal className="size-4" /> Tinh chỉnh kết quả
-        </h3>
-        {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs text-category-red hover:text-category-red/80 hover:bg-transparent p-0 h-auto">
-            <FilterX className="mr-1 size-3.5" /> Xóa lọc
-          </Button>
-        )}
-      </div>
-
-      <Separator className="bg-border/60" />
-
-      {/* Categories Filter */}
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-earth-muted flex items-center gap-1.5">
-          <Layers className="size-3.5 text-earth-lighter" /> Chuyên mục tài liệu
-        </label>
-        <Select
-          value={currentCategory || 'all'}
-          onValueChange={(v) => updateFilter('category', v === 'all' ? undefined : v)}
-        >
-          <SelectTrigger className="w-full bg-warm-cream border-2 border-sand hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
-            <SelectValue placeholder="Tất cả chuyên mục" />
-          </SelectTrigger>
-          <SelectContent className="bg-warm-cream border-sand">
-            <SelectItem value="all">Tất cả chuyên mục</SelectItem>
-            {categories.map((cat) => (
-              <SelectItem key={cat._id} value={cat._id}>
-                {cat.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Collections Filter */}
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold text-earth-muted flex items-center gap-1.5">
-          <Sparkles className="size-3.5 text-earth-lighter" /> Bộ sưu tập đề thi
-        </label>
-        <Select
-          value={currentTag || 'all'}
-          onValueChange={(v) => updateFilter('tag', v === 'all' ? undefined : v)}
-        >
-          <SelectTrigger className="w-full bg-warm-cream border-2 border-sand hover:border-primary/45 rounded-md h-10 transition-colors text-xs font-medium">
-            <SelectValue placeholder="Tất cả bộ sưu tập" />
-          </SelectTrigger>
-          <SelectContent className="bg-warm-cream border-sand">
-            <SelectItem value="all">Tất cả bộ sưu tập</SelectItem>
-            {collections.map((col) => (
-              <SelectItem key={col.slug} value={col.slug}>
-                {col.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
+  }, [token, toast]);
 
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8 bg-background">
@@ -408,7 +412,15 @@ export function DocumentListClient({
 
         {/* 3. SIDEBAR FILTERS (Desktop) */}
         <aside className="hidden lg:block w-72 shrink-0 lg:sticky lg:top-20 bg-warm-cream rounded-md p-5 border-2 border-sand shadow-sm">
-          <FilterPanel />
+          <FilterPanel
+            categories={categories}
+            collections={collections}
+            currentCategory={currentCategory}
+            currentTag={currentTag}
+            hasActiveFilters={hasActiveFilters}
+            onUpdateFilter={updateFilter}
+            onClearFilters={clearFilters}
+          />
         </aside>
 
         {/* 4. MAIN CONTENT AREA */}
@@ -437,7 +449,15 @@ export function DocumentListClient({
                       <SheetDescription>Điều chỉnh các thông số để khám phá thư viện tài liệu.</SheetDescription>
                     </SheetHeader>
                     <div className="mt-4">
-                      <FilterPanel />
+                      <FilterPanel
+                        categories={categories}
+                        collections={collections}
+                        currentCategory={currentCategory}
+                        currentTag={currentTag}
+                        hasActiveFilters={hasActiveFilters}
+                        onUpdateFilter={updateFilter}
+                        onClearFilters={clearFilters}
+                      />
                     </div>
                   </SheetContent>
                 </Sheet>
@@ -550,12 +570,12 @@ export function DocumentListClient({
 
                           {/* Book Container with Cover Image or Fallback */}
                           {coverImg ? (
-                            <img
-                              src={coverImg}
+                            <Image
+                              src={getMediaUrl(coverImg)}
                               alt={doc.title}
-                              loading="lazy"
-                              decoding="async"
-                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              fill
+                              sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                           ) : (
                             <div className="relative h-full w-full overflow-hidden transition-transform duration-500 group-hover:scale-105">

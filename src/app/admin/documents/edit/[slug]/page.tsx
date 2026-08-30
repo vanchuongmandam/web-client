@@ -77,7 +77,8 @@ export default function EditDocumentPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
-  const { token, user } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
   const { toast } = useToast();
 
   const [categories, setCategories] = useState<DocumentCategory[]>([]);

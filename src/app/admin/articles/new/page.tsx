@@ -113,7 +113,7 @@ async function createArticle(data: ArticleFormValues, token: string) {
 
 export default function NewArticlePage() {
     const router = useRouter();
-    const { token } = useAuthStore();
+    const token = useAuthStore((s) => s.token);
     const { toast } = useToast();
     const [categories, setCategories] = useState<Category[]>([]);
     const [parentCategories, setParentCategories] = useState<Category[]>([]);

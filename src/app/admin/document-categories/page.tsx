@@ -68,7 +68,7 @@ export default function AdminDocumentCategoriesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
   const { toast } = useToast();
 
   const fetchCategories = useCallback(async () => {

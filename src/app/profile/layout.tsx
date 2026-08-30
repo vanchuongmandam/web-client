@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 
 export default function ProfileLayout({ children }: { children: React.ReactNode }) {
-  const { token, isLoading: authLoading } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const authLoading = useAuthStore((s) => s.isLoading);
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();

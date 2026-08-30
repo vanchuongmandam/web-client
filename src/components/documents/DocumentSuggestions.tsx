@@ -6,7 +6,8 @@ import { useAuthStore } from "@/stores/auth.store";
 import { getRelatedDocuments, getSuggestions } from "@/lib/api";
 import type { MarketDocument } from "@/lib/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Loader2, BookOpen, Star, Sparkles, Layers, Eye, Download, ShoppingBag } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { BookOpen, Star, Sparkles, Layers, Eye, Download, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 
 interface Props {
@@ -41,7 +42,7 @@ function DocumentCard({ doc }: { doc: MarketDocument }) {
     (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null);
 
   return (
-    <Card className="overflow-hidden flex flex-col group h-full border-2 border-sand-light bg-warm-cream/70 hover:bg-warm-cream rounded-xl hover:border-primary/60 transition-all duration-300 shadow-xs">
+    <Card className="overflow-hidden flex flex-col group h-full border-2 border-sand-light bg-warm-cream/70 hover:bg-warm-cream rounded-xl hover:border-primary/60 transition-all duration-300 shadow-xs hover:shadow-sm active:scale-[0.98]">
 
       {/* Cover Image/Book container */}
       <Link href={`/documents/${doc.slug}`} className="relative w-full aspect-[4/3] overflow-hidden bg-warm-linen/40 border-b border-sand-light block">
@@ -129,8 +130,49 @@ function DocumentCard({ doc }: { doc: MarketDocument }) {
   );
 }
 
+function DocumentCardSkeleton() {
+  return (
+    <Card className="overflow-hidden flex flex-col h-full border-2 border-sand-light bg-warm-cream/70 rounded-xl shadow-xs">
+      {/* Cover placeholder — khóa đúng tỉ lệ aspect-[4/3] để tránh CLS */}
+      <Skeleton className="w-full aspect-[4/3] rounded-none bg-sand-light" />
+      <CardContent className="p-3 flex-1 space-y-2">
+        <Skeleton className="h-4 w-full bg-sand-light" />
+        <Skeleton className="h-4 w-2/3 bg-sand-light" />
+        <Skeleton className="h-3 w-1/3 bg-sand-light" />
+        <div className="flex items-center justify-between border-t border-sand-light/60 pt-2 mt-2">
+          <Skeleton className="h-3 w-8 bg-sand-light" />
+          <Skeleton className="h-3 w-8 bg-sand-light" />
+          <Skeleton className="h-3 w-8 bg-sand-light" />
+        </div>
+      </CardContent>
+      <CardFooter className="p-3 pt-0 border-t border-sand-light/40 bg-warm-cream/40">
+        <div className="w-full pt-2 flex items-center justify-between">
+          <Skeleton className="h-3 w-10 bg-sand-light" />
+          <Skeleton className="h-4 w-16 bg-sand-light" />
+        </div>
+      </CardFooter>
+    </Card>
+  );
+}
+
+function SuggestionSection({ title, loading, docs }: { title: string; loading: boolean; docs: MarketDocument[] }) {
+  if (!loading && docs.length === 0) return null;
+
+  return (
+    <section>
+      <h2 className="text-xl font-bold text-earth font-sans mb-6">{title}</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        {loading
+          ? Array.from({ length: 4 }).map((_, i) => <DocumentCardSkeleton key={i} />)
+          : docs.map(doc => <DocumentCard key={doc._id} doc={doc} />)
+        }
+      </div>
+    </section>
+  );
+}
+
 export default function DocumentSuggestions({ documentId }: Props) {
-  const { token } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
 
   const [related, setRelated] = useState<MarketDocument[]>([]);
   const [suggestions, setSuggestions] = useState<MarketDocument[]>([]);
@@ -155,40 +197,8 @@ export default function DocumentSuggestions({ documentId }: Props) {
 
   return (
     <div className="space-y-10 py-8 mt-10 border-t border-sand-light">
-
-      {/* Related Documents */}
-      {(loadingRelated || related.length > 0) && (
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-bold text-earth font-sans">Tài liệu liên quan</h2>
-          </div>
-
-          {loadingRelated ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-primary opacity-60" /></div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-              {related.map(doc => <DocumentCard key={doc._id} doc={doc} />)}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Suggested Documents */}
-      {(loadingSuggestions || suggestions.length > 0) && (
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-bold text-earth font-sans">Có thể bạn sẽ thích</h2>
-          </div>
-
-          {loadingSuggestions ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-primary opacity-60" /></div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-              {suggestions.map(doc => <DocumentCard key={doc._id} doc={doc} />)}
-            </div>
-          )}
-        </section>
-      )}
+      <SuggestionSection title="Tài liệu liên quan" loading={loadingRelated} docs={related} />
+      <SuggestionSection title="Có thể bạn sẽ thích" loading={loadingSuggestions} docs={suggestions} />
     </div>
   );
 }

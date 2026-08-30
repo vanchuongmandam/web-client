@@ -14,11 +14,23 @@ const ArticleListItem = React.memo(({ article }: ArticleListItemProps) => {
   const rawImageUrl = article.media?.find(m => m.mediaType === 'image')?.url;
   const imageUrl = getMediaUrl(rawImageUrl);
   return (
-    <Card className="group grid grid-cols-1 sm:grid-cols-3 gap-4 overflow-hidden rounded-xl border border-border bg-card shadow-xs transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-primary/50">
-      <div className="relative col-span-1 h-full min-h-[150px] bg-muted">
+    <Card className="group grid grid-cols-1 sm:grid-cols-3 gap-4 overflow-hidden rounded-xl border border-border bg-card shadow-xs transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm active:scale-[0.98] hover:border-primary/50">
+      <div className="relative col-span-1 aspect-video sm:aspect-auto sm:h-full sm:min-h-[150px] bg-muted overflow-hidden">
         {imageUrl ? (
-          <Image src={imageUrl} alt={article.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-        ) : null}
+          <Image
+            src={imageUrl}
+            alt={article.title}
+            fill
+            sizes="(max-width: 640px) 100vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center p-4 text-center bg-warm-cream border-b sm:border-b-0 sm:border-r border-sand">
+            <h3 className="font-sans text-sm font-medium leading-tight line-clamp-3 text-earth">
+              {article.title}
+            </h3>
+          </div>
+        )}
       </div>
       <div className="col-span-2 p-4">
         <Badge variant="outline" className="mb-2 rounded-full">{article.category.name}</Badge>
