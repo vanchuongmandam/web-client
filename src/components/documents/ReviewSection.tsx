@@ -59,12 +59,23 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
   }, [documentId, token, loadReviews]);
 
   const handleSubmit = useCallback(async () => {
-    if (!token) return;
+    if (!token || !user) return;
     if (!content.trim()) return;
     setSubmitting(true);
     try {
       const newReview = await createReview(documentId, rating, content, token);
-      setReviews(prev => [newReview, ...prev]);
+      const normalizedReview: Review = {
+        ...newReview,
+        user: typeof newReview.user === 'object' && newReview.user !== null
+          ? newReview.user
+          : {
+              _id: user._id,
+              username: user.username,
+              displayName: user.displayName || user.username,
+              avatar: user.avatar,
+            },
+      };
+      setReviews(prev => [normalizedReview, ...prev]);
       setContent("");
       setRating(5);
       toast({ title: "Đánh giá thành công!" });
@@ -73,7 +84,7 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
     } finally {
       setSubmitting(false);
     }
-  }, [token, documentId, rating, content, toast]);
+  }, [token, user, documentId, rating, content, toast]);
 
   const handleUpvote = useCallback(async (reviewId: string) => {
     if (!token) {
@@ -82,7 +93,15 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
     }
     try {
       const updated = await upvoteReview(reviewId, token);
-      setReviews(prev => prev.map(r => r._id === reviewId ? updated : r));
+      setReviews(prev => prev.map(r => {
+        if (r._id === reviewId) {
+          return {
+            ...updated,
+            user: typeof updated.user === 'object' && updated.user !== null ? updated.user : r.user
+          };
+        }
+        return r;
+      }));
     } catch (e) {
       toast({ title: "Lỗi", description: toErrorMessage(e), variant: "destructive" });
     }
@@ -176,12 +195,12 @@ export default function ReviewSection({ documentId, price = 0, isFree = false }:
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9 border border-sand">
-                        <AvatarImage src={`https://api.dicebear.com/8.x/lorelei/svg?seed=${r.user?.username}`} />
-                        <AvatarFallback>{r.user?.username?.[0]?.toUpperCase()}</AvatarFallback>
+                        <AvatarImage src={r.user?.avatar || `https://api.dicebear.com/8.x/lorelei/svg?seed=${r.user?.username || 'reader'}`} />
+                        <AvatarFallback>{(r.user?.displayName || r.user?.username || 'D')[0].toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-xs text-earth">{r.user?.displayName || r.user?.username}</p>
+                          <p className="font-semibold text-xs text-earth">{r.user?.displayName || r.user?.username || "Độc giả ẩn danh"}</p>
                           {r.isVerifiedPurchase && (
                             <span className="inline-flex items-center gap-1 text-[8px] uppercase font-bold text-primary bg-wine-tint px-1.5 py-0.5 rounded border border-sand">
                               <BadgeCheck className="w-2.5 h-2.5" /> Đã mua

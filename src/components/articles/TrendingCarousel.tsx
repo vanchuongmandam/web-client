@@ -6,8 +6,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
 import ArticleCard from "@/components/articles/ArticleCard";
 import type { Article } from "@/lib/types";
@@ -39,8 +37,6 @@ export default function TrendingCarousel({ articles }: { articles: Article[] }) 
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="hidden sm:flex" />
-      <CarouselNext className="hidden sm:flex" />
     </Carousel>
   );
 }
