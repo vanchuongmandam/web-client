@@ -50,13 +50,6 @@ function MobileNavContent({ parentCategories }: MobileNavProps) {
       </SheetTrigger>
 
       <SheetContent side="left" className="w-[300px] sm:w-[360px] p-0 flex flex-col">
-        <SheetHeader className="p-4 border-b border-border/60 text-left">
-          <SheetTitle className="text-base font-bold flex items-center gap-2">
-            <Layers className="h-4 w-4 text-primary" />
-            <span>Văn Chương Mạn Đàm</span>
-          </SheetTitle>
-        </SheetHeader>
-
         <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2">
           {/* Trang chủ */}
           <SheetClose asChild>
@@ -69,7 +62,6 @@ function MobileNavContent({ parentCategories }: MobileNavProps) {
                   : "text-foreground hover:text-primary"
               )}
             >
-              <Home className="h-4 w-4" />
               <span>Trang chủ</span>
             </Link>
           </SheetClose>
@@ -85,13 +77,7 @@ function MobileNavContent({ parentCategories }: MobileNavProps) {
                   : "text-foreground hover:text-primary"
               )}
             >
-              <div className="flex items-center gap-3">
-                <BookOpen className="h-4 w-4 text-primary" />
-                <span>Kho tài liệu</span>
-              </div>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary">
-                Hot
-              </span>
+              <span>Kho tài liệu</span>
             </Link>
           </SheetClose>
 

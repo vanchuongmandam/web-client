@@ -49,3 +49,15 @@ export async function search(params: SearchParams): Promise<SearchResults> {
   });
   return res.data;
 }
+
+/**
+ * Fetch trending topics (category names). Revalidated hourly when called from
+ * a server context; client-side calls rely on the component's in-memory cache.
+ */
+export async function getTrendingTopics(signal?: AbortSignal): Promise<string[]> {
+  const res = await apiFetch<ApiEnvelope<string[]>>('/search/trending-topics', {
+    signal,
+    next: { revalidate: 3600 },
+  });
+  return res.data;
+}

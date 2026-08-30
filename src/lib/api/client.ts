@@ -14,7 +14,19 @@ export interface ApiEnvelope<T> {
   pagination?: PaginationMeta;
 }
 
-export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+/**
+ * Next.js fetch cache configuration. Only honored when the fetch runs in a
+ * Server Component / Route Handler; in the browser it is silently ignored.
+ */
+export interface NextCacheConfig {
+  revalidate?: number | false;
+  tags?: string[];
+}
+
+export async function apiFetch<T>(
+  path: string,
+  options?: RequestInit & { next?: NextCacheConfig }
+): Promise<T> {
   const url = `${API_BASE}${path}`;
   let res: Response;
   try {

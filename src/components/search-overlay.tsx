@@ -23,7 +23,7 @@ import {
   CornerDownLeft,
   Trash2,
 } from "lucide-react";
-import { search, type SearchHit } from "@/lib/api/search";
+import { search, getTrendingTopics, type SearchHit } from "@/lib/api/search";
 import { formatVietnameseDate, getMediaUrl } from "@/lib/utils";
 
 interface SearchOverlayProps {
@@ -34,16 +34,9 @@ interface SearchOverlayProps {
 const RECENT_SEARCHES_KEY = "vcmd_recent_searches";
 const MAX_RECENT_SEARCHES = 6;
 
-const POPULAR_TOPICS = [
-  "Văn học hiện thực",
-  "Truyện Kiều",
-  "Thơ mới 1932 - 1945",
-  "Phê bình & Tiểu luận",
-  "Văn học trung đại",
-  "Tài liệu ôn thi THPT",
-  "Nam Cao",
-  "Nguyễn Du",
-];
+// In-memory session cache — avoids refetching trending topics on every open,
+// mirroring the `revalidate: 3600` server-side cache configured in the API helper.
+let cachedTrendingTopics: string[] | null = null;
 
 const HL_PATTERN = /__HL_START__(.*?)__HL_END__/g;
 
@@ -106,6 +99,8 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   const [error, setError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [trendingTopics, setTrendingTopics] = useState<string[]>([]);
+  const [trendingLoading, setTrendingLoading] = useState(false);
 
   // Load recent searches from localStorage on mount / open
   useEffect(() => {
@@ -210,6 +205,37 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       setError(null);
       setActiveIndex(-1);
     }
+  }, [isOpen]);
+
+  // Load trending topics once per session (server revalidates hourly via `revalidate`).
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Serve from cache immediately on reopen.
+    if (cachedTrendingTopics !== null) {
+      setTrendingTopics(cachedTrendingTopics);
+      setTrendingLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setTrendingLoading(true);
+
+    getTrendingTopics()
+      .then((topics) => {
+        cachedTrendingTopics = topics;
+        if (!cancelled) setTrendingTopics(topics);
+      })
+      .catch(() => {
+        if (!cancelled) setTrendingTopics([]);
+      })
+      .finally(() => {
+        if (!cancelled) setTrendingLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]);
 
   // Interleave hits for "all" tab
@@ -421,16 +447,29 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                   <span className="text-xs font-semibold text-muted-foreground">Chủ đề thịnh hành</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {POPULAR_TOPICS.map((topic) => (
-                    <Badge
-                      key={topic}
-                      variant="secondary"
-                      onClick={() => handleTopicClick(topic)}
-                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-all text-xs font-normal py-1 px-3 rounded-full border border-border/40"
-                    >
-                      {topic}
-                    </Badge>
-                  ))}
+                  {trendingLoading ? (
+                    // Light skeleton placeholders while the API loads.
+                    <>
+                      {[0, 1, 2, 3, 4, 5].map((i) => (
+                        <div
+                          key={i}
+                          className="h-6 w-20 rounded-full bg-muted/40 animate-pulse border border-border/40"
+                          style={{ width: `${[5, 7, 6, 8, 5, 6][i]}rem` }}
+                        />
+                      ))}
+                    </>
+                  ) : (
+                    trendingTopics.map((topic) => (
+                      <Badge
+                        key={topic}
+                        variant="secondary"
+                        onClick={() => handleTopicClick(topic)}
+                        className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-all text-xs font-normal py-1 px-3 rounded-full border border-border/40"
+                      >
+                        {topic}
+                      </Badge>
+                    ))
+                  )}
                 </div>
               </div>
 
