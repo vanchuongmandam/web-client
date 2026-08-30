@@ -33,7 +33,7 @@ const NewspaperArticleCard = React.memo(({ article }: NewspaperArticleCardProps)
                 onError={() => setImageError(true)}
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center p-4 text-center bg-warm-cream border-b border-sand transition-transform duration-300 group-hover:scale-105">
+              <div className="absolute inset-0 flex items-center justify-center p-4 text-center bg-warm-cream bg-[url('/patterns/cardboard-flat.png')] bg-repeat border-b border-sand transition-transform duration-300 group-hover:scale-105">
                 <h3 className="font-sans text-sm font-medium leading-tight line-clamp-4 text-earth">
                   {article.title}
                 </h3>

@@ -25,7 +25,7 @@ const ArticleListItem = React.memo(({ article }: ArticleListItemProps) => {
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center p-4 text-center bg-warm-cream border-b sm:border-b-0 sm:border-r border-sand">
+          <div className="absolute inset-0 flex items-center justify-center p-4 text-center bg-warm-cream bg-[url('/patterns/cardboard-flat.png')] bg-repeat border-b sm:border-b-0 sm:border-r border-sand">
             <h3 className="font-sans text-sm font-medium leading-tight line-clamp-3 text-earth">
               {article.title}
             </h3>

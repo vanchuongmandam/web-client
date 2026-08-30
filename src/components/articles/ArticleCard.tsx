@@ -20,7 +20,7 @@ const ArticleCard = React.memo(({ article }: ArticleCardProps) => {
   const showBanner = !initialImageUrl || imageError;
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden rounded-xl group transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm active:scale-[0.98] border border-border bg-card shadow-xs hover:border-primary/50">
+    <Card className="h-full flex flex-col overflow-hidden rounded-xl group transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-sm border border-border bg-card shadow-xs hover:border-primary/50">
       <CardHeader className="p-0">
         <div className="relative aspect-video w-full bg-muted overflow-hidden">
           {!showBanner ? (
@@ -33,7 +33,7 @@ const ArticleCard = React.memo(({ article }: ArticleCardProps) => {
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center p-6 text-center bg-warm-cream border-b border-sand transition-transform duration-300 group-hover:scale-105">
+            <div className="absolute inset-0 flex items-center justify-center p-6 text-center bg-warm-cream bg-[url('/patterns/cardboard-flat.png')] bg-repeat border-b border-sand transition-transform duration-300 group-hover:scale-105">
               <h3 className="font-sans text-lg md:text-xl font-medium leading-snug line-clamp-3 text-earth">
                 {article.title}
               </h3>

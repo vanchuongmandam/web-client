@@ -60,7 +60,10 @@ export async function getArticleBySlug(
   fetchOptions?: RequestInit,
 ): Promise<Article | null> {
   try {
-    const res = await apiFetch<ApiEnvelope<Article>>(`/articles/${slug}`, fetchOptions);
+    const res = await apiFetch<ApiEnvelope<Article>>(`/articles/${slug}`, {
+      next: { revalidate: 3600 },
+      ...fetchOptions,
+    });
     return res.data;
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) return null;
@@ -108,6 +111,6 @@ export async function getArticleSuggestions(
   categoryId: string,
 ): Promise<Article[]> {
   const query = buildQuery({ current_slug: currentSlug, categoryId });
-  const res = await apiFetch<ApiEnvelope<Article[]>>(`/articles/suggestions${query}`);
+  const res = await apiFetch<ApiEnvelope<Article[]>>(`/articles/suggestions${query}`, { next: { revalidate: 3600 } });
   return res.data;
 }

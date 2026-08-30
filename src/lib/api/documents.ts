@@ -36,7 +36,10 @@ export async function getDocumentBySlug(
   fetchOptions?: RequestInit,
 ): Promise<MarketDocument | null> {
   try {
-    const res = await apiFetch<ApiEnvelope<MarketDocument>>(`/documents/${slug}`, fetchOptions);
+    const res = await apiFetch<ApiEnvelope<MarketDocument>>(`/documents/${slug}`, {
+      next: { revalidate: 60 },
+      ...fetchOptions,
+    });
     return res.data;
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) return null;
