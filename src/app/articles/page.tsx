@@ -5,21 +5,12 @@ import { useState, useEffect, useMemo, Suspense, Fragment, useCallback } from 'r
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import type { Article, Category, PaginationMeta } from '@/lib/types';
-import { getArticlesPaginated, getArticlesByCategoryPaginated } from '@/lib/api';
+import { getArticlesPaginated, getArticlesByCategoryPaginated, getCategories } from '@/lib/api';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { findCategoryBySlug, findCategoryWithParent, formatVietnameseDate } from '@/lib/utils';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import ArticleCard from '@/components/articles/ArticleCard';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || '';
-
-async function fetchCategories(): Promise<Category[]> {
-    const res = await fetch(`${API_BASE}/categories`, { cache: 'no-store' });
-    if (!res.ok) throw new Error("Không thể tải danh sách danh mục.");
-    const json = await res.json();
-    return json.data ?? json;
-}
 
 const SORT_MAP: Record<string, string> = {
     newest: '-createdAt',
@@ -84,15 +75,15 @@ const ArticlesView = () => {
 
             let result;
             if (categorySlug) {
-                result = await getArticlesByCategoryPaginated(categorySlug, paginationParams, { cache: 'no-store' });
+                result = await getArticlesByCategoryPaginated(categorySlug, paginationParams);
             } else {
-                result = await getArticlesPaginated(paginationParams, { cache: 'no-store' });
+                result = await getArticlesPaginated(paginationParams);
             }
             setArticles(result.data);
             setPagination(result.pagination);
 
             // Fetch categories for sidebar (only once basically, but needed for display)
-            const cats = await fetchCategories();
+            const cats = await getCategories();
             setCategories(cats);
         } catch (error) {
             toast({
