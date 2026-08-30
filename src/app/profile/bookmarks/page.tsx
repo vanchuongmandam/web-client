@@ -83,7 +83,7 @@ export default function BookmarksPage() {
   return (
     <div className="space-y-6 font-sans">
       <div>
-        <h2 className="text-xl font-bold text-primary">Tài liệu đã lưu</h2>
+        <h1 className="text-2xl font-bold text-primary">Tài liệu đã lưu</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Danh sách các tài liệu bạn đã đánh dấu yêu thích để xem lại sau.
         </p>

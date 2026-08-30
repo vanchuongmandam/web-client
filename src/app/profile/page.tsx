@@ -214,7 +214,7 @@ export default function ProfilePage() {
       }, token);
       setProfile(updated);
       toast({ title: "Đã lưu", description: "Cập nhật thông tin thành công." });
-      
+
       // Reload profile properties
       window.location.reload();
     } catch (err) {
@@ -269,7 +269,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8 font-sans">
-      
+
       {/* 4 Quick Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: User Info */}
@@ -359,7 +359,7 @@ export default function ProfilePage() {
 
       {/* Main Settings Sections */}
       <div className="space-y-8 pt-4 border-t border-border/40">
-        
+
         {/* Personal Info Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="space-y-1.5 lg:pr-4">
@@ -371,7 +371,7 @@ export default function ProfilePage() {
               Cập nhật thông tin tài khoản, tên hiển thị, bút danh diễn đàn và giới thiệu ngắn về bản thân. Trường có dấu <span className="text-red-600 font-bold">*</span> là bắt buộc.
             </p>
           </div>
-          
+
           <Card className="lg:col-span-2 bg-card border border-border/80 shadow-sm rounded-md">
             <CardContent className="p-5">
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
@@ -393,11 +393,10 @@ export default function ProfilePage() {
                       setForm({ ...form, displayName: e.target.value });
                       if (errors.displayName) setErrors((prev) => ({ ...prev, displayName: "" }));
                     }}
-                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${
-                      errors.displayName
+                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${errors.displayName
                         ? "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500"
                         : "border-border/60 focus-visible:ring-primary focus-visible:border-primary"
-                    }`}
+                      }`}
                   />
                   {errors.displayName && (
                     <p className="text-red-700 text-[10px] font-semibold mt-1">{errors.displayName}</p>
@@ -423,11 +422,10 @@ export default function ProfilePage() {
                       setForm({ ...form, email: e.target.value });
                       if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
                     }}
-                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${
-                      errors.email
+                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${errors.email
                         ? "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500"
                         : "border-border/60 focus-visible:ring-primary focus-visible:border-primary"
-                    }`}
+                      }`}
                   />
                   {errors.email && (
                     <p className="text-red-700 text-[10px] font-semibold mt-1">{errors.email}</p>
@@ -463,7 +461,7 @@ export default function ProfilePage() {
                   <Input
                     value={form.workPlace}
                     onChange={(e) => setForm({ ...form, workPlace: e.target.value })}
-                    placeholder="Ví dụ: Trường THPT Chu Văn An"
+                    placeholder="Ví dụ: Trường THPT Chuyên Hà Tĩnh"
                     className="h-9 bg-background/50 border-border/60 text-foreground focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary transition-all text-sm"
                   />
                 </div>
@@ -494,7 +492,7 @@ export default function ProfilePage() {
               Thông tin nhận tiền doanh thu khi người khác mua tài liệu hoặc ủng hộ tác phẩm của bạn. Nếu điền, vui lòng nhập đầy đủ cả 3 thông tin.
             </p>
           </div>
-          
+
           <Card className="lg:col-span-2 bg-card border border-border/80 shadow-sm rounded-md">
             <CardContent className="p-5">
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
@@ -509,11 +507,10 @@ export default function ProfilePage() {
                       if (errors.bankName) setErrors((prev) => ({ ...prev, bankName: "" }));
                     }}
                     placeholder="Ví dụ: MBBank"
-                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${
-                      errors.bankName
+                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${errors.bankName
                         ? "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500"
                         : "border-border/60 focus-visible:ring-primary focus-visible:border-primary"
-                    }`}
+                      }`}
                   />
                   {errors.bankName && (
                     <p className="text-red-700 text-[10px] font-semibold mt-1">{errors.bankName}</p>
@@ -530,11 +527,10 @@ export default function ProfilePage() {
                       if (errors.accountNumber) setErrors((prev) => ({ ...prev, accountNumber: "" }));
                     }}
                     placeholder="Ví dụ: 0123456789"
-                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${
-                      errors.accountNumber
+                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${errors.accountNumber
                         ? "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500"
                         : "border-border/60 focus-visible:ring-primary focus-visible:border-primary"
-                    }`}
+                      }`}
                   />
                   {errors.accountNumber && (
                     <p className="text-red-700 text-[10px] font-semibold mt-1">{errors.accountNumber}</p>
@@ -551,11 +547,10 @@ export default function ProfilePage() {
                       if (errors.accountName) setErrors((prev) => ({ ...prev, accountName: "" }));
                     }}
                     placeholder="Ví dụ: NGUYEN THANG LONG"
-                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${
-                      errors.accountName
+                    className={`h-9 bg-background/50 text-foreground text-sm transition-all focus-visible:ring-1 ${errors.accountName
                         ? "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500"
                         : "border-border/60 focus-visible:ring-primary focus-visible:border-primary"
-                    }`}
+                      }`}
                   />
                   {errors.accountName && (
                     <p className="text-red-700 text-[10px] font-semibold mt-1">{errors.accountName}</p>
@@ -577,7 +572,7 @@ export default function ProfilePage() {
               Liên kết tài khoản mạng xã hội để người đọc dễ kết nối với bạn hơn.
             </p>
           </div>
-          
+
           <Card className="lg:col-span-2 bg-card border border-border/80 shadow-sm rounded-md">
             <CardContent className="p-5">
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
@@ -624,7 +619,7 @@ export default function ProfilePage() {
               Dùng tự động điền khi tạo hóa đơn hoặc tải tài liệu.
             </p>
           </div>
-          
+
           <Card className="lg:col-span-2 bg-card border border-border/80 shadow-sm rounded-md">
             <CardContent className="p-5">
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">

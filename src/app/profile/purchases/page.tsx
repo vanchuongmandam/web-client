@@ -266,11 +266,10 @@ export default function PurchasesPage() {
         {/* 1. Header & Stats Strip */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-sand-light pb-4">
           <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-earth flex items-center gap-2.5">
-              <BookOpen className="size-6 text-primary shrink-0" />
+            <h1 className="text-2xl font-bold text-primary flex items-center gap-2.5">
               <span>Thư viện tài liệu đã sở hữu</span>
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
               Không gian lưu trữ bản quyền số, đọc online tức thì và tải file gốc của bạn.
             </p>
           </div>

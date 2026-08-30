@@ -102,9 +102,14 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6 font-sans">
-      <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
-        <Package className="h-5 w-5 text-primary" /> Lịch sử đơn hàng tài liệu
-      </h2>
+      <div>
+        <h1 className="text-2xl font-bold text-primary flex items-center gap-2.5">
+          <span>Lịch sử đơn hàng tài liệu</span>
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Theo dõi các giao dịch mua tài liệu và trạng thái thanh toán đơn hàng của bạn.
+        </p>
+      </div>
 
       {orders.length === 0 ? (
         <div className="py-16 text-center border border-dashed border-border rounded-xl bg-muted/10 min-h-[300px] flex flex-col justify-center items-center">
@@ -127,7 +132,7 @@ export default function OrdersPage() {
             return (
               <Card key={order._id} className="bg-card border border-border shadow-sm rounded-xl">
                 <CardContent className="p-4 sm:p-5">
-                  
+
                   {/* Order header information */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border pb-3 mb-3">
                     <div>
