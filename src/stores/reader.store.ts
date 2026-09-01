@@ -4,6 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type ReaderTheme = 'parchment' | 'sepia' | 'dark';
 export type PageSpread = 'single' | 'spread';
+export type ViewMode = 'single' | 'continuous';
 
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 2.5;
@@ -13,12 +14,14 @@ interface ReaderState {
   theme: ReaderTheme;
   scale: number;
   pageSpread: PageSpread;
+  viewMode: ViewMode;
   lastReadPages: Record<string, number>;
   setTheme: (theme: ReaderTheme) => void;
   setScale: (scale: number) => void;
   zoomIn: () => void;
   zoomOut: () => void;
   setPageSpread: (spread: PageSpread) => void;
+  setViewMode: (mode: ViewMode) => void;
   saveLastReadPage: (documentId: string, pageNumber: number) => void;
   getLastReadPage: (documentId: string) => number;
 }
@@ -29,6 +32,7 @@ export const useReaderStore = create<ReaderState>()(
       theme: 'parchment',
       scale: 1.2,
       pageSpread: 'single',
+      viewMode: 'single',
       lastReadPages: {},
 
       setTheme: (theme) => set({ theme }),
@@ -50,6 +54,8 @@ export const useReaderStore = create<ReaderState>()(
 
       setPageSpread: (pageSpread) => set({ pageSpread }),
 
+      setViewMode: (viewMode) => set({ viewMode }),
+
       saveLastReadPage: (documentId, pageNumber) =>
         set((state) => ({
           lastReadPages: { ...state.lastReadPages, [documentId]: pageNumber },
@@ -64,6 +70,7 @@ export const useReaderStore = create<ReaderState>()(
         theme: state.theme,
         scale: state.scale,
         pageSpread: state.pageSpread,
+        viewMode: state.viewMode,
         lastReadPages: state.lastReadPages,
       }),
     }

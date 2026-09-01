@@ -4,7 +4,7 @@ import { toErrorMessage } from "@/lib/errors";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { useAuthStore } from "@/stores/auth.store";
-import { useReaderStore, type ReaderTheme } from "@/stores/reader.store";
+import { useReaderStore, type ReaderTheme, type ViewMode } from "@/stores/reader.store";
 import { useRouter } from "next/navigation";
 import {
   Loader2,
@@ -21,6 +21,8 @@ import {
   Palette,
   Check,
   Expand,
+  ScrollText,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -131,6 +133,8 @@ export default function PDFViewerClient({
   const setScale = useReaderStore((s) => s.setScale);
   const zoomIn = useReaderStore((s) => s.zoomIn);
   const zoomOut = useReaderStore((s) => s.zoomOut);
+  const viewMode = useReaderStore((s) => s.viewMode);
+  const setViewMode = useReaderStore((s) => s.setViewMode);
   const saveLastReadPage = useReaderStore((s) => s.saveLastReadPage);
 
   const [numPages, setNumPages] = useState<number>();
@@ -145,6 +149,9 @@ export default function PDFViewerClient({
 
   const rootRef = useRef<HTMLDivElement>(null);
   const viewerContainerRef = useRef<HTMLDivElement>(null);
+  const initialFitDoneRef = useRef(false);
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+
   // Baseline width (in PDF points at scale 1) of the current page — used to
   // compute an accurate "fit to width" scale for any page size.
   const pageBaseWidthRef = useRef(595);
@@ -155,6 +162,7 @@ export default function PDFViewerClient({
     pageNumber: 1,
     scale: 1.0,
     isZenMode: false,
+    viewMode: "single" as ViewMode,
   });
 
   useEffect(() => {
@@ -163,14 +171,22 @@ export default function PDFViewerClient({
       pageNumber,
       scale,
       isZenMode,
+      viewMode,
     };
-  }, [numPages, pageNumber, scale, isZenMode]);
+  }, [numPages, pageNumber, scale, isZenMode, viewMode]);
 
   const changePage = useCallback((offset: number) => {
     setPageNumber((prev) => {
       const max = stateRef.current.numPages || 1;
       const next = Math.min(Math.max(1, prev + offset), max);
       setInputPage(String(next));
+
+      if (stateRef.current.viewMode === "continuous") {
+        const pageEl = document.getElementById(`pdf-page-${next}`);
+        if (pageEl) {
+          pageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
       return next;
     });
   }, []);
@@ -180,24 +196,119 @@ export default function PDFViewerClient({
     const target = Math.min(Math.max(1, page), max);
     setPageNumber(target);
     setInputPage(String(target));
+
+    if (stateRef.current.viewMode === "continuous") {
+      const pageEl = document.getElementById(`pdf-page-${target}`);
+      if (pageEl) {
+        pageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
   }, []);
 
-  const fitToWidth = useCallback(() => {
+  const fitToWidth = useCallback((silent = false) => {
     const el = viewerContainerRef.current;
     if (!el) return;
-    // Available width = container minus its own horizontal padding plus the
-    // page wrapper's p-1 (8px) and 1px border on each side, so the page never
-    // overflows the visible area.
     const cs = getComputedStyle(el);
-    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-    const containerWidth = el.clientWidth - padX - 10;
-    // Use the real page width (PDF points at scale 1) so the scale fits the
-    // page to the container regardless of the document's page size.
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) || 24;
+    const containerWidth = el.clientWidth - padX - 8;
     const baseWidth = pageBaseWidthRef.current || 595;
-    const calculatedScale = Math.min(2.5, Math.max(0.6, containerWidth / baseWidth));
-    setScale(parseFloat(calculatedScale.toFixed(2)));
-    toast({ title: "Đã vừa khung màn hình", description: `Thu phóng: ${Math.round(calculatedScale * 100)}%` });
+    const calculatedScale = Math.min(2.5, Math.max(0.5, containerWidth / baseWidth));
+    const formatted = parseFloat(calculatedScale.toFixed(2));
+    setScale(formatted);
+    if (!silent) {
+      toast({ title: "Đã vừa khung màn hình", description: `Thu phóng: ${Math.round(formatted * 100)}%` });
+    }
   }, [toast, setScale]);
+
+  // Touch Swipe Gestures for Mobile (in Single Page Mode)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        time: Date.now(),
+      };
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (viewMode === "continuous") return;
+    if (!touchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = touch.clientY - touchStartRef.current.y;
+    const dt = Date.now() - touchStartRef.current.time;
+    touchStartRef.current = null;
+
+    // Detect fast horizontal swipe with minimal vertical movement
+    if (dt < 600 && Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+      if (dx < 0) {
+        changePage(1); // Swipe left -> next page
+      } else {
+        changePage(-1); // Swipe right -> prev page
+      }
+    }
+  };
+
+  // Auto-fit on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        fitToWidth(true);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [fitToWidth]);
+
+  // Smooth, jitter-free scroll tracking for Continuous Mode
+  useEffect(() => {
+    if (viewMode !== "continuous" || !numPages) return;
+
+    const container = viewerContainerRef.current;
+    if (!container) return;
+
+    let rafId: number | null = null;
+
+    const handleScroll = () => {
+      if (rafId !== null) return;
+
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        if (!container) return;
+
+        const containerRect = container.getBoundingClientRect();
+        // Focal point at 35% from the top of the viewport
+        const focalY = containerRect.top + Math.min(containerRect.height * 0.35, 250);
+
+        const pageElements = container.querySelectorAll<HTMLElement>("[data-page-number]");
+        let matchedPage = stateRef.current.pageNumber;
+
+        for (let i = 0; i < pageElements.length; i++) {
+          const el = pageElements[i];
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= focalY && rect.bottom >= focalY) {
+            const num = parseInt(el.getAttribute("data-page-number") || "", 10);
+            if (!isNaN(num)) {
+              matchedPage = num;
+            }
+            break;
+          }
+        }
+
+        if (matchedPage !== stateRef.current.pageNumber) {
+          setPageNumber(matchedPage);
+          setInputPage(String(matchedPage));
+        }
+      });
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+  }, [viewMode, numPages]);
 
   // Global Shortcuts & Right Click Protection (Attached ONCE)
   useEffect(() => {
@@ -334,6 +445,15 @@ export default function PDFViewerClient({
     }
   };
 
+  const toggleViewMode = () => {
+    const nextMode: ViewMode = viewMode === "single" ? "continuous" : "single";
+    setViewMode(nextMode);
+    toast({
+      title: nextMode === "continuous" ? "Chế độ cuộn liên tục" : "Chế độ lật từng trang",
+      description: nextMode === "continuous" ? "Cuộn dọc để xem toàn bộ tài liệu" : "Lật trang hoặc vuốt để chuyển trang",
+    });
+  };
+
   const currentTheme = THEMES[theme];
 
   // Helper Tooltip Button Component
@@ -426,6 +546,15 @@ export default function PDFViewerClient({
 
               {/* Right Controls */}
               <div className="flex items-center space-x-1 sm:space-x-2">
+                {/* View Mode Toggle Button */}
+                <TooltipIconButton
+                  tooltip={viewMode === "continuous" ? "Chuyển sang Lật từng trang" : "Chuyển sang Cuộn liên tục"}
+                  onClick={toggleViewMode}
+                  className={cn(viewMode === "continuous" && "text-primary font-semibold")}
+                >
+                  {viewMode === "continuous" ? <ScrollText className="w-4 h-4 text-primary" /> : <FileText className="w-4 h-4" />}
+                </TooltipIconButton>
+
                 {/* Theme Selector Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -470,8 +599,10 @@ export default function PDFViewerClient({
         {/* Main Canvas Workspace */}
         <main
           ref={viewerContainerRef}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
           className={cn(
-            "flex-1 overflow-auto flex justify-center py-6 px-3 sm:px-6 relative transition-colors duration-300 z-0",
+            "flex-1 overflow-auto flex justify-center py-6 px-3 sm:px-6 relative transition-colors duration-300 z-0 scroll-smooth",
             currentTheme.workspace
           )}
         >
@@ -487,25 +618,68 @@ export default function PDFViewerClient({
               }
               className="flex flex-col items-center max-w-full"
             >
-              <div
-                className={cn(
-                  "relative p-1 rounded-lg transition-transform duration-200 ease-out",
-                  currentTheme.card
-                )}
-              >
-                <Page
-                  pageNumber={pageNumber}
-                  scale={scale}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  onRenderSuccess={() => setIsPageRendering(false)}
-                  onLoadSuccess={(page) => {
-                    const base = page.getViewport({ scale: 1 }).width;
-                    pageBaseWidthRef.current = base > 0 ? base : pageBaseWidthRef.current;
-                  }}
-                  className="bg-white rounded overflow-hidden"
-                />
-              </div>
+              {viewMode === "continuous" ? (
+                /* Continuous Scroll Layout */
+                <div className="flex flex-col items-center space-y-6 w-full pb-20">
+                  {Array.from({ length: numPages || 1 }, (_, i) => i + 1).map((p) => (
+                    <div
+                      key={p}
+                      id={`pdf-page-${p}`}
+                      data-page-number={p}
+                      className={cn(
+                        "relative p-1 rounded-lg transition-transform duration-200 ease-out",
+                        currentTheme.card
+                      )}
+                    >
+                      <Page
+                        pageNumber={p}
+                        scale={scale}
+                        renderTextLayer={false}
+                        renderAnnotationLayer={false}
+                        onLoadSuccess={(page) => {
+                          if (p === 1) {
+                            const base = page.getViewport({ scale: 1 }).width;
+                            pageBaseWidthRef.current = base > 0 ? base : pageBaseWidthRef.current;
+                            if (!initialFitDoneRef.current) {
+                              initialFitDoneRef.current = true;
+                              setTimeout(() => fitToWidth(true), 50);
+                            }
+                          }
+                        }}
+                        className="bg-white rounded overflow-hidden"
+                      />
+                      <div className="text-center py-1 text-[11px] font-medium opacity-60 select-none">
+                        Trang {p} / {numPages || "-"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* Single Page Layout */
+                <div
+                  className={cn(
+                    "relative p-1 rounded-lg transition-transform duration-200 ease-out",
+                    currentTheme.card
+                  )}
+                >
+                  <Page
+                    pageNumber={pageNumber}
+                    scale={scale}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    onRenderSuccess={() => setIsPageRendering(false)}
+                    onLoadSuccess={(page) => {
+                      const base = page.getViewport({ scale: 1 }).width;
+                      pageBaseWidthRef.current = base > 0 ? base : pageBaseWidthRef.current;
+                      if (!initialFitDoneRef.current) {
+                        initialFitDoneRef.current = true;
+                        setTimeout(() => fitToWidth(true), 50);
+                      }
+                    }}
+                    className="bg-white rounded overflow-hidden"
+                  />
+                </div>
+              )}
             </Document>
           )}
         </main>
@@ -514,109 +688,109 @@ export default function PDFViewerClient({
         <nav
           aria-label="Điều hướng trang tài liệu"
           className={cn(
-            "absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-3 px-4 py-2 rounded-full border shadow-sm backdrop-blur-md transition-all duration-300",
+            "absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 rounded-full border shadow-sm backdrop-blur-md transition-all duration-300 max-w-[95vw]",
             currentTheme.toolbar,
             isZenMode ? "translate-y-[150%] opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
           )}
         >
-            {/* Pagination Navigation */}
-            <div className={cn("flex items-center space-x-1.5 border-r pr-3", currentTheme.divider)}>
-              <TooltipIconButton
-                tooltip="Trang trước (A / ←)"
-                disabled={pageNumber <= 1}
-                onClick={() => changePage(-1)}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </TooltipIconButton>
+          {/* Pagination Navigation */}
+          <div className={cn("flex items-center space-x-1 sm:space-x-1.5 border-r pr-2 sm:pr-3", currentTheme.divider)}>
+            <TooltipIconButton
+              tooltip="Trang trước (A / ←)"
+              disabled={pageNumber <= 1}
+              onClick={() => changePage(-1)}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </TooltipIconButton>
 
-              <div className="flex items-center space-x-1">
-                <input
-                  type="text"
-                  value={inputPage}
-                  onChange={(e) => setInputPage(e.target.value)}
-                  onKeyDown={handlePageJumpInput}
-                  onBlur={() => setInputPage(String(pageNumber))}
+            <div className="flex items-center space-x-1">
+              <input
+                type="text"
+                value={inputPage}
+                onChange={(e) => setInputPage(e.target.value)}
+                onKeyDown={handlePageJumpInput}
+                onBlur={() => setInputPage(String(pageNumber))}
+                className={cn(
+                  "w-9 h-7 text-center text-xs font-sans font-bold rounded border bg-transparent focus:outline-none focus:ring-1 focus:ring-primary",
+                  currentTheme.divider
+                )}
+                aria-label="Số trang hiện tại"
+              />
+              <span className="text-xs opacity-75 font-medium">/ {numPages || "-"}</span>
+            </div>
+
+            <TooltipIconButton
+              tooltip="Trang sau (D / →)"
+              disabled={pageNumber >= (numPages || 1)}
+              onClick={() => changePage(1)}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </TooltipIconButton>
+          </div>
+
+          {/* Quick Slider Page Scrubber */}
+          {numPages && numPages > 1 && (
+            <div className="w-16 sm:w-28 hidden xs:flex items-center px-1">
+              <Slider
+                value={[pageNumber]}
+                min={1}
+                max={numPages}
+                step={1}
+                onValueChange={(val) => jumpToPage(val[0])}
+                className="cursor-pointer"
+              />
+            </div>
+          )}
+
+          {/* Zoom & Fit Controls */}
+          <div className={cn("flex items-center space-x-1 sm:space-x-1.5 border-l pl-2 sm:pl-3", currentTheme.divider)}>
+            <TooltipIconButton
+              tooltip="Thu nhỏ (-)"
+              disabled={scale <= 0.5}
+              onClick={zoomOut}
+            >
+              <ZoomOut className="w-3.5 h-3.5" />
+            </TooltipIconButton>
+
+            {/* Zoom Presets Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
                   className={cn(
-                    "w-9 h-7 text-center text-xs font-sans font-bold rounded border bg-transparent focus:outline-none focus:ring-1 focus:ring-primary",
-                    currentTheme.divider
+                    "text-xs font-sans font-bold px-1.5 py-1 rounded transition-colors text-center min-w-[46px]",
+                    currentTheme.accentBtn
                   )}
-                  aria-label="Số trang hiện tại"
-                />
-                <span className="text-xs opacity-75 font-medium">/ {numPages || "-"}</span>
-              </div>
-
-              <TooltipIconButton
-                tooltip="Trang sau (D / →)"
-                disabled={pageNumber >= (numPages || 1)}
-                onClick={() => changePage(1)}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </TooltipIconButton>
-            </div>
-
-            {/* Quick Slider Page Scrubber */}
-            {numPages && numPages > 1 && (
-              <div className="w-20 sm:w-28 hidden xs:flex items-center px-1">
-                <Slider
-                  value={[pageNumber]}
-                  min={1}
-                  max={numPages}
-                  step={1}
-                  onValueChange={(val) => jumpToPage(val[0])}
-                  className="cursor-pointer"
-                />
-              </div>
-            )}
-
-            {/* Zoom & Fit Controls */}
-            <div className={cn("flex items-center space-x-1.5 border-l pl-3", currentTheme.divider)}>
-              <TooltipIconButton
-                tooltip="Thu nhỏ (-)"
-                disabled={scale <= 0.5}
-                onClick={zoomOut}
-              >
-                <ZoomOut className="w-3.5 h-3.5" />
-              </TooltipIconButton>
-
-              {/* Zoom Presets Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={cn(
-                      "text-xs font-sans font-bold px-1.5 py-1 rounded transition-colors text-center min-w-[50px]",
-                      currentTheme.accentBtn
-                    )}
+                >
+                  {Math.round(scale * 100)}%
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="font-sans text-xs w-36">
+                <DropdownMenuItem onClick={() => fitToWidth(false)} className="gap-2 cursor-pointer">
+                  <Expand className="w-3.5 h-3.5" /> Vừa chiều rộng
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {ZOOM_PRESETS.map((preset) => (
+                  <DropdownMenuItem
+                    key={preset}
+                    onClick={() => setScale(preset)}
+                    className="flex justify-between cursor-pointer"
                   >
-                    {Math.round(scale * 100)}%
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="font-sans text-xs w-36">
-                  <DropdownMenuItem onClick={fitToWidth} className="gap-2 cursor-pointer">
-                    <Expand className="w-3.5 h-3.5" /> Vừa chiều rộng
+                    <span>{Math.round(preset * 100)}%</span>
+                    {scale === preset && <Check className="w-3.5 h-3.5 text-primary" />}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {ZOOM_PRESETS.map((preset) => (
-                    <DropdownMenuItem
-                      key={preset}
-                      onClick={() => setScale(preset)}
-                      className="flex justify-between cursor-pointer"
-                    >
-                      <span>{Math.round(preset * 100)}%</span>
-                      {scale === preset && <Check className="w-3.5 h-3.5 text-primary" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-              <TooltipIconButton
-                tooltip="Phóng to (+)"
-                disabled={scale >= 2.5}
-                onClick={zoomIn}
-              >
-                <ZoomIn className="w-3.5 h-3.5" />
-              </TooltipIconButton>
-            </div>
-          </nav>
+            <TooltipIconButton
+              tooltip="Phóng to (+)"
+              disabled={scale >= 2.5}
+              onClick={zoomIn}
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </TooltipIconButton>
+          </div>
+        </nav>
 
         {/* Floating Zen Mode Exit Control */}
         {isZenMode && (
