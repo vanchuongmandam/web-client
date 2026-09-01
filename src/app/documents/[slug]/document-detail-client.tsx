@@ -10,9 +10,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
-import { checkDocumentOwnership, getDocumentDownload } from '@/lib/api';
+import { checkDocumentOwnership, getDocumentDownload, getContactSettings } from '@/lib/api';
 import { getMediaUrl } from "@/lib/utils";
-import type { MarketDocument } from '@/lib/types';
+import type { ContactSettings, MarketDocument } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,7 +36,8 @@ import {
   BookmarkCheck,
   Ban,
   Loader2,
-  X
+  X,
+  MessageCircle
 } from 'lucide-react';
 import {
   Breadcrumb,
@@ -51,6 +52,7 @@ import { ImageLightbox } from '@/components/ui/image-lightbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReviewSection from '@/components/documents/ReviewSection';
 import DocumentSuggestions from '@/components/documents/DocumentSuggestions';
+import { ContactDocumentDialog } from '@/components/documents/ContactDocumentDialog';
 import dynamic from 'next/dynamic';
 
 const RichTextEditor = dynamic(() => import("@/components/ui/rich-text-editor"), {
@@ -73,7 +75,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
   const primaryCoverImage = useMemo(() =>
     doc.coverImage?.trim() ||
     (Array.isArray(doc.previewImages) && doc.previewImages.length > 0 ? doc.previewImages[0] : null) ||
-    (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? doc.previewFile : null),
+    (doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') && !doc.previewFile.toLowerCase().endsWith('.doc') ? doc.previewFile : null),
     [doc.coverImage, doc.previewImages, doc.previewFile]
   );
 
@@ -81,7 +83,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
   const allPreviewImages = useMemo(() => Array.from(new Set([
     ...(doc.coverImage ? [doc.coverImage] : []),
     ...(Array.isArray(doc.previewImages) ? doc.previewImages : []),
-    ...(doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') ? [doc.previewFile] : [])
+    ...(doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') && !doc.previewFile.toLowerCase().endsWith('.doc') ? [doc.previewFile] : [])
   ])), [doc.coverImage, doc.previewImages, doc.previewFile]);
 
   const { toast } = useToast();
@@ -92,6 +94,17 @@ export function DocumentDetailClient({ document: doc }: Props) {
   const [activeTab, setActiveTab] = useState("description");
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactSettings, setContactSettings] = useState<ContactSettings | null>(null);
+
+  useEffect(() => {
+    if (!doc.isContactOnly) return;
+    let cancelled = false;
+    getContactSettings()
+      .then((res) => { if (!cancelled) setContactSettings(res); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [doc.isContactOnly]);
 
   useEffect(() => {
     // Chỉ check khi store đã hydrate xong
@@ -428,10 +441,10 @@ export function DocumentDetailClient({ document: doc }: Props) {
             <TabsContent value="preview" className="mt-4 focus-visible:outline-none">
               <Card className="border-2 border-sand-light bg-warm-cream/70 rounded-xl overflow-hidden shadow-xs">
                 <CardHeader>
-                  <CardTitle className="text-base font-bold text-earth">Hình ảnh xem trước</CardTitle>
+                  <CardTitle className="text-base font-bold text-earth">Bản xem trước & Hình ảnh mẫu</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">Tham khảo các trang mẫu được trích xuất từ tài liệu.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent>
                   {allPreviewImages.length > 0 ? (
                     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 rounded-lg overflow-hidden border-2 border-sand bg-sand/10 p-2">
                       {allPreviewImages.map((img, i) => (
@@ -530,13 +543,22 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   {formatPrice(doc.price)}
                 </CardTitle>
                 <Badge variant="secondary" className="text-[11px] font-medium bg-sand/60 text-earth-muted rounded-full border-0 px-2.5 py-0.5">
-                  {doc.isFree ? 'Tài liệu mở' : 'Sở hữu trọn đời'}
+                  {doc.isContactOnly ? 'Trao đổi liên hệ' : doc.isFree ? 'Tài liệu mở' : 'Sở hữu trọn đời'}
                 </Badge>
               </div>
 
               <CardDescription className="text-xs text-earth-light flex items-center gap-1.5 pt-0.5">
-                <CheckCircle2 className="size-3.5 text-primary shrink-0" />
-                <span>Sở hữu vĩnh viễn, đọc online và tải file gốc</span>
+                {doc.isContactOnly ? (
+                  <>
+                    <MessageCircle className="size-3.5 text-primary shrink-0" />
+                    <span>Giá tham khảo — liên hệ trực tiếp qua Zalo để trao đổi và nhận tài liệu</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="size-3.5 text-primary shrink-0" />
+                    <span>Sở hữu vĩnh viễn, đọc online và tải file gốc</span>
+                  </>
+                )}
               </CardDescription>
             </CardHeader>
 
@@ -579,6 +601,15 @@ export function DocumentDetailClient({ document: doc }: Props) {
                       </p>
                     )}
                   </>
+                ) : doc.isContactOnly ? (
+                  <Button
+                    className="w-full h-12 bg-primary hover:bg-wine-dark active:scale-[0.99] text-primary-foreground font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2 group"
+                    size="lg"
+                    onClick={() => setContactOpen(true)}
+                  >
+                    <MessageCircle className="size-4.5 transition-transform group-hover:scale-110" />
+                    <span>Liên hệ tư vấn / Nhận tài liệu</span>
+                  </Button>
                 ) : doc.isFree ? (
                   <Button
                     className="w-full h-12 bg-primary hover:bg-wine-dark active:scale-[0.99] text-primary-foreground font-semibold text-sm sm:text-base rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
@@ -599,7 +630,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   </Button>
                 )}
 
-                {/* Preview Button */}
+                {/* Preview Images Button */}
                 {!owned && !checking && hasHydrated && allPreviewImages.length > 0 && (
                   <Button
                     variant="outline"
@@ -686,6 +717,17 @@ export function DocumentDetailClient({ document: doc }: Props) {
         onClose={() => setIsLightboxOpen(false)}
         title={`Bản xem trước: ${doc.title}`}
       />
+
+
+      {/* Contact-only (Zalo QR) Dialog */}
+      {doc.isContactOnly && (
+        <ContactDocumentDialog
+          open={contactOpen}
+          onOpenChange={setContactOpen}
+          document={doc}
+          contactSettings={contactSettings ?? { phone: doc.contactPhone || "0987352673", zaloName: "Văn Chương Mạn Đàm", defaultMessage: "", note: "" }}
+        />
+      )}
     </div>
   );
 }

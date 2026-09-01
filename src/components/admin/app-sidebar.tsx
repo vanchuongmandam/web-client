@@ -12,7 +12,8 @@ import {
   Users,
   Ticket,
   FolderTree,
-  Layers
+  Layers,
+  PhoneCall
 } from "lucide-react";
 
 import {
@@ -97,6 +98,11 @@ const systemItems = [
     title: "Mã giảm giá",
     url: "/admin/coupons",
     icon: Ticket,
+  },
+  {
+    title: "Cấu hình liên hệ",
+    url: "/admin/settings",
+    icon: PhoneCall,
   },
 ];
 

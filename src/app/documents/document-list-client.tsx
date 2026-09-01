@@ -641,6 +641,11 @@ export function DocumentListClient({
                                   Khuyên đọc
                                 </Badge>
                               )}
+                              {doc.isContactOnly && (
+                                <Badge variant="outline" className="text-[10px] font-semibold px-2 py-0 rounded-full text-primary border-sand">
+                                  Liên hệ
+                                </Badge>
+                              )}
                               {doc.uploader && (
                                 <Badge variant="outline" className="text-[10px] font-semibold px-2 py-0 text-muted-foreground border-sand rounded-full">
                                   Đã kiểm định

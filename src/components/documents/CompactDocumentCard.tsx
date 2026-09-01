@@ -108,14 +108,21 @@ export function CompactDocumentCard({
 
         {/* Pricing & Metadata Row */}
         <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border/50">
-          <span
-            className={cn(
-              "text-xs sm:text-sm font-bold",
-              doc.isFree ? "text-primary" : "text-destructive"
+          <div className="flex items-center gap-1.5 min-w-0">
+            {doc.isContactOnly && (
+              <span className="shrink-0 rounded-sm border border-sand bg-warm-sand/40 px-1.5 py-0.5 text-[9px] font-semibold text-primary">
+                Liên hệ
+              </span>
             )}
-          >
-            {formatPrice(doc.price)}
-          </span>
+            <span
+              className={cn(
+                "text-xs sm:text-sm font-bold truncate",
+                doc.isFree ? "text-primary" : "text-destructive"
+              )}
+            >
+              {formatPrice(doc.price)}
+            </span>
+          </div>
 
           <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span className="flex items-center gap-0.5">

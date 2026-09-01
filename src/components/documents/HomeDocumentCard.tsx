@@ -101,6 +101,11 @@ export function HomeDocumentCard({ doc }: { doc: MarketDocument }) {
               {doc.category.name}
             </Badge>
           )}
+          {doc.isContactOnly && (
+            <Badge variant="outline" className="mb-1.5 ml-1 text-[10px] px-1.5 py-0 rounded-sm font-semibold text-primary border-sand">
+              Liên hệ
+            </Badge>
+          )}
           <Link href={`/documents/${doc.slug}`} className="block">
             <h3
               className="font-bold text-sm text-foreground line-clamp-2 hover:text-primary transition-colors leading-snug"

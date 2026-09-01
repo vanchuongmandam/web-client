@@ -227,11 +227,21 @@ export interface MarketDocument {
   status: 'draft' | 'active' | 'archived';
   featured: boolean;
   allowDownload?: boolean;
+  isContactOnly?: boolean;
+  contactPhone?: string;
+  contactNote?: string;
   relatedArticle?: { _id: string; title: string; slug: string };
   relatedDocuments?: MarketDocument[];
   uploader?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ContactSettings {
+  phone: string;
+  zaloName?: string;
+  defaultMessage?: string;
+  note?: string;
 }
 
 export interface OrderItem {

@@ -122,6 +122,9 @@ export default function NewDocumentPage() {
     status: "draft" as "draft" | "active" | "archived",
     featured: false,
     allowDownload: true,
+    isContactOnly: false,
+    contactPhone: "",
+    contactNote: "",
   });
 
   // Redirect non-admins
@@ -185,6 +188,7 @@ export default function NewDocumentPage() {
         status: form.status,
         featured: form.featured,
         allowDownload: form.allowDownload,
+        isContactOnly: form.isContactOnly,
         tags: form.tags
           .split(",")
           .map((t) => t.trim())
@@ -192,6 +196,8 @@ export default function NewDocumentPage() {
       };
 
       if (form.originalPrice) payload.originalPrice = Number(form.originalPrice);
+      if (form.contactPhone) payload.contactPhone = form.contactPhone.trim();
+      if (form.contactNote) payload.contactNote = form.contactNote.trim();
       if (form.previewFile) payload.previewFile = form.previewFile.trim();
       if (form.coverImage) payload.coverImage = form.coverImage.trim();
       if (form.previewImages && form.previewImages.length > 0) {
@@ -655,6 +661,47 @@ export default function NewDocumentPage() {
                   <div className="space-y-1.5">
                     <Label htmlFor="originalPrice">Giá gốc (VNĐ)</Label>
                     <Input id="originalPrice" type="number" min={0} value={form.originalPrice} onChange={(e) => handleChange("originalPrice", e.target.value)} className="text-muted-foreground line-through" />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="bg-muted/30">
+              <CardTitle className="text-base">Chế độ giao dịch</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="isContactOnly" className="cursor-pointer font-medium text-muted-foreground">Chỉ nhận liên hệ (Tắt mua trực tiếp)</Label>
+                <Switch id="isContactOnly" checked={form.isContactOnly} onCheckedChange={(v) => handleChange("isContactOnly", v)} />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Khi bật, tài liệu sẽ hiển thị nút Liên hệ Zalo và mã QR thay cho nút Mua ngay.
+              </p>
+
+              {form.isContactOnly && (
+                <div className="space-y-4 border-t pt-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="contactPhone">Số điện thoại Zalo riêng (Tùy chọn)</Label>
+                    <Input
+                      id="contactPhone"
+                      value={form.contactPhone}
+                      onChange={(e) => handleChange("contactPhone", e.target.value)}
+                      placeholder="Để trống sẽ dùng hotline chung"
+                      inputMode="numeric"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="contactNote">Ghi chú liên hệ riêng (Tùy chọn)</Label>
+                    <Textarea
+                      id="contactNote"
+                      value={form.contactNote}
+                      onChange={(e) => handleChange("contactNote", e.target.value)}
+                      placeholder="Lưu ý khi liên hệ..."
+                      rows={2}
+                      className="resize-none"
+                    />
                   </div>
                 </div>
               )}

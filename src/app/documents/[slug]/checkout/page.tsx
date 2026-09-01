@@ -96,6 +96,15 @@ export default function CheckoutPage() {
           router.push('/documents');
           return;
         }
+        if (docData.isContactOnly) {
+          toast({
+            title: 'Liên hệ để nhận tài liệu',
+            description: 'Tài liệu này chỉ nhận liên hệ trực tiếp qua Zalo, không hỗ trợ mua trực tuyến.',
+            variant: 'destructive',
+          });
+          router.replace(`/documents/${slug}`);
+          return;
+        }
         initCheckout(docData, profileData.balance || 0, profileData.billingAddress);
       } catch {
         toast({ title: 'Lỗi', description: 'Không thể tải dữ liệu', variant: 'destructive' });

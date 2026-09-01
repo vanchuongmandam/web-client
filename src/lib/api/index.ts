@@ -10,3 +10,4 @@ export * from './purchases';
 export * from './admin';
 export * from './upload';
 export * from './search';
+export * from './settings';

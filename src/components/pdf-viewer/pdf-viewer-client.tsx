@@ -186,7 +186,7 @@ export default function PDFViewerClient({
     const calculatedScale = Math.min(2.5, Math.max(0.6, containerWidth / 595));
     setScale(parseFloat(calculatedScale.toFixed(2)));
     toast({ title: "Đã vừa khung màn hình", description: `Thu phóng: ${Math.round(calculatedScale * 100)}%` });
-  }, [toast]);
+  }, [toast, setScale]);
 
   // Global Shortcuts & Right Click Protection (Attached ONCE)
   useEffect(() => {
@@ -504,104 +504,104 @@ export default function PDFViewerClient({
             isZenMode ? "translate-y-[150%] opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
           )}
         >
-          {/* Pagination Navigation */}
-          <div className={cn("flex items-center space-x-1.5 border-r pr-3", currentTheme.divider)}>
-            <TooltipIconButton
-              tooltip="Trang trước (A / ←)"
-              disabled={pageNumber <= 1}
-              onClick={() => changePage(-1)}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </TooltipIconButton>
+            {/* Pagination Navigation */}
+            <div className={cn("flex items-center space-x-1.5 border-r pr-3", currentTheme.divider)}>
+              <TooltipIconButton
+                tooltip="Trang trước (A / ←)"
+                disabled={pageNumber <= 1}
+                onClick={() => changePage(-1)}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </TooltipIconButton>
 
-            <div className="flex items-center space-x-1">
-              <input
-                type="text"
-                value={inputPage}
-                onChange={(e) => setInputPage(e.target.value)}
-                onKeyDown={handlePageJumpInput}
-                onBlur={() => setInputPage(String(pageNumber))}
-                className={cn(
-                  "w-9 h-7 text-center text-xs font-mono font-bold rounded border bg-transparent focus:outline-none focus:ring-1 focus:ring-primary",
-                  currentTheme.divider
-                )}
-                aria-label="Số trang hiện tại"
-              />
-              <span className="text-xs opacity-75 font-medium">/ {numPages || "-"}</span>
-            </div>
-
-            <TooltipIconButton
-              tooltip="Trang sau (D / →)"
-              disabled={pageNumber >= (numPages || 1)}
-              onClick={() => changePage(1)}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </TooltipIconButton>
-          </div>
-
-          {/* Quick Slider Page Scrubber */}
-          {numPages && numPages > 1 && (
-            <div className="w-20 sm:w-28 hidden xs:flex items-center px-1">
-              <Slider
-                value={[pageNumber]}
-                min={1}
-                max={numPages}
-                step={1}
-                onValueChange={(val) => jumpToPage(val[0])}
-                className="cursor-pointer"
-              />
-            </div>
-          )}
-
-          {/* Zoom & Fit Controls */}
-          <div className={cn("flex items-center space-x-1.5 border-l pl-3", currentTheme.divider)}>
-            <TooltipIconButton
-              tooltip="Thu nhỏ (-)"
-              disabled={scale <= 0.5}
-              onClick={zoomOut}
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-            </TooltipIconButton>
-
-            {/* Zoom Presets Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
+              <div className="flex items-center space-x-1">
+                <input
+                  type="text"
+                  value={inputPage}
+                  onChange={(e) => setInputPage(e.target.value)}
+                  onKeyDown={handlePageJumpInput}
+                  onBlur={() => setInputPage(String(pageNumber))}
                   className={cn(
-                    "text-xs font-mono font-bold px-1.5 py-1 rounded transition-colors text-center min-w-[50px]",
-                    currentTheme.accentBtn
+                    "w-9 h-7 text-center text-xs font-mono font-bold rounded border bg-transparent focus:outline-none focus:ring-1 focus:ring-primary",
+                    currentTheme.divider
                   )}
-                >
-                  {Math.round(scale * 100)}%
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="font-sans text-xs w-36">
-                <DropdownMenuItem onClick={fitToWidth} className="gap-2 cursor-pointer">
-                  <Expand className="w-3.5 h-3.5" /> Vừa chiều rộng
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {ZOOM_PRESETS.map((preset) => (
-                  <DropdownMenuItem
-                    key={preset}
-                    onClick={() => setScale(preset)}
-                    className="flex justify-between cursor-pointer"
-                  >
-                    <span>{Math.round(preset * 100)}%</span>
-                    {scale === preset && <Check className="w-3.5 h-3.5 text-primary" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  aria-label="Số trang hiện tại"
+                />
+                <span className="text-xs opacity-75 font-medium">/ {numPages || "-"}</span>
+              </div>
 
-            <TooltipIconButton
-              tooltip="Phóng to (+)"
-              disabled={scale >= 2.5}
-              onClick={zoomIn}
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </TooltipIconButton>
-          </div>
-        </nav>
+              <TooltipIconButton
+                tooltip="Trang sau (D / →)"
+                disabled={pageNumber >= (numPages || 1)}
+                onClick={() => changePage(1)}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </TooltipIconButton>
+            </div>
+
+            {/* Quick Slider Page Scrubber */}
+            {numPages && numPages > 1 && (
+              <div className="w-20 sm:w-28 hidden xs:flex items-center px-1">
+                <Slider
+                  value={[pageNumber]}
+                  min={1}
+                  max={numPages}
+                  step={1}
+                  onValueChange={(val) => jumpToPage(val[0])}
+                  className="cursor-pointer"
+                />
+              </div>
+            )}
+
+            {/* Zoom & Fit Controls */}
+            <div className={cn("flex items-center space-x-1.5 border-l pl-3", currentTheme.divider)}>
+              <TooltipIconButton
+                tooltip="Thu nhỏ (-)"
+                disabled={scale <= 0.5}
+                onClick={zoomOut}
+              >
+                <ZoomOut className="w-3.5 h-3.5" />
+              </TooltipIconButton>
+
+              {/* Zoom Presets Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "text-xs font-mono font-bold px-1.5 py-1 rounded transition-colors text-center min-w-[50px]",
+                      currentTheme.accentBtn
+                    )}
+                  >
+                    {Math.round(scale * 100)}%
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="font-sans text-xs w-36">
+                  <DropdownMenuItem onClick={fitToWidth} className="gap-2 cursor-pointer">
+                    <Expand className="w-3.5 h-3.5" /> Vừa chiều rộng
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {ZOOM_PRESETS.map((preset) => (
+                    <DropdownMenuItem
+                      key={preset}
+                      onClick={() => setScale(preset)}
+                      className="flex justify-between cursor-pointer"
+                    >
+                      <span>{Math.round(preset * 100)}%</span>
+                      {scale === preset && <Check className="w-3.5 h-3.5 text-primary" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <TooltipIconButton
+                tooltip="Phóng to (+)"
+                disabled={scale >= 2.5}
+                onClick={zoomIn}
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+              </TooltipIconButton>
+            </div>
+          </nav>
 
         {/* Floating Zen Mode Exit Control */}
         {isZenMode && (
