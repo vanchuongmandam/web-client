@@ -5,7 +5,7 @@
 import { toErrorMessage } from "@/lib/errors";
 import { getBookCoverTheme, formatPrice } from "@/lib/document-utils";
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -53,6 +53,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import ReviewSection from '@/components/documents/ReviewSection';
 import DocumentSuggestions from '@/components/documents/DocumentSuggestions';
 import { ContactDocumentDialog } from '@/components/documents/ContactDocumentDialog';
+import PDFViewerWrapper from '@/components/pdf-viewer/pdf-viewer-wrapper';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import dynamic from 'next/dynamic';
 
 const RichTextEditor = dynamic(() => import("@/components/ui/rich-text-editor"), {
@@ -86,6 +88,16 @@ export function DocumentDetailClient({ document: doc }: Props) {
     ...(doc.previewFile && typeof doc.previewFile === 'string' && doc.previewFile.trim() !== '' && !doc.previewFile.toLowerCase().endsWith('.pdf') && !doc.previewFile.toLowerCase().endsWith('.zip') && !doc.previewFile.toLowerCase().endsWith('.docx') && !doc.previewFile.toLowerCase().endsWith('.doc') ? [doc.previewFile] : [])
   ])), [doc.coverImage, doc.previewImages, doc.previewFile]);
 
+  // PDF preview file (readable sample) — resolved to a full public URL by the
+  // backend (formatDocumentMedia), same as ArticlePage's PDF media.
+  const previewPdfUrl = useMemo(() => {
+    const p = doc.previewFile;
+    if (!p || typeof p !== 'string') return null;
+    const t = p.trim();
+    if (!t || !t.toLowerCase().endsWith('.pdf')) return null;
+    return t;
+  }, [doc.previewFile]);
+
   const { toast } = useToast();
   const [owned, setOwned] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -96,13 +108,32 @@ export function DocumentDetailClient({ document: doc }: Props) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [contactOpen, setContactOpen] = useState(false);
   const [contactSettings, setContactSettings] = useState<ContactSettings | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  // Number of grid columns actually visible, read from the rendered grid's
+  // computed style so it always matches the Tailwind breakpoints (grid-cols-2 /
+  // sm:grid-cols-3 / md:grid-cols-4) without duplicating them in JS.
+  const previewGridRef = useRef<HTMLDivElement>(null);
+  const [previewColumns, setPreviewColumns] = useState(2);
+
+  useEffect(() => {
+    const update = () => {
+      const el = previewGridRef.current;
+      if (!el) return;
+      const tpl = getComputedStyle(el).gridTemplateColumns;
+      const cols = parseInt(tpl.match(/repeat\((\d+)/)?.[1] ?? "0", 10);
+      if (cols > 0) setPreviewColumns(cols);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   useEffect(() => {
     if (!doc.isContactOnly) return;
     let cancelled = false;
     getContactSettings()
       .then((res) => { if (!cancelled) setContactSettings(res); })
-      .catch(() => {});
+      .catch(() => { });
     return () => { cancelled = true; };
   }, [doc.isContactOnly]);
 
@@ -444,10 +475,24 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   <CardTitle className="text-base font-bold text-earth">Bản xem trước & Hình ảnh mẫu</CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">Tham khảo các trang mẫu được trích xuất từ tài liệu.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                  {previewPdfUrl && (
+                    <Button
+                      variant="outline"
+                      className="w-full h-11 border border-sand bg-warm-cream hover:bg-warm-linen text-earth hover:text-primary font-semibold text-sm rounded-md shadow-xs transition-all flex items-center justify-center gap-2"
+                      size="lg"
+                      onClick={() => setIsPreviewOpen(true)}
+                    >
+                      <BookOpen className="size-4 text-primary" />
+                      <span>Đọc thử bản xem trước</span>
+                    </Button>
+                  )}
                   {allPreviewImages.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 rounded-lg overflow-hidden border-2 border-sand bg-sand/10 p-2">
-                      {allPreviewImages.map((img, i) => (
+                    <div
+                      ref={previewGridRef}
+                      className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 rounded-lg overflow-hidden border-2 border-sand bg-sand/10 p-2"
+                    >
+                      {allPreviewImages.slice(0, Math.max(1, previewColumns - 1)).map((img, i) => (
                         <div
                           key={i}
                           className="relative aspect-[1/1.38] overflow-hidden cursor-pointer group rounded-md border bg-white shadow-xs"
@@ -470,6 +515,27 @@ export function DocumentDetailClient({ document: doc }: Props) {
                           </div>
                         </div>
                       ))}
+                      {allPreviewImages.length > previewColumns - 1 && (
+                        <div
+                          className="relative aspect-[1/1.38] overflow-hidden cursor-pointer rounded-md border border-sand bg-sand/20 group"
+                          onClick={() => {
+                            setSelectedImageIndex(0);
+                            setIsLightboxOpen(true);
+                          }}
+                        >
+                          <Image
+                            src={getMediaUrl(allPreviewImages[previewColumns - 1])}
+                            alt={`Còn ${allPreviewImages.length - (previewColumns - 1)} ảnh`}
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                            className="object-cover blur-[2px] scale-105 transition-transform duration-300 group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white text-center px-2 transition-colors group-hover:bg-black/50">
+                            <span className="text-lg font-extrabold leading-none">+{allPreviewImages.length - (previewColumns - 1)}</span>
+                            <span className="text-[11px] font-medium mt-1">ảnh</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-xs text-muted-foreground italic py-6 text-center">Chưa có hình ảnh xem trước nào cho tài liệu này.</p>
@@ -608,7 +674,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                     onClick={() => setContactOpen(true)}
                   >
                     <MessageCircle className="size-4.5 transition-transform group-hover:scale-110" />
-                    <span>Liên hệ tư vấn / Nhận tài liệu</span>
+                    <span>Liên hệ / Nhận tài liệu</span>
                   </Button>
                 ) : doc.isFree ? (
                   <Button
@@ -644,7 +710,7 @@ export function DocumentDetailClient({ document: doc }: Props) {
                   >
                     <span className="flex items-center gap-2">
                       <Eye className="size-4 text-primary" />
-                      <span>Xem trước hình ảnh</span>
+                      <span>Xem trước</span>
                     </span>
                     <span className="text-[11px] font-medium bg-sand/70 text-earth-muted px-2.5 py-0.5 rounded-full">
                       {allPreviewImages.length} ảnh
@@ -718,6 +784,21 @@ export function DocumentDetailClient({ document: doc }: Props) {
         title={`Bản xem trước: ${doc.title}`}
       />
 
+
+      {/* Read sample (PDF preview) Dialog */}
+      {previewPdfUrl && (
+        <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+          <DialogContent className="max-w-3xl w-[94vw] max-h-[92vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold text-earth">Đọc thử: {doc.title}</DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Bản mẫu trích đoạn — trải nghiệm trình đọc với đầy đủ chế độ nền, zoom và lật trang.
+              </DialogDescription>
+            </DialogHeader>
+            <PDFViewerWrapper pdfUrl={previewPdfUrl} title={`[Đọc thử] ${doc.title}`} isInline />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Contact-only (Zalo QR) Dialog */}
       {doc.isContactOnly && (

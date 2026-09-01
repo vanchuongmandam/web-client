@@ -145,6 +145,9 @@ export default function PDFViewerClient({
 
   const rootRef = useRef<HTMLDivElement>(null);
   const viewerContainerRef = useRef<HTMLDivElement>(null);
+  // Baseline width (in PDF points at scale 1) of the current page — used to
+  // compute an accurate "fit to width" scale for any page size.
+  const pageBaseWidthRef = useRef(595);
 
   // References for keyboard shortcut performance
   const stateRef = useRef({
@@ -180,10 +183,18 @@ export default function PDFViewerClient({
   }, []);
 
   const fitToWidth = useCallback(() => {
-    if (!viewerContainerRef.current) return;
-    const containerWidth = viewerContainerRef.current.clientWidth - 48; // padding
-    // standard A4 width is ~595pt at 72dpi
-    const calculatedScale = Math.min(2.5, Math.max(0.6, containerWidth / 595));
+    const el = viewerContainerRef.current;
+    if (!el) return;
+    // Available width = container minus its own horizontal padding plus the
+    // page wrapper's p-1 (8px) and 1px border on each side, so the page never
+    // overflows the visible area.
+    const cs = getComputedStyle(el);
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const containerWidth = el.clientWidth - padX - 10;
+    // Use the real page width (PDF points at scale 1) so the scale fits the
+    // page to the container regardless of the document's page size.
+    const baseWidth = pageBaseWidthRef.current || 595;
+    const calculatedScale = Math.min(2.5, Math.max(0.6, containerWidth / baseWidth));
     setScale(parseFloat(calculatedScale.toFixed(2)));
     toast({ title: "Đã vừa khung màn hình", description: `Thu phóng: ${Math.round(calculatedScale * 100)}%` });
   }, [toast, setScale]);
@@ -353,7 +364,7 @@ export default function PDFViewerClient({
           {children}
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="top" className="font-sans text-xs bg-stone-900 text-stone-100 border-stone-800">
+      <TooltipContent side="top" className="font-sans text-xs bg-viewer-dark-surface text-warm-cream border-viewer-dark-border">
         <p>{tooltip}</p>
       </TooltipContent>
     </Tooltip>
@@ -363,16 +374,16 @@ export default function PDFViewerClient({
     return (
       <div
         className={cn(
-          "w-full flex flex-col space-y-4 items-center justify-center bg-stone-950 text-stone-300",
-          isInline ? "h-[550px] rounded-xl border border-stone-800" : "h-screen"
+          "w-full flex flex-col space-y-4 items-center justify-center bg-viewer-dark text-earth-light",
+          isInline ? "h-[min(640px,78vh)] rounded-xl border border-viewer-dark-border" : "h-screen"
         )}
       >
         <Loader2 className="animate-spin w-9 h-9 text-primary" />
         <div className="text-center space-y-1">
-          <p className="text-sm font-sans text-stone-300 font-medium tracking-wide">
+          <p className="text-sm font-sans text-earth-light font-medium tracking-wide">
             Đang khởi tạo trình đọc sách...
           </p>
-          <p className="text-xs text-stone-500 font-sans italic">
+          <p className="text-xs text-earth-light/70 font-sans italic">
             Tải dữ liệu an toàn & tối ưu hóa hiển thị
           </p>
         </div>
@@ -388,7 +399,7 @@ export default function PDFViewerClient({
           "select-none transition-colors duration-300 overflow-hidden flex flex-col font-sans",
           currentTheme.bg,
           isInline && !isFullscreen
-            ? "relative w-full h-[620px] sm:h-[720px] rounded-xl border shadow-sm"
+            ? "relative w-full h-[min(640px,78vh)] rounded-xl border shadow-sm"
             : "fixed inset-0 z-50"
         )}
       >
@@ -488,6 +499,10 @@ export default function PDFViewerClient({
                   renderTextLayer={false}
                   renderAnnotationLayer={false}
                   onRenderSuccess={() => setIsPageRendering(false)}
+                  onLoadSuccess={(page) => {
+                    const base = page.getViewport({ scale: 1 }).width;
+                    pageBaseWidthRef.current = base > 0 ? base : pageBaseWidthRef.current;
+                  }}
                   className="bg-white rounded overflow-hidden"
                 />
               </div>
@@ -522,7 +537,7 @@ export default function PDFViewerClient({
                   onKeyDown={handlePageJumpInput}
                   onBlur={() => setInputPage(String(pageNumber))}
                   className={cn(
-                    "w-9 h-7 text-center text-xs font-mono font-bold rounded border bg-transparent focus:outline-none focus:ring-1 focus:ring-primary",
+                    "w-9 h-7 text-center text-xs font-sans font-bold rounded border bg-transparent focus:outline-none focus:ring-1 focus:ring-primary",
                     currentTheme.divider
                   )}
                   aria-label="Số trang hiện tại"
@@ -568,7 +583,7 @@ export default function PDFViewerClient({
                 <DropdownMenuTrigger asChild>
                   <button
                     className={cn(
-                      "text-xs font-mono font-bold px-1.5 py-1 rounded transition-colors text-center min-w-[50px]",
+                      "text-xs font-sans font-bold px-1.5 py-1 rounded transition-colors text-center min-w-[50px]",
                       currentTheme.accentBtn
                     )}
                   >
@@ -608,7 +623,7 @@ export default function PDFViewerClient({
           <Button
             size="sm"
             onClick={() => setIsZenMode(false)}
-            className="fixed top-5 right-5 z-40 rounded-full shadow-sm gap-1.5 text-xs font-sans bg-stone-900/90 text-stone-100 hover:bg-stone-900 border border-stone-700"
+            className="fixed top-5 right-5 z-40 rounded-full shadow-sm gap-1.5 text-xs font-sans bg-viewer-dark-surface/90 text-warm-cream hover:bg-viewer-dark-surface border border-viewer-dark-border"
           >
             <EyeOff className="w-3.5 h-3.5" />
             <span>Thoát tập trung (Z)</span>

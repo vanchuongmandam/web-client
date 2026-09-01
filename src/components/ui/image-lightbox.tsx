@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ export function ImageLightbox({
 }: ImageLightboxProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(initialIndex);
+  const [loadedIndices, setLoadedIndices] = useState<Set<number>>(() => new Set([initialIndex]));
 
   const normalizedItems: LightboxMediaItem[] = items.map((item) => {
     if (typeof item === "string") {
@@ -65,11 +67,38 @@ export function ImageLightbox({
     }
   };
 
+  // When dialog opens, reset current slide and prime adjacent slides
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentSlide(initialIndex);
+      setLoadedIndices(() => {
+        const next = new Set<number>([initialIndex]);
+        if (totalMedia > 0) {
+          next.add((initialIndex + 1) % totalMedia);
+          next.add((initialIndex - 1 + totalMedia) % totalMedia);
+        }
+        return next;
+      });
+    }
+  }, [isOpen, initialIndex, totalMedia]);
+
   useEffect(() => {
     if (!api) return;
 
     const handleSelect = (emblaApi: CarouselApi) => {
-      if (emblaApi) setCurrentSlide(emblaApi.selectedScrollSnap());
+      if (emblaApi) {
+        const selected = emblaApi.selectedScrollSnap();
+        setCurrentSlide(selected);
+        setLoadedIndices((prev) => {
+          const next = new Set(prev);
+          next.add(selected);
+          if (totalMedia > 0) {
+            next.add((selected + 1) % totalMedia);
+            next.add((selected - 1 + totalMedia) % totalMedia);
+          }
+          return next;
+        });
+      }
     };
 
     api.on("select", handleSelect);
@@ -78,7 +107,7 @@ export function ImageLightbox({
     return () => {
       api.off("select", handleSelect);
     };
-  }, [api]);
+  }, [api, totalMedia]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -100,33 +129,47 @@ export function ImageLightbox({
           className="w-full max-w-5xl"
         >
           <CarouselContent>
-            {normalizedItems.map((item, index) => (
-              <CarouselItem key={index} className="flex items-center justify-center">
-                <div className="relative w-full h-full md:h-[80vh] flex flex-col items-center justify-center">
-                  {item.mediaType === "video" ? (
-                    <CustomVideoPlayer
-                      src={item.url}
-                      playsInline
-                      isActive={isOpen && index === currentSlide}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="relative w-full h-full flex items-center justify-center">
-                      <img
+            {normalizedItems.map((item, index) => {
+              const shouldLoad = loadedIndices.has(index) || index === currentSlide;
+
+              return (
+                <CarouselItem key={index} className="flex items-center justify-center">
+                  <div className="relative w-full h-full md:h-[80vh] flex flex-col items-center justify-center">
+                    {item.mediaType === "video" ? (
+                      <CustomVideoPlayer
                         src={item.url}
-                        alt={item.caption || `Lightbox image ${index + 1}`}
-                        className="max-h-[80vh] max-w-full object-contain"
+                        playsInline
+                        isActive={isOpen && index === currentSlide}
+                        className="w-full h-full object-contain"
                       />
-                    </div>
-                  )}
-                  {item.caption && (
-                    <p className="absolute bottom-16 text-center text-white text-sm bg-black/50 p-2 rounded-md">
-                      {item.caption}
-                    </p>
-                  )}
-                </div>
-              </CarouselItem>
-            ))}
+                    ) : (
+                      <div className="relative w-full h-[70vh] sm:h-[80vh] flex items-center justify-center">
+                        {shouldLoad ? (
+                          <Image
+                            src={item.url}
+                            alt={item.caption || `Lightbox image ${index + 1}`}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+                            className="object-contain select-none"
+                            quality={85}
+                            priority={index === initialIndex}
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full">
+                            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {item.caption && (
+                      <p className="absolute bottom-16 text-center text-white text-sm bg-black/50 p-2 rounded-md">
+                        {item.caption}
+                      </p>
+                    )}
+                  </div>
+                </CarouselItem>
+              );
+            })}
           </CarouselContent>
           {totalMedia > 1 && (
             <>

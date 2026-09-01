@@ -409,7 +409,7 @@ export default function NewDocumentPage() {
                             token,
                             "documents",
                             setPreviewUploadProgress,
-                            true,
+                            false,
                           );
                           handleChange("previewFile", media.url);
                           toast({ title: "Tải lên thành công" });
@@ -592,18 +592,30 @@ export default function NewDocumentPage() {
               </div>
 
               <div className="rounded-xl border border-dashed bg-muted/20 p-4">
-                <p className="text-sm font-semibold">Metadata tự động từ file gốc</p>
+                <p className="text-sm font-semibold">Metadata tệp tài liệu</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Badge variant="secondary">Định dạng: {form.fileFormat.toUpperCase()}</Badge>
                   <Badge variant="secondary">
                     Kích thước: {form.fileSize ? `${form.fileSize} KB` : "--"}
                   </Badge>
-                  <Badge variant="secondary">
-                    Số trang: {form.pageCount ? form.pageCount : "--"}
-                  </Badge>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Label htmlFor="pageCount" className="text-xs font-semibold text-muted-foreground">
+                    Số trang:
+                  </Label>
+                  <Input
+                    id="pageCount"
+                    type="number"
+                    min={0}
+                    value={form.pageCount}
+                    onChange={(e) => handleChange("pageCount", e.target.value.replace(/[^0-9]/g, ""))}
+                    className="h-8 w-24 text-sm"
+                    placeholder="Tự nhập"
+                  />
+                  <span className="text-xs text-muted-foreground">Để trống nếu không rõ.</span>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Hệ thống tự detect sau khi upload. Bạn không cần nhập tay.
+                  Định dạng và kích thước được tự nhận diện; số trang bạn có thể chỉnh sửa thủ công.
                 </p>
               </div>
             </CardContent>
