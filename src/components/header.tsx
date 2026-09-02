@@ -87,7 +87,7 @@ export async function Header() {
           <div className="flex items-center gap-2.5 shrink-0">
             <Link href="/documents">
               <Button
-                variant="outline"
+                variant="accent"
                 size="sm"
                 className="border-primary/30 hover:border-primary/80 bg-primary/5 hover:bg-primary/10 text-primary font-semibold text-xs h-9 px-3.5 rounded-md flex items-center gap-1.5 transition-all shadow-xs"
               >
