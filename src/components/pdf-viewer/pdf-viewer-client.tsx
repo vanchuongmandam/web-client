@@ -107,7 +107,7 @@ const THEMES: Record<ThemeName, ThemeConfig> = {
   },
 };
 
-const ZOOM_PRESETS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+const ZOOM_PRESETS = [0.25, 0.35, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
 interface PDFViewerClientProps {
   documentId?: string;
@@ -212,7 +212,7 @@ export default function PDFViewerClient({
     const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) || 24;
     const containerWidth = el.clientWidth - padX - 8;
     const baseWidth = pageBaseWidthRef.current || 595;
-    const calculatedScale = Math.min(2.5, Math.max(0.5, containerWidth / baseWidth));
+    const calculatedScale = Math.min(2.5, Math.max(0.25, containerWidth / baseWidth));
     const formatted = parseFloat(calculatedScale.toFixed(2));
     setScale(formatted);
     if (!silent) {
@@ -537,7 +537,6 @@ export default function PDFViewerClient({
                 {!isInline && <div className={cn("h-5 w-px hidden sm:block", currentTheme.divider)} />}
 
                 <div className="flex items-center space-x-2 min-w-0 pr-2">
-                  <BookOpen className="w-4 h-4 hidden sm:block opacity-60 shrink-0 text-primary" />
                   <h1 className="font-sans font-semibold text-sm sm:text-base truncate" title={title}>
                     {title}
                   </h1>
@@ -746,7 +745,7 @@ export default function PDFViewerClient({
           <div className={cn("flex items-center space-x-1 sm:space-x-1.5 border-l pl-2 sm:pl-3", currentTheme.divider)}>
             <TooltipIconButton
               tooltip="Thu nhỏ (-)"
-              disabled={scale <= 0.5}
+              disabled={scale <= 0.25}
               onClick={zoomOut}
             >
               <ZoomOut className="w-3.5 h-3.5" />

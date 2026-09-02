@@ -6,7 +6,7 @@ export type ReaderTheme = 'parchment' | 'sepia' | 'dark';
 export type PageSpread = 'single' | 'spread';
 export type ViewMode = 'single' | 'continuous';
 
-const MIN_SCALE = 0.5;
+const MIN_SCALE = 0.25;
 const MAX_SCALE = 2.5;
 const ZOOM_STEP = 0.15;
 
